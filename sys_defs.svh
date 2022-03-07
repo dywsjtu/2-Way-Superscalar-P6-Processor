@@ -78,6 +78,7 @@ typedef enum logic [3:0] {
 //////////////////////////////////////////////
 `define ROB_SIZE 32
 `define REG_SIZE 32
+`define ROB_IDX_LEN $clog2(`ROB_SIZE+1)
 
 
 //////////////////////////////////////////////
@@ -317,5 +318,14 @@ typedef struct packed {
 	logic             halt, illegal, csr_op, valid;
 	logic [2:0]       mem_size; // byte, half-word or word
 } EX_MEM_PACKET;
+
+
+typedef struct packed {
+	logic [`XLEN-1:0]    PC;			// alu result
+	logic                ready;			// is value ready
+	logic [4:0]          dest_reg_idx;	// dest reg index
+	logic [`XLEN-1:0] 	 value;			// value
+	logic                mis_pred;  	// is mispredicted 
+} ROB_ENTRY;
 
 `endif // __SYS_DEFS_VH__
