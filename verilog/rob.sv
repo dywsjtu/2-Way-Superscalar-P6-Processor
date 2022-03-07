@@ -18,33 +18,33 @@ module rob(
     input [`XLEN-1:0]                   PC,
     input                               dispatch_enable,            // whether is ready to dispatch
     input                               complete_enable,            // whether value is ready && cdb is not full
-    input [`ROB_IDX_LEN:0]              complete_rob_entry,         // which entry is ready
+    input [`ROB_IDX_LEN-1:0]            complete_rob_entry,         // which entry is ready
     input [4:0]                         dest_reg_idx,
     input [`XLEN-1:0]                   value,                      // value to cdb and rob entry
     input                               wrong_pred,                 
-    input [`ROB_IDX_LEN:0]              reqire_entry_idx,           // query rob entry from reservation station
+    input [`ROB_IDX_LEN-1:0]            reqire_entry_idx,           // query rob entry from reservation station
     
     output logic                        rob_full,
     output logic                        squash_at_head,             // head is branch instruction and mis predicted
     output logic                        dest_valid,                 
     output logic [4:0]                  dest_reg,                   // store value in the dest_reg
-    output logic [`ROB_IDX_LEN:0]       dest_value,                 // value to store in the dest_reg
-    output logic [`ROB_IDX_LEN:0]       required_value              // query value from reservation station
+    output logic [`ROB_IDX_LEN-1:0]     dest_value,                 // value to store in the dest_reg
+    output logic [`ROB_IDX_LEN-1:0]     required_value              // query value from reservation station
 
     `ifdef DEBUG
-        , output logic      [`ROB_IDX_LEN:0]    rob_head
-        , output logic      [`ROB_IDX_LEN:0]    rob_tail
-        , output logic      [`ROB_IDX_LEN:0]    rob_counter;
+        , output logic      [`ROB_IDX_LEN-1:0]  rob_head
+        , output logic      [`ROB_IDX_LEN-1:0]  rob_tail
+        , output logic      [`ROB_IDX_LEN-1:0]  rob_counter
         , output logic                          rob_empty
-        , output logic                          retire_valid;
+        , output logic                          retire_valid
         , output ROB_ENTRY  [`ROB_SIZE-1:0]     rob_entries
     `endif
 
 );
     `ifndef DEBUG
-        logic       [`ROB_IDX_LEN:0]    rob_head;
-        logic       [`ROB_IDX_LEN:0]    rob_tail;
-        logic       [`ROB_IDX_LEN:0]    rob_counter;
+        logic       [`ROB_IDX_LEN-1:0]  rob_head;
+        logic       [`ROB_IDX_LEN-1:0]  rob_tail;
+        logic       [`ROB_IDX_LEN-1:0]  rob_counter;
         logic                           rob_empty;
         logic                           retire_valid;
         ROB_ENTRY   [`ROB_SIZE-1:0]     rob_entries;
