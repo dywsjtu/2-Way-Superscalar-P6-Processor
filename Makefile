@@ -43,15 +43,17 @@ else
 endif
 
 
-VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp
+VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp +lint=TFIPC-L
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
 
 HEADERS     = $(wildcard *.svh)
-TESTBENCH   = $(wildcard testbench/*.sv)
-TESTBENCH  += $(wildcard testbench/*.c)
-PIPEFILES   = $(wildcard verilog/*.sv)
+#TESTBENCH   = $(wildcard testbench/*.sv)
+#TESTBENCH  += $(wildcard testbench/*.c)
+TESTBENCH = verilog/test_rob.sv
+#PIPEFILES   = $(wildcard verilog/*.sv)
+PIPEFILES = verilog/rob.sv
 
 SIMFILES    = $(PIPEFILES)
 

@@ -35,7 +35,7 @@ module testbench;
         .dest_reg_idx(dest_reg_idx),
         .value(value),
         .wrong_pred(wrong_pred),
-        .reqire_entry_idx(reqire_entry_idx),
+        .require_entry_idx(reqire_entry_idx),
 
         .rob_full(rob_full),
         .squash_at_head(squash_at_head),
@@ -185,41 +185,7 @@ module testbench;
         wrong_pred          = 0;
         reqire_entry_idx    = 2;
         @(negedge clock);
-
-
-
-
-
-
-
-
-
-
-
         $display("@@@Passed");
         $finish;
     end
-);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 endmodule

@@ -22,7 +22,7 @@ module rob(
     input [4:0]                         dest_reg_idx,
     input [`XLEN-1:0]                   value,                      // value to cdb and rob entry
     input                               wrong_pred,                 
-    input [`ROB_IDX_LEN-1:0]            reqire_entry_idx,           // query rob entry from reservation station
+    input [`ROB_IDX_LEN-1:0]            require_entry_idx,           // query rob entry from reservation station
     
     output logic                        rob_full,
     output logic                        squash_at_head,             // head is branch instruction and mis predicted
@@ -51,7 +51,7 @@ module rob(
     `endif
 
     assign rob_empty        = (rob_counter == `ROB_IDX_LEN'b0);
-    assign rob_full         = (rob_counter == `ROB_ENTRY) & (rob_head == rob_tail);
+    assign rob_full         = (rob_counter == `ROB_SIZE) & (rob_head == rob_tail);
     assign retire_valid     = (rob_entries[rob_head].ready && (~rob_empty));
     assign squash_at_head   = (rob_entries[rob_head].mis_pred && retire_valid);
     assign required_value   = rob_entries[require_entry_idx].value;
@@ -59,7 +59,7 @@ module rob(
     assign dest_valid       = (retire_valid && (dest_reg != `ZERO_REG));
     assign dest_value       = rob_entries[rob_head].value;
 
-    always_ff (@posedge clock) begin
+    always_ff @(posedge clock) begin
         if (reset) begin
             rob_head    <=  `SD `ROB_IDX_LEN'b0;
             rob_tail    <=  `SD `ROB_IDX_LEN'b0;
@@ -81,7 +81,7 @@ module rob(
             if (retire_valid) begin
                 rob_head                            <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
                                                                                         : rob_head + 1;
-            end
+            end 
             if (complete_enable) begin
                 rob_entries[complete_rob_entry].ready       <=  `SD 1'b1;
                 rob_entries[complete_rob_entry].value       <=  `SD value;
