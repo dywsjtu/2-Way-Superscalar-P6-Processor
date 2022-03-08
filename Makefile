@@ -48,7 +48,7 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
 
-HEADERS     = $(wildcard *.svh)
+HEADERS     = sys_defs.sv
 #TESTBENCH   = $(wildcard testbench/*.sv)
 #TESTBENCH  += $(wildcard testbench/*.c)
 TESTBENCH = verilog/test_rob.sv
@@ -88,6 +88,10 @@ all:    simv
 
 sim:	simv
 	./simv | tee sim_program.out
+
+simv_test: sys_defs.sv verilog/rob.sv verilog/test_rob.sv
+	$(VCS) $^ -o simv_test
+
 
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
 	$(VCS) $^ -o simv
@@ -152,4 +156,4 @@ clean:
 
 nuke:	clean
 	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn
-	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl
+	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl simv_test*

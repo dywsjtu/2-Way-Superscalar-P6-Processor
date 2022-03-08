@@ -329,4 +329,68 @@ typedef struct packed {
 	logic                mis_pred;  	// is mispredicted 
 } ROB_ENTRY;
 
+
+// typedef struct packed {
+	
+// } ID_ROB_PACKET;
+
+// typedef struct packed {
+	
+// } ID_RS_PACKET;
+
+// typedef struct packed {
+	
+// } RS_ROB_PACKET;
+
+
+// typedef struct packed {
+	
+// } ROB_RS_PACKET;
+
+// typedef struct packed {
+	
+// } ROB_MT_PACKET;
+
+// typedef struct packed {
+	
+// } ROB_CDB_PACKET;
+
+// typedef struct packed {
+	
+// } MT_RS_PACKET;
+
+// typedef struct packed {
+	
+// } RS_FU_PACKET;
+
+
+// typedef struct packed {
+	
+// } RS_REG_PACKET;
+
+// typedef struct packed {
+	
+// } REG_RS_PACKET;
+
+
+// typedef struct packed {
+	
+// } FU_ROB_PACKET;
+
+
+// typedef struct packed {
+	
+// } CDB_RS_PACKET;
+
+
+
+// typedef struct packed {
+	
+// } CDB_MT_PACKET;
+
+// typedef struct packed {
+	
+// } ROB_REG_PACKET;
+
+
 `endif // __SYS_DEFS_VH__
