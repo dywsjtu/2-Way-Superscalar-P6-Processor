@@ -75,19 +75,116 @@ module testbench;
         wrong_pred          = 0;
         reqire_entry_idx    = `ROB_IDX_LEN'b0;
 
+        @(negedge clock);
         reset = 0;
 
+        // test dispatch
+        PC                  = 1;
+        dispatch_enable     = 1;
+        complete_enable     = 0;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 1;
+        value               = `XLEN'b0;
+        wrong_pred          = 0;
+        reqire_entry_idx    = `ROB_IDX_LEN'b0;
+        @(negedge clock);
+        
+        // test dispatch
+        PC                  = 2;
+        dispatch_enable     = 1;
+        complete_enable     = 0;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 2;
+        value               = `XLEN'b0;
+        wrong_pred          = 0;
+        reqire_entry_idx    = `ROB_IDX_LEN'b0;
+        @(negedge clock);
 
+        // test dispatch
+        PC                  = 3;
+        dispatch_enable     = 1;
+        complete_enable     = 0;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 3;
+        value               = `XLEN'b0;
+        wrong_pred          = 0;
+        reqire_entry_idx    = `ROB_IDX_LEN'b0;
+        @(negedge clock);
 
+        // test complete
+        PC                  = 4;
+        dispatch_enable     = 1;
+        complete_enable     = 1;
+        complete_rob_entry  = 2;
+        dest_reg_idx        = 2;
+        value               = `XLEN'b1;
+        wrong_pred          = 0;
+        reqire_entry_idx    = `ROB_IDX_LEN'b0;
+        @(negedge clock);
 
+        // test complete
+        PC                  = 5;
+        dispatch_enable     = 0;
+        complete_enable     = 1;
+        complete_rob_entry  = 0;
+        dest_reg_idx        = 6;
+        value               = 156;
+        wrong_pred          = 0;
+        reqire_entry_idx    = 2;
+        @(negedge clock);
 
+        // test retire
+        PC                  = 5;
+        dispatch_enable     = 1;
+        complete_enable     = 0;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 6;
+        value               = `XLEN'b1;
+        wrong_pred          = 0;
+        reqire_entry_idx    = `ROB_IDX_LEN'b0;
+        @(negedge clock);
 
+        PC                  = 6;
+        dispatch_enable     = 1;
+        complete_enable     = 0;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 6;
+        value               = `XLEN'b1;
+        wrong_pred          = 0;
+        reqire_entry_idx    = 2;
+        @(negedge clock);
 
+        // test wrong pred
+        PC                  = 7;
+        dispatch_enable     = 1;
+        complete_enable     = 0;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 2;
+        value               = `XLEN'b1;
+        wrong_pred          = 1;
+        reqire_entry_idx    = 2;
+        @(negedge clock);
 
+        // test complete after wrong predect
+        PC                  = 8;
+        dispatch_enable     = 1;
+        complete_enable     = 1;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 6;
+        value               = `XLEN'b1;
+        wrong_pred          = 0;
+        reqire_entry_idx    = 2;
+        @(negedge clock);
 
-
-
-
+        PC                  = 9;
+        dispatch_enable     = 1;
+        complete_enable     = 1;
+        complete_rob_entry  = `ROB_IDX_LEN'b0;
+        dest_reg_idx        = 6;
+        value               = `XLEN'b1;
+        wrong_pred          = 0;
+        reqire_entry_idx    = 2;
+        @(negedge clock);
 
 
 
