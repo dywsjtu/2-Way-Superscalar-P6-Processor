@@ -43,7 +43,7 @@ else
 endif
 
 
-VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp -cm line+cond+tgl+branch+assert
+VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp -cm line+cond+branch
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
@@ -92,7 +92,7 @@ all:    simv
 # Simulation:
 
 sim:	simv
-	./simv -cm line+cond+tgl+branch+assert | tee sim_program.out
+	./simv -cm line+cond+branch | tee sim_program.out
 	urg -dir simv.vdb -format text
 
 #Test only

@@ -324,11 +324,12 @@ typedef struct packed {
 
 
 typedef struct packed {
-	logic [`XLEN-1:0]    PC;			// alu result
-	logic                ready;			// is value ready
-	logic [4:0]          dest_reg_idx;	// dest reg index
-	logic [`XLEN-1:0] 	 value;			// value
-	logic                mis_pred;  	// is mispredicted 
+	logic						valid;
+	logic	[`XLEN-1:0]			PC;				// alu result
+	logic						ready;			// is value ready
+	logic	[4:0]				dest_reg_idx;	// dest reg index
+	logic	[`XLEN-1:0]			value;			// value
+	logic						mis_pred;  		// is mispredicted 
 } ROB_ENTRY;
 
 typedef struct packed {

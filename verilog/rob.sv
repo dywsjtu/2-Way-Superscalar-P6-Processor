@@ -95,6 +95,7 @@ module rob(
         end else begin
             if (id_rob.dispatch_enable) begin
                 // initalize rob entry
+                rob_entries[rob_tail].valid             <=  `SD 1'b1;
                 rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
                 rob_entries[rob_tail].ready             <=  `SD 1'b0;
                 rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
@@ -110,7 +111,7 @@ module rob(
                 //                                                                             : rob_head + 1;
                 rob_head                                <=  `SD rob_head + 1;
             end 
-            if (fu_rob.completed) begin
+            if (fu_rob.completed && rob_entries[fu_rob.entry_idx].valid) begin
                 rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
                 rob_entries[fu_rob.entry_idx].value     <=  `SD fu_rob.value;
                 rob_entries[fu_rob.entry_idx].mis_pred  <=  `SD fu_rob.mis_pred;

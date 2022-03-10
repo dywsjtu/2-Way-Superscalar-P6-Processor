@@ -144,6 +144,27 @@ module testbench;
         @(negedge clock);
         // check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
         
+        // do nothing
+        id_rob.PC                   = `XLEN'b1001;
+        id_rob.dest_reg_idx         = 5'b00110;
+        id_rob.dispatch_enable      = 1'b0;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+        fu_rob.completed            = 1'b1;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b1;
+        fu_rob.value                = `XLEN'b10;
+        fu_rob.mis_pred             = 1'b1;
+        
+        gt_rob_rs.rob_tail          = 5'b00000;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00000;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
         // fill rob 0
         id_rob.PC                   = `XLEN'b0;
         id_rob.dest_reg_idx         = 5'b00011;
@@ -291,7 +312,28 @@ module testbench;
         @(negedge clock);
         check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
 
-        // retire rob 1; fill rob 6
+        // retire rob 1
+        id_rob.PC                   = `XLEN'b110;
+        id_rob.dest_reg_idx         = 5'b11000;
+        id_rob.dispatch_enable      = 1'b0;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b11;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b1011;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00110;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // fill rob 6
         id_rob.PC                   = `XLEN'b110;
         id_rob.dest_reg_idx         = 5'b11000;
         id_rob.dispatch_enable      = 1'b1;
@@ -428,17 +470,47 @@ module testbench;
         fu_rob.value                = `XLEN'b0;
         fu_rob.mis_pred             = 1'b0;
         
-        gt_rob_rs.rob_tail          = 5'b00010;
+        gt_rob_rs.rob_tail          = 5'b00000;
         gt_rob_rs.value1            = `XLEN'b0;
         gt_rob_rs.value2            = `XLEN'b0;
         gt_rob_rs.squash            = 1'b0;
         gt_rob_reg.dest_valid       = 1'b0;
-        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_reg_idx     = 5'b00000;
         gt_rob_reg.dest_value       = `XLEN'b0;
         @(negedge clock);
         check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
 
+        // do nothing
+        id_rob.PC                   = `XLEN'b1001;
+        id_rob.dest_reg_idx         = 5'b00110;
+        id_rob.dispatch_enable      = 1'b0;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00000;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00000;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
 
+        reset                       = 1;
+        gt_rob_rs.rob_tail          = 5'b00000;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00000;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
 
         // // test complete
         // PC                  = 5;
