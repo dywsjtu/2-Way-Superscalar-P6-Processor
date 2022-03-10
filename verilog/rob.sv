@@ -62,17 +62,21 @@ module rob(
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
 
     `ifdef DEBUG
-    logic cycle_count;
-    always_ff @(posedge clock) begin
+    logic [31:0] cycle_count;
+    always_ff @(negedge clock) begin
         if(reset) begin
             cycle_count = 0;
         end
         else begin
-            $display("DEBUG %d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
-            $display("DEBUG %d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
+            $display("DEBUG %4d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
+            $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
+            $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
             // TODO print only 5 for now
             for(int i = 0; i < 5; i += 1) begin
-                $display("DEBUG %d: rob_entries[%02d] = %p", cycle_count, i,  rob_entries[i]);
+                // For some reason pretty printing doesn't work if I index directly
+                ROB_ENTRY rob_entry;
+                rob_entry = rob_entries[i];
+                $display("DEBUG %4d: rob_entries[%2d] = %p", cycle_count, i,  rob_entry);
             end
             cycle_count += 1;
         end

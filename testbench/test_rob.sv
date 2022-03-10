@@ -88,6 +88,7 @@ module testbench;
                 flag = 1'b1;
             end
             if (rob_reg.dest_reg_idx != gt_rob_reg.dest_reg_idx) begin
+                $display("reg_idx", gt_rob_reg.dest_reg_idx);
                 $display("@@@ Incorrect rob_reg.dest_reg_idx at time %4.0f", $time);
                 flag = 1'b1;
             end
@@ -138,17 +139,29 @@ module testbench;
         reset = 0;
         @(negedge clock);
         check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_rs);
-
-        //// // test dispatch
-        //// id_rob.PC           = `XLEN'b0;
-        //// id_rob.dest_reg_idx = 5'b0;
-        //// rs_rob.entry_idx1   = `ROB_IDX_LEN'b0;
-        //// rs_rob.entry_idx2   = `ROB_IDX_LEN'b0;
-        //// fu_rob.completed    = 1'b0;
-        //// fu_rob.entry_idx    = `ROB_IDX_LEN'b0;
-        //// fu_rob.value        = `XLEN'b0;
-        //// fu_rob.mis_pred     = 1'b0;
-        //// @(negedge clock);
+        
+        // test dispatch
+        id_rob.PC           = `XLEN'b0;
+        id_rob.dest_reg_idx = 5'd3;
+        id_rob.dispatch_enable = 1'b1;
+        rs_rob.entry_idx1   = `ROB_IDX_LEN'b0;
+        rs_rob.entry_idx2   = `ROB_IDX_LEN'b0;
+        fu_rob.completed    = 1'b0;
+        fu_rob.entry_idx    = `ROB_IDX_LEN'b0;
+        fu_rob.value        = `XLEN'b0;
+        fu_rob.mis_pred     = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b1;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'd3;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_rs);
+        @(negedge clock);
         
         
         //// // test dispatch
