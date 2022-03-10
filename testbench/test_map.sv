@@ -1,20 +1,20 @@
 module testbench;
 
-    logic clock, reset, clear, flush;
+    logic clock, reset, clear, squash;
     logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch, rs2_dispatch, rd_retire, rd_dispatch;
-    logic [$clog2(`ROB_SIZE+1)-1:0] rs1_tag, rs2_tag, ROB_idx, CDB_tag;
+    logic [$clog2(`ROB_SIZE+1)-1:0] rs1_tag, rs2_tag, rob_idx, CDB_tag;
     logic rs1_ready, rs2_ready;
 
-    maptable test_map (.clock(clock),
+    map_table test_map (.clock(clock),
     .reset(reset),
-    .ROB_idx(ROB_idx),
+    .rob_idx(rob_idx),
     .rd_dispatch(rd_dispatch),
     .CDB_tag(CDB_tag),
     .rs1_dispatch(rs1_dispatch),
     .rs2_dispatch(rs2_dispatch),
     .rd_retire(rd_retire),
     .clear(clear),
-    .flush(flush),
+    .squash(squash),
 
     .rs1_tag(rs1_tag),
     .rs2_tag(rs2_tag),
@@ -36,7 +36,7 @@ module testbench;
 
         /**RESET TEST**/
         reset = 1;
-        flush = 0;
+        squash = 0;
         @(negedge clock);
 
         //all tag = 0 and not ready
@@ -52,10 +52,10 @@ module testbench;
 
         /**Dispatch TEST**/
         rd_dispatch = 15;
-        ROB_idx = 1;
+        rob_idx = 1;
         @(negedge clock);
         rd_dispatch = 11;
-        ROB_idx = 2;
+        rob_idx = 2;
         @(negedge clock);
 
         #1
@@ -84,10 +84,10 @@ module testbench;
 
         /**COMPLETE TEST**/
         rd_dispatch = 31;
-        ROB_idx = 3;
+        rob_idx = 3;
         @(negedge clock);
         rd_dispatch = 7;
-        ROB_idx = 4;
+        rob_idx = 4;
         @(negedge clock);
 
         //ROB#2 is completed
@@ -174,7 +174,7 @@ module testbench;
         end
 
         /**FLUSH TEST**/
-        flush = 1;
+        squash = 1;
         reset = 0;
         @(negedge clock);
 

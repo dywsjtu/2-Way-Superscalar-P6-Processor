@@ -331,7 +331,6 @@ typedef struct packed {
 	logic                mis_pred;  	// is mispredicted 
 } ROB_ENTRY;
 
-
 typedef struct packed {
 	logic	[`XLEN-1:0]			PC;
 	logic						dispatch_enable; // whether is enable to dispatch

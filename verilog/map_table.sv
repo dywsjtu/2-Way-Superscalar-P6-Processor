@@ -1,25 +1,40 @@
-module maptable (
+/////////////////////////////////////////////////////////////////////////
+//                                                                     //
+//   Modulename :  map_table.sv                                        //
+//                                                                     //
+//  Description :  map table;                                          // 
+/////////////////////////////////////////////////////////////////////////
+
+
+`define DEBUG
+`ifndef __MAP_TABLE_V__
+`define __MAP_TABLE_V__
+
+`timescale 1ns/100ps
+
+
+module map_table (
         //INPUT
         input logic clock,
         input logic reset,
 
-        input logic [$clog2(`ROB_SIZE+1)-1:0] ROB_idx, //rd tag from ROB in dispatch stage: start from 1
-        input logic [$clog2(`REG_SIZE)-1:0] rd_dispatch, // dest reg to be set in dispatch stage
+        input logic [$clog2(`ROB_SIZE+1)-1:0] rob_idx, //rd tag from ROB in dispatch stage: start from 1
+        input logic [$clog2(`REG_SIZE)-1:0] rd_dispatch, // dest reg idx in dispatch stage
 
         input logic [$clog2(`ROB_SIZE+1)-1:0] CDB_tag, //rd tag from CDB in complete stage
 
-        input logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch, //check rs1 tag for RS
-        input logic [$clog2(`REG_SIZE)-1:0] rs2_dispatch, //check rs2 tag for RS
+        input logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch, //rs1 idx request from RS
+        input logic [$clog2(`REG_SIZE)-1:0] rs2_dispatch, //rs2 idx request from RS
 
-        input logic [$clog2(`REG_SIZE)-1:0] rd_retire, // rd idx of the head entry in ROB
-        input logic clear, //whether to clear tag in retire stage
+        input logic [$clog2(`REG_SIZE)-1:0] rd_retire, // rd idx to clear in retire stage
+        input logic clear, //tag-clear signal in retire stage
 
-        input logic flush, //for brach or exception 
+        input logic squash, //for brach or exception 
 
         //OUTPUT
         output logic [$clog2(`ROB_SIZE+1)-1:0] rs1_tag,
         output logic [$clog2(`ROB_SIZE+1)-1:0] rs2_tag, 
-        output logic rs1_ready, //whether valid in ROB
+        output logic rs1_ready, 
         output logic rs2_ready
     );
 
@@ -27,12 +42,12 @@ module maptable (
     logic [$clog2(`ROB_SIZE+1)-1:0] Tag [`REG_SIZE-1:0];
     logic [`REG_SIZE-1:0] ready_in_ROB;
 
-    //To avoid multiple drive
+    //Avoid multi drive
     logic [$clog2(`ROB_SIZE+1)-1:0] Tag_next [`REG_SIZE-1:0];
     logic [`REG_SIZE-1:0] ready_in_ROB_next;
 
     always_comb begin
-        if (flush) begin
+        if (squash) begin
             Tag_next = '{default:32'h0000_0000_0000_0000};
             ready_in_ROB_next = 0;
         end
@@ -54,29 +69,31 @@ module maptable (
                 end
             end
             //set rd tag in dispatch stage
-            Tag_next[rd_dispatch] = ROB_idx;
+            Tag_next[rd_dispatch] = rob_idx;
             end
     end
 
     
     //MapTable output in dispatch
-    assign rs1_tag = Tag_next[rs1_dispatch]; //bypassing from retire/complete to dispatch
+    assign rs1_tag = Tag_next[rs1_dispatch]; 
     assign rs2_tag = Tag_next[rs2_dispatch];
     assign rs1_ready = ready_in_ROB_next[rs1_dispatch];
     assign rs2_ready = ready_in_ROB_next[rs2_dispatch];
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
-        if (reset | flush) begin 
+        if (reset | squash) begin 
             //All from reg file
-            Tag <= `SD '{default:32'h0000_0000_0000_0000};//need to change to `SD
+            Tag <= `SD '{default:32'h0000_0000};
             ready_in_ROB <= `SD 0;
         end
         else begin
             //update Maptable
-            Tag <= `SD Tag_next;//need to change to `SD
+            Tag <= `SD Tag_next;
             ready_in_ROB <= `SD ready_in_ROB_next;
         end
     end
 
 endmodule
+
+`endif // `__MAP_TABLE_V__
