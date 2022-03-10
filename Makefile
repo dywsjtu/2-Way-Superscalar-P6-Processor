@@ -43,7 +43,7 @@ else
 endif
 
 
-VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp -cm line+cond+fsm+tgl+branch
+VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp -cm line+tgl
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
@@ -92,7 +92,7 @@ all:    simv
 # Simulation:
 
 sim:	simv
-	./simv | tee sim_program.out
+	./simv -cm line+tgl | tee sim_program.out
 
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
 	$(VCS) $^ -o simv
@@ -154,6 +154,7 @@ clean:
 	rm -rf syn_simv syn_simv.daidir syn_program.out
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
 	rm -f *.elf *.dump *.mem debug_bin
+	rm -rf simv.vdb
 
 nuke:	clean
 	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn

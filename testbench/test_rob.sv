@@ -1,24 +1,22 @@
 
 module testbench;
 
-    logic                           clock,
-    logic                           reset,
+    logic                           clock;
+    logic                           reset;
 
-    ID_ROB_PACKET                   id_rob,
-    RS_ROB_PACKET                   rs_rob,
-    FU_ROB_PACKET                   fu_rob,
+    ID_ROB_PACKET                   id_rob;
+    RS_ROB_PACKET                   rs_rob;
+    FU_ROB_PACKET                   fu_rob;
 
-    logic                           rob_full
+    logic                           rob_full;
 
-    ROB_ID_PACKET                   rob_id,
-    ROB_RS_PACKET                   rob_rs,
-    ROB_MT_PACKET                   rob_mt,
-    ROB_REG_PACKET                  rob_reg,
+    ROB_RS_PACKET                   rob_rs;
+    ROB_MT_PACKET                   rob_mt;
+    ROB_REG_PACKET                  rob_reg;
 
-    ROB_ID_PACKET                   gt_rob_id,
-    ROB_RS_PACKET                   gt_rob_rs,
-    ROB_MT_PACKET                   gt_rob_mt,
-    ROB_REG_PACKET                  gt_rob_reg,
+    ROB_RS_PACKET                   gt_rob_rs;
+    ROB_MT_PACKET                   gt_rob_mt;
+    ROB_REG_PACKET                  gt_rob_reg;
 
     logic       [`ROB_IDX_LEN-1:0]  rob_head;
     logic       [`ROB_IDX_LEN-1:0]  rob_tail;
@@ -35,7 +33,6 @@ module testbench;
 
         .rob_full(rob_full),
 
-        .rob_id(rob_id),
         .rob_rs(rob_rs),
         .rob_mt(rob_mt),
         .rob_reg(rob_reg),
@@ -49,9 +46,16 @@ module testbench;
     always #5 clock = ~clock;
 
     task check;
-        input id_rob, rs_rob, fu_rob;
-        input rob_rs, rob_mt, rob_reg;
-        input gt_rob_rs, gt_rob_mt, gt_rob_reg;
+        input ID_ROB_PACKET   id_rob;
+        input RS_ROB_PACKET   rs_rob;
+        input FU_ROB_PACKET   fu_rob;
+        // input logic           rob_full;
+        input ROB_RS_PACKET   rob_rs;
+        input ROB_MT_PACKET   rob_mt;
+        input ROB_REG_PACKET  rob_reg;
+        input ROB_RS_PACKET   gt_rob_rs;
+        input ROB_MT_PACKET   gt_rob_mt;
+        input ROB_REG_PACKET  gt_rob_reg;
         begin
             logic   flag;
             flag = 1'b0;

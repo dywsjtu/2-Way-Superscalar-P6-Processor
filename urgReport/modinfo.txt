@@ -1,0 +1,482 @@
+===============================================================================
+Module : rob
+===============================================================================
+SCORE  LINE   TOGGLE 
+ 21.77  42.86   0.68 
+
+Source File(s) : 
+
+/afs/umich.edu/user/d/y/dywsjtu/Desktop/group17w22/verilog/rob.sv
+
+Module self-instances :
+
+SCORE  LINE   TOGGLE NAME               
+ 21.77  42.86   0.68 testbench.test_rob 
+
+
+
+-------------------------------------------------------------------------------
+Line Coverage for Module : rob
+
+             Line No.   Total   Covered  Percent
+TOTAL                       21        9    42.86
+ALWAYS             65       21        9    42.86
+
+64                          always_ff @(posedge clock) begin
+65         1/1                  if (reset) begin
+66         1/1                      rob_head    <=  `SD `ROB_IDX_LEN'b0;
+67         1/1                      rob_tail    <=  `SD `ROB_IDX_LEN'b0;
+68         1/1                      rob_counter <=  `SD `ROB_IDX_LEN'b0;
+69         1/1                  end else if (squash) begin
+70         0/1     ==>              rob_head    <=  `SD rob_tail;
+71         0/1     ==>              rob_counter <=  `SD `ROB_IDX_LEN'b0;
+72                              end else begin
+73         1/1                      if (id_rob.dispatch_enable) begin
+74                                      // initalize rob entry
+75         0/1     ==>                  rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
+76         0/1     ==>                  rob_entries[rob_tail].ready             <=  `SD 1'b0;
+77         0/1     ==>                  rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
+78         0/1     ==>                  rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
+79         0/1     ==>                  rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
+80         0/1     ==>                  rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+81                                                                                                                  : rob_tail + 1;
+82                                  end
+                        MISSING_ELSE
+83         1/1                      if (retire_valid) begin
+84         0/1     ==>                  rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+85                                                                                                                  : rob_head + 1;
+86                                  end 
+                        MISSING_ELSE
+87         1/1                      if (fu_rob.completed) begin
+88         0/1     ==>                  rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
+89         0/1     ==>                  rob_entries[fu_rob.entry_idx].value     <=  `SD fu_rob.value;
+90         0/1     ==>                  rob_entries[fu_rob.entry_idx].mis_pred  <=  `SD fu_rob.mis_pred;
+91                                  end
+                        MISSING_ELSE
+92         1/1                      rob_counter <=  `SD id_rob.dispatch_enable  ? (retire_valid ? rob_counter
+
+-------------------------------------------------------------------------------
+Toggle Coverage for Module : rob
+                Total Covered Percent 
+Totals          27    1       3.70    
+Total Bits      444   3       0.68    
+Total Bits 0->1 222   1       0.45    
+Total Bits 1->0 222   2       0.90    
+
+                            
+Ports          24  1 4.17   
+Port Bits      438 3 0.68   
+Port Bits 0->1 219 1 0.46   
+Port Bits 1->0 219 2 0.91   
+
+                            
+Signals          3 0 0.00   
+Signal Bits      6 0 0.00   
+Signal Bits 0->1 3 0 0.00   
+Signal Bits 1->0 3 0 0.00   
+
+Port Details
+                          Toggle Toggle 1->0 Toggle 0->1 Direction 
+clock                     Yes    Yes         Yes         INPUT     
+reset                     No     Yes         No          INPUT     
+id_rob.dest_reg_idx[4:0]  No     No          No          INPUT     
+id_rob.dispatch_enable    No     No          No          INPUT     
+id_rob.PC[31:0]           No     No          No          INPUT     
+rs_rob.entry_idx2[4:0]    No     No          No          INPUT     
+rs_rob.entry_idx1[4:0]    No     No          No          INPUT     
+fu_rob.mis_pred           No     No          No          INPUT     
+fu_rob.value[31:0]        No     No          No          INPUT     
+fu_rob.entry_idx[4:0]     No     No          No          INPUT     
+fu_rob.completed          No     No          No          INPUT     
+rob_full                  No     No          No          OUTPUT    
+rob_rs.squash             No     No          No          OUTPUT    
+rob_rs.value2[31:0]       No     No          No          OUTPUT    
+rob_rs.value1[31:0]       No     No          No          OUTPUT    
+rob_rs.rob_tail[4:0]      No     No          No          OUTPUT    
+rob_mt.squash             No     No          No          OUTPUT    
+rob_mt.rob_tail[4:0]      No     No          No          OUTPUT    
+rob_reg.dest_value[31:0]  No     No          No          OUTPUT    
+rob_reg.dest_reg_idx[4:0] No     No          No          OUTPUT    
+rob_reg.dest_valid        No     No          No          OUTPUT    
+rob_head[4:0]             No     No          No          OUTPUT    
+rob_tail[4:0]             No     No          No          OUTPUT    
+rob_counter[4:0]          No     No          No          OUTPUT    
+
+Signal Details
+             Toggle Toggle 1->0 Toggle 0->1 
+rob_empty    No     No          No          
+retire_valid No     No          No          
+squash       No     No          No          
+
+
+-------------------------------------------------------------------------------
+===============================================================================
+Module Instance : testbench.test_rob
+===============================================================================
+
+Instance :
+
+SCORE  LINE   TOGGLE 
+ 21.77  42.86   0.68 
+
+
+Instance's subtree :
+
+SCORE  LINE   TOGGLE 
+ 21.77  42.86   0.68 
+
+
+Module : 
+
+SCORE  LINE   TOGGLE NAME 
+ 21.77  42.86   0.68 rob  
+
+
+Parent : 
+
+SCORE  LINE   TOGGLE NAME      
+ 32.53  64.62   0.45 testbench 
+
+
+Subtrees :
+
+
+no children
+----------------
+
+
+-------------------------------------------------------------------------------
+Since this is the module's only instance, the coverage report is the same as for the module.
+===============================================================================
+Module : testbench
+===============================================================================
+SCORE  LINE   TOGGLE 
+ 32.53  64.62   0.45 
+
+Source File(s) : 
+
+/afs/umich.edu/user/d/y/dywsjtu/Desktop/group17w22/testbench/test_rob.sv
+
+Module self-instances :
+
+SCORE  LINE   TOGGLE NAME      
+ 32.53  64.62   0.45 testbench 
+
+
+
+-------------------------------------------------------------------------------
+Line Coverage for Module : testbench
+
+             Line No.   Total   Covered  Percent
+TOTAL                       65       42    64.62
+ALWAYS             46        2        2   100.00
+ROUTINE            61       36       13    36.11
+INITIAL           114       27       27   100.00
+
+45                      
+46         2/2              always #5 clock = ~clock;
+47                      
+48                          task check;
+49                              input ID_ROB_PACKET   id_rob;
+50                              input RS_ROB_PACKET   rs_rob;
+51                              input FU_ROB_PACKET   fu_rob;
+52                              // input logic           rob_full;
+53                              input ROB_RS_PACKET   rob_rs;
+54                              input ROB_MT_PACKET   rob_mt;
+55                              input ROB_REG_PACKET  rob_reg;
+56                              input ROB_RS_PACKET   gt_rob_rs;
+57                              input ROB_MT_PACKET   gt_rob_mt;
+58                              input ROB_REG_PACKET  gt_rob_reg;
+59                              begin
+60                                  logic   flag;
+61         1/1                      flag = 1'b0;
+62         1/1                      if (rob_rs.rob_tail != gt_rob_rs.rob_tail) begin
+63         0/1     ==>                  $display("@@@ Incorrect rob_rs.rob_tail at time %4.0f", $time);
+64         0/1     ==>                  flag = 1'b1;
+65                                  end
+                        MISSING_ELSE
+66         1/1                      if (rob_rs.value1 != gt_rob_rs.value1) begin
+67         0/1     ==>                  $display("@@@ Incorrect rob_rs.value1 at time %4.0f", $time);
+68         0/1     ==>                  flag = 1'b1;
+69                                  end
+                        MISSING_ELSE
+70         1/1                      if (rob_rs.value2 != gt_rob_rs.value2) begin
+71         0/1     ==>                  $display("@@@ Incorrect rob_rs.value2 at time %4.0f", $time);
+72         0/1     ==>                  flag = 1'b1;
+73                                  end
+                        MISSING_ELSE
+74         1/1                      if (rob_rs.squash != gt_rob_rs.squash) begin
+75         0/1     ==>                  $display("@@@ Incorrect rob_rs.squash at time %4.0f", $time);
+76         0/1     ==>                  flag = 1'b1;
+77                                  end
+                        MISSING_ELSE
+78         1/1                      if (rob_mt.rob_tail != gt_rob_mt.rob_tail) begin
+79         0/1     ==>                  $display("@@@ Incorrect rob_mt.rob_tail at time %4.0f", $time);
+80         0/1     ==>                  flag = 1'b1;
+81                                  end
+                        MISSING_ELSE
+82         1/1                      if (rob_mt.squash != gt_rob_mt.squash) begin
+83         0/1     ==>                  $display("@@@ Incorrect rob_mt.squash at time %4.0f", $time);
+84         0/1     ==>                  flag = 1'b1;
+85                                  end
+                        MISSING_ELSE
+86         1/1                      if (rob_reg.dest_valid != gt_rob_reg.dest_valid) begin
+87         0/1     ==>                  $display("@@@ Incorrect rob_reg.dest_valid at time %4.0f", $time);
+88         0/1     ==>                  flag = 1'b1;
+89                                  end
+                        MISSING_ELSE
+90         1/1                      if (rob_reg.dest_reg_idx != gt_rob_reg.dest_reg_idx) begin
+91         0/1     ==>                  $display("@@@ Incorrect rob_reg.dest_reg_idx at time %4.0f", $time);
+92         0/1     ==>                  flag = 1'b1;
+93                                  end
+                        MISSING_ELSE
+94         1/1                      if (rob_reg.dest_value != gt_rob_reg.dest_value) begin
+95         0/1     ==>                  $display("@@@ Incorrect rob_reg.dest_value at time %4.0f", $time);
+96         0/1     ==>                  flag = 1'b1;
+97                                  end
+                        MISSING_ELSE
+98                      
+99         2/2                      #1;
+100        1/1                      if (flag) begin
+101        0/1     ==>                  $display("id_rob: %p", id_rob);
+102        0/1     ==>                  $display("rs_rob: %p", rs_rob);
+103        0/1     ==>                  $display("fu_rob: %p", fu_rob);
+104        0/1     ==>                  $display("@@@ Failed at time %f", $time);
+105        0/1     ==>                  $finish;
+106                                 end
+                        MISSING_ELSE
+107                             end
+108                         endtask
+109                     
+110                         assign gt_rob_mt.rob_tail       = gt_rob_rs.rob_tail;
+111                         assign gt_rob_mt.squash         = gt_rob_rs.squash;
+112                     
+113                         initial begin
+114        1/1                  $monitor("time: %3.0d head: %2.0d tail: %2.0d counter: %2.0d ", $time, rob_head, rob_tail, rob_counter);
+115        1/1                  clock = 0;
+116                     
+117                             // reset
+118        1/1                  reset                       = 1;
+119        1/1                  id_rob.PC                   = `XLEN'b0;
+120        1/1                  id_rob.dispatch_enable      = 1'b0;
+121        1/1                  id_rob.dest_reg_idx         = 5'b0;
+122        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+123        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+124        1/1                  fu_rob.completed            = 1'b0;
+125        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+126        1/1                  fu_rob.value                = `XLEN'b0;
+127        1/1                  fu_rob.mis_pred             = 1'b0;
+128                     
+129        1/1                  gt_rob_rs.rob_tail          = 5'b00000;
+130        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+131        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+132        1/1                  gt_rob_rs.squash            = 1'b0;
+133        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+134        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00000;
+135        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+136                     
+137        2/2                  @(negedge clock);
+138        1/1                  reset = 0;
+139        2/2                  @(negedge clock);
+140        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_rs);
+141                     
+142                             // // test dispatch
+143                             // id_rob.PC           = `XLEN'b0;
+144                             // id_rob.dest_reg_idx = 5'b0;
+145                             // rs_rob.entry_idx1   = `ROB_IDX_LEN'b0;
+146                             // rs_rob.entry_idx2   = `ROB_IDX_LEN'b0;
+147                             // fu_rob.completed    = 1'b0;
+148                             // fu_rob.entry_idx    = `ROB_IDX_LEN'b0;
+149                             // fu_rob.value        = `XLEN'b0;
+150                             // fu_rob.mis_pred     = 1'b0;
+151                             // @(negedge clock);
+152                             
+153                             
+154                             // // test dispatch
+155                             // PC                  = 2;
+156                             // dispatch_enable     = 1;
+157                             // complete_enable     = 0;
+158                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+159                             // dest_reg_idx        = 2;
+160                             // value               = `XLEN'b0;
+161                             // wrong_pred          = 0;
+162                             // reqire_entry_idx    = `ROB_IDX_LEN'b0;
+163                             // @(negedge clock);
+164                     
+165                             // // test dispatch
+166                             // PC                  = 3;
+167                             // dispatch_enable     = 1;
+168                             // complete_enable     = 0;
+169                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+170                             // dest_reg_idx        = 3;
+171                             // value               = `XLEN'b0;
+172                             // wrong_pred          = 0;
+173                             // reqire_entry_idx    = `ROB_IDX_LEN'b0;
+174                             // @(negedge clock);
+175                     
+176                             // // test complete
+177                             // PC                  = 4;
+178                             // dispatch_enable     = 1;
+179                             // complete_enable     = 1;
+180                             // complete_rob_entry  = 2;
+181                             // dest_reg_idx        = 2;
+182                             // value               = `XLEN'b1;
+183                             // wrong_pred          = 0;
+184                             // reqire_entry_idx    = `ROB_IDX_LEN'b0;
+185                             // @(negedge clock);
+186                     
+187                             // // test complete
+188                             // PC                  = 5;
+189                             // dispatch_enable     = 0;
+190                             // complete_enable     = 1;
+191                             // complete_rob_entry  = 0;
+192                             // dest_reg_idx        = 6;
+193                             // value               = 156;
+194                             // wrong_pred          = 0;
+195                             // reqire_entry_idx    = 2;
+196                             // @(negedge clock);
+197                     
+198                             // // test retire
+199                             // PC                  = 5;
+200                             // dispatch_enable     = 1;
+201                             // complete_enable     = 0;
+202                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+203                             // dest_reg_idx        = 6;
+204                             // value               = `XLEN'b1;
+205                             // wrong_pred          = 0;
+206                             // reqire_entry_idx    = `ROB_IDX_LEN'b0;
+207                             // @(negedge clock);
+208                     
+209                             // PC                  = 6;
+210                             // dispatch_enable     = 1;
+211                             // complete_enable     = 0;
+212                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+213                             // dest_reg_idx        = 6;
+214                             // value               = `XLEN'b1;
+215                             // wrong_pred          = 0;
+216                             // reqire_entry_idx    = 2;
+217                             // @(negedge clock);
+218                     
+219                             // // test wrong pred
+220                             // PC                  = 7;
+221                             // dispatch_enable     = 1;
+222                             // complete_enable     = 0;
+223                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+224                             // dest_reg_idx        = 2;
+225                             // value               = `XLEN'b1;
+226                             // wrong_pred          = 1;
+227                             // reqire_entry_idx    = 2;
+228                             // @(negedge clock);
+229                     
+230                             // // test complete after wrong predect
+231                             // PC                  = 8;
+232                             // dispatch_enable     = 1;
+233                             // complete_enable     = 1;
+234                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+235                             // dest_reg_idx        = 6;
+236                             // value               = `XLEN'b1;
+237                             // wrong_pred          = 0;
+238                             // reqire_entry_idx    = 2;
+239                             // @(negedge clock);
+240                     
+241                             // PC                  = 9;
+242                             // dispatch_enable     = 1;
+243                             // complete_enable     = 1;
+244                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+245                             // dest_reg_idx        = 6;
+246                             // value               = `XLEN'b1;
+247                             // wrong_pred          = 0;
+248                             // reqire_entry_idx    = 2;
+249                             // @(negedge clock);
+250        1/1                  $display("@@@Passed");
+251        1/1                  $finish;
+
+-------------------------------------------------------------------------------
+Toggle Coverage for Module : testbench
+                Total Covered Percent 
+Totals          33    1       3.03    
+Total Bits      666   3       0.45    
+Total Bits 0->1 333   1       0.30    
+Total Bits 1->0 333   2       0.60    
+
+                              
+Signals          33  1 3.03   
+Signal Bits      666 3 0.45   
+Signal Bits 0->1 333 1 0.30   
+Signal Bits 1->0 333 2 0.60   
+
+Signal Details
+                             Toggle Toggle 1->0 Toggle 0->1 
+clock                        Yes    Yes         Yes         
+reset                        No     Yes         No          
+id_rob.dest_reg_idx[4:0]     No     No          No          
+id_rob.dispatch_enable       No     No          No          
+id_rob.PC[31:0]              No     No          No          
+rs_rob.entry_idx2[4:0]       No     No          No          
+rs_rob.entry_idx1[4:0]       No     No          No          
+fu_rob.mis_pred              No     No          No          
+fu_rob.value[31:0]           No     No          No          
+fu_rob.entry_idx[4:0]        No     No          No          
+fu_rob.completed             No     No          No          
+rob_full                     No     No          No          
+rob_rs.squash                No     No          No          
+rob_rs.value2[31:0]          No     No          No          
+rob_rs.value1[31:0]          No     No          No          
+rob_rs.rob_tail[4:0]         No     No          No          
+rob_mt.squash                No     No          No          
+rob_mt.rob_tail[4:0]         No     No          No          
+rob_reg.dest_value[31:0]     No     No          No          
+rob_reg.dest_reg_idx[4:0]    No     No          No          
+rob_reg.dest_valid           No     No          No          
+gt_rob_rs.squash             No     No          No          
+gt_rob_rs.value2[31:0]       No     No          No          
+gt_rob_rs.value1[31:0]       No     No          No          
+gt_rob_rs.rob_tail[4:0]      No     No          No          
+gt_rob_mt.squash             No     No          No          
+gt_rob_mt.rob_tail[4:0]      No     No          No          
+gt_rob_reg.dest_value[31:0]  No     No          No          
+gt_rob_reg.dest_reg_idx[4:0] No     No          No          
+gt_rob_reg.dest_valid        No     No          No          
+rob_head[4:0]                No     No          No          
+rob_tail[4:0]                No     No          No          
+rob_counter[4:0]             No     No          No          
+
+
+-------------------------------------------------------------------------------
+===============================================================================
+Module Instance : testbench
+===============================================================================
+
+Instance :
+
+SCORE  LINE   TOGGLE 
+ 32.53  64.62   0.45 
+
+
+Instance's subtree :
+
+SCORE  LINE   TOGGLE 
+ 29.92  59.30   0.54 
+
+
+Module : 
+
+SCORE  LINE   TOGGLE NAME      
+ 32.53  64.62   0.45 testbench 
+
+
+Parent : 
+
+none
+----------------
+
+
+Subtrees :
+
+SCORE  LINE   TOGGLE NAME     
+ 21.77  42.86   0.68 test_rob 
+
+
+
+-------------------------------------------------------------------------------
+Since this is the module's only instance, the coverage report is the same as for the module.
