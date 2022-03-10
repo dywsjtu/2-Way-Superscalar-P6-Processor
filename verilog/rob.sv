@@ -70,7 +70,6 @@ module rob(
         else begin
             $display("DEBUG %d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
             $display("DEBUG %d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
-            $display("DEBUG %d: rob_head = %d, rob_tail = %p, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             // TODO print only 5 for now
             for(int i = 0; i < 5; i += 1) begin
                 $display("DEBUG %d: rob_entries[%02d] = %p", cycle_count, i,  rob_entries[i]);
