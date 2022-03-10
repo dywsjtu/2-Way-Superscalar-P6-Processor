@@ -43,17 +43,22 @@ else
 endif
 
 
-VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp +lint=TFIPC-L
+VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
 
-HEADERS     = sys_defs.sv
-#TESTBENCH   = $(wildcard testbench/*.sv)
-#TESTBENCH  += $(wildcard testbench/*.c)
-TESTBENCH = verilog/test_rob.sv
-#PIPEFILES   = $(wildcard verilog/*.sv)
-PIPEFILES = verilog/rob.sv
+# HEADERS     = $(wildcard *.svh)
+# TESTBENCH   = $(wildcard testbench/*.sv)
+# TESTBENCH  += $(wildcard testbench/*.c)
+# PIPEFILES   = $(wildcard verilog/*.sv)
+
+# SIMFILES    = $(PIPEFILES)
+
+HEADERS     = $(wildcard *.svh)
+TESTBENCH   = testbench/test_rob.sv
+TESTBENCH  += $(wildcard testbench/*.c)
+PIPEFILES   = verilog/rob.sv
 
 SIMFILES    = $(PIPEFILES)
 
@@ -88,10 +93,6 @@ all:    simv
 
 sim:	simv
 	./simv | tee sim_program.out
-
-simv_test: sys_defs.sv verilog/rob.sv verilog/test_rob.sv
-	$(VCS) $^ -o simv_test
-
 
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
 	$(VCS) $^ -o simv
@@ -156,4 +157,4 @@ clean:
 
 nuke:	clean
 	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn
-	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl simv_test*
+	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl

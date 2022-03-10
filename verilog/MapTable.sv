@@ -1,4 +1,4 @@
-module MapTable (
+module maptable (
         //INPUT
         input logic clock,
         input logic reset,

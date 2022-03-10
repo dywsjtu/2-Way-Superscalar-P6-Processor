@@ -332,32 +332,47 @@ typedef struct packed {
 
 typedef struct packed {
 	logic	[`XLEN-1:0]			PC,
-	logic						dispatch_enable,
-	logic	[4:0]				dest_reg_idx
+	logic						dispatch_enable, // whether is enable to dispatch
+	logic	[4:0]				dest_reg_idx	 // destination register
 } ID_ROB_PACKET;
+
+typedef struct packed {
+	logic	[`ROB_IDX_LEN-1:0]	entry_idx1, // query index1 from RS to ROB
+	logic	[`ROB_IDX_LEN-1:0]	entry_idx2  // query index2 from RS to ROB
+} RS_ROB_PACKET;
+
+typedef struct packed {
+	logic						completed,	// whether an instruction is completed or not
+	logic	[`ROB_IDX_LEN-1:0]	entry_idx,	// which ROB entry is completed
+	logic	[`XLEN-1:0]			value,		// the value for completed instruction
+	logic						mis_pred	// whether is a mis pred
+} FU_ROB_PACKET;
+
+typedef struct packed {
+	logic	[`ROB_IDX_LEN-1:0]	rob_tail,	// the tail of ROB
+	logic	[`XLEN-1:0]			value1,		// query value1 from ROB
+	logic	[`XLEN-1:0]			value2,		// query value2 from ROB
+	logic						squash		// signal of flushing
+} ROB_RS_PACKET;
+
+typedef struct packed {
+	logic	[`ROB_IDX_LEN-1:0]	rob_tail,	// the tail of ROB
+	logic						squash		// signal of flushing
+} ROB_MT_PACKET;
+
+typedef struct packed {
+	logic						dest_valid,   // whether is ready and valid to write to regfile
+	logic	[4:0]				dest_reg_idx, // the destination register to write to regfile
+	logic	[`XLEN-1:0]			dest_value	  // the value to write to destination register in regfile
+} ROB_REG_PACKET;
 
 // typedef struct packed {
 	
 // } ID_RS_PACKET;
 
-typedef struct packed {
-	logic	[`ROB_IDX_LEN-1:0]	require_entry_idx1,
-	logic	[`ROB_IDX_LEN-1:0]	require_entry_idx2
-} RS_ROB_PACKET;
-
-
-typedef struct packed {
-	logic	[`XLEN-1:0]			required_value1,
-	logic	[`XLEN-1:0]			required_value2
-} ROB_RS_PACKET;
-
-typedef struct packed {
+// typedef struct packed {
 	
-} ROB_MT_PACKET;
-
-typedef struct packed {
-	
-} ROB_CDB_PACKET;
+// } ROB_CDB_PACKET; // seems we don't need this
 
 // typedef struct packed {
 	
@@ -377,11 +392,6 @@ typedef struct packed {
 // } REG_RS_PACKET;
 
 
-typedef struct packed {
-	
-} FU_ROB_PACKET;
-
-
 // typedef struct packed {
 	
 // } CDB_RS_PACKET;
@@ -391,12 +401,6 @@ typedef struct packed {
 // typedef struct packed {
 	
 // } CDB_MT_PACKET;
-
-typedef struct packed {
-	logic						dest_valid,
-	logic	[4:0]				dest_reg_idx,
-	logic	[`XLEN-1:0]			dest_value
-} ROB_REG_PACKET;
 
 
 `endif // __SYS_DEFS_VH__

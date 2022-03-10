@@ -1,29 +1,25 @@
+
 module testbench;
 
-    logic                           clock;
-    logic                           reset;
-    logic       [`XLEN-1:0]         PC;
-    logic                           dispatch_enable;            // whether is ready to dispatch
-    logic                           complete_enable;            // whether value is ready && cdb is not full
-    logic       [`ROB_IDX_LEN-1:0]  complete_rob_entry;         // which entry is ready
-    logic       [4:0]               dest_reg_idx;
-    logic       [`XLEN-1:0]         value;                      // value to cdb and rob entry
-    logic                           wrong_pred;                 
-    logic       [`ROB_IDX_LEN-1:0]  reqire_entry_idx;           // query rob entry from reservation station
-    
-    logic                           rob_full;
-    logic                           squash_at_head;             // head is branch instruction and mis predicted
-    logic                           dest_valid;                 
-    logic       [4:0]               dest_reg;                   // store value in the dest_reg
-    logic       [`ROB_IDX_LEN-1:0]  dest_value;                 // value to store in the dest_reg
-    logic       [`ROB_IDX_LEN-1:0]  required_value;             // query value from reservation station
+    logic                           clock,
+    logic                           reset,
+
+    ID_ROB_PACKET                   id_rob,
+    RS_ROB_PACKET                   rs_rob,
+    FU_ROB_PACKET                   fu_rob,
+
+    logic                           rob_full
+
+    ROB_ID_PACKET                   rob_id,
+    ROB_RS_PACKET                   rob_rs,
+    ROB_MT_PACKET                   rob_mt,
+    ROB_REG_PACKET                  rob_reg,
 
     logic       [`ROB_IDX_LEN-1:0]  rob_head;
     logic       [`ROB_IDX_LEN-1:0]  rob_tail;
     logic       [`ROB_IDX_LEN-1:0]  rob_counter;
-    logic                           rob_empty;
-    logic                           retire_valid;
     ROB_ENTRY   [`ROB_SIZE-1:0]     rob_entries;
+
 
     rob test_rob (
         .clock(clock),

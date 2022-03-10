@@ -5,7 +5,7 @@ module testbench;
     logic [$clog2(`ROB_SIZE+1)-1:0] rs1_tag, rs2_tag, ROB_idx, CDB_tag;
     logic rs1_ready, rs2_ready;
 
-    MapTable test_map (.clock(clock),
+    maptable test_map (.clock(clock),
     .reset(reset),
     .ROB_idx(ROB_idx),
     .rd_dispatch(rd_dispatch),
