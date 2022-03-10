@@ -20,18 +20,18 @@ module rob(
     input   RS_ROB_PACKET       rs_rob,
     input   FU_ROB_PACKET       fu_rob,
 
-    output  logic               rob_full
+    output  logic               rob_full,
 
     output  ROB_ID_PACKET       rob_id,
     output  ROB_RS_PACKET       rob_rs,
     output  ROB_MT_PACKET       rob_mt,
-    output  ROB_REG_PACKET      rob_reg,
+    output  ROB_REG_PACKET      rob_reg
 
     `ifdef DEBUG
-        output              [`ROB_IDX_LEN-1:0]  rob_head;
-        output              [`ROB_IDX_LEN-1:0]  rob_tail;
-        output              [`ROB_IDX_LEN-1:0]  rob_counter;
-        output  ROB_ENTRY   [`ROB_SIZE-1:0]     rob_entries;
+        , output            [`ROB_IDX_LEN-1:0]  rob_head
+        , output            [`ROB_IDX_LEN-1:0]  rob_tail
+        , output            [`ROB_IDX_LEN-1:0]  rob_counter
+        , output ROB_ENTRY  [`ROB_SIZE-1:0]     rob_entries
     `endif
 );  
     `ifndef DEBUG
