@@ -1,6 +1,6 @@
 Dashboard
 
-Date: Thu Mar 10 14:31:49 2022
+Date: Thu Mar 10 15:14:12 2022
 
 User: tonyztc
 
@@ -11,18 +11,18 @@ Number of tests: 1
 
 -------------------------------------------------------------------------------
 Total Coverage Summary 
-SCORE  LINE   TOGGLE 
- 40.34  76.09   4.60 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 65.47  91.16  68.42  21.07  81.25 
 
 
 -------------------------------------------------------------------------------
 Hierarchical coverage data for top-level instances 
-SCORE  LINE   TOGGLE NAME      
- 40.34  76.09   4.60 testbench 
+SCORE  LINE   COND   TOGGLE BRANCH NAME      
+ 65.47  91.16  68.42  21.07  81.25 testbench 
 
 
 -------------------------------------------------------------------------------
 Total Module Definition Coverage Summary 
-SCORE  LINE   TOGGLE 
- 40.34  76.09   4.60 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 65.47  91.16  68.42  21.07  81.25 
 

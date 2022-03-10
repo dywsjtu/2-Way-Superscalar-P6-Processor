@@ -1,6 +1,6 @@
-<session version="1.1" release="R-2020.12-SP2-1" timestp="2022-03-10 19:31:41 GMT">
+<session version="1.1" release="R-2020.12-SP2-1" timestp="2022-03-10 20:14:12 GMT">
   <info>
-    <attr name="datetime" value="Thu Mar 10 14:31:49 2022
+    <attr name="datetime" value="Thu Mar 10 15:14:12 2022
 "/>
     <attr name="command" value="urg -dir simv.vdb -format text"/>
     <attr name="top_instance" value="testbench"/>
@@ -8,13 +8,17 @@
   <hvp>
     <datadef>
       <metdef name="Line" type="ratio" aggregator="average" builtin="1" />
+      <metdef name="Cond" type="ratio" aggregator="average" builtin="1" />
       <metdef name="Toggle" type="ratio" aggregator="average" builtin="1" />
+      <metdef name="Branch" type="ratio" aggregator="average" builtin="1" />
     </datadef>
   </hvp>
   <old_coverage>
   <scope type="top" name="top">
-    <metric name="Line" value="105/138" />
-    <metric name="Toggle" value="54/1174" />
+    <metric name="Line" value="299/328" />
+    <metric name="Cond" value="13/19" />
+    <metric name="Toggle" value="233/1106" />
+    <metric name="Branch" value="13/16" />
   </scope>
   <scope type="instance" name="top">
   </scope>

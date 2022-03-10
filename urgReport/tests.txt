@@ -1,8 +1,8 @@
 Tests
 
 Total Coverage Summary 
-SCORE  LINE   TOGGLE 
- 40.34  76.09   4.60 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 65.47  91.16  68.42  21.07  81.25 
 
 
 Total tests in report: 1

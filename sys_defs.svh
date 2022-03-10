@@ -78,10 +78,10 @@ typedef enum logic [3:0] {
 // MapTable parameters
 //
 //////////////////////////////////////////////
-`define ROB_SIZE 32
+`define ROB_SIZE 8
 `define REG_SIZE 32
 //`define ROB_IDX_LEN clog2(`ROB_SIZE+1)
-`define ROB_IDX_LEN 5
+`define ROB_IDX_LEN 3
 
 
 //////////////////////////////////////////////

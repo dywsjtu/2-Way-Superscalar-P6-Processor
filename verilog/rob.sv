@@ -29,14 +29,14 @@ module rob(
     `ifdef DEBUG
         , output logic      [`ROB_IDX_LEN-1:0]  rob_head
         , output logic      [`ROB_IDX_LEN-1:0]  rob_tail
-        , output logic      [`ROB_IDX_LEN-1:0]  rob_counter
+        , output logic      [`ROB_IDX_LEN:0]    rob_counter
         , output ROB_ENTRY  [`ROB_SIZE-1:0]     rob_entries
     `endif
 );  
     `ifndef DEBUG
         logic               [`ROB_IDX_LEN-1:0]  rob_head;
         logic               [`ROB_IDX_LEN-1:0]  rob_tail;
-        logic               [`ROB_IDX_LEN-1:0]  rob_counter;
+        logic               [`ROB_IDX_LEN:0]    rob_counter;
         ROB_ENTRY           [`ROB_SIZE-1:0]     rob_entries;
     `endif
 
@@ -72,7 +72,7 @@ module rob(
             $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
             // TODO print only 5 for now
-            for(int i = 0; i < 5; i += 1) begin
+            for(int i = 0; i < 8; i += 1) begin
                 // For some reason pretty printing doesn't work if I index directly
                 ROB_ENTRY rob_entry;
                 rob_entry = rob_entries[i];
@@ -88,6 +88,7 @@ module rob(
             rob_head    <=  `SD `ROB_IDX_LEN'b0;
             rob_tail    <=  `SD `ROB_IDX_LEN'b0;
             rob_counter <=  `SD `ROB_IDX_LEN'b0;
+            rob_entries <=  `SD 0;
         end else if (squash) begin
             rob_head    <=  `SD rob_tail;
             rob_counter <=  `SD `ROB_IDX_LEN'b0;
@@ -103,6 +104,7 @@ module rob(
                                                                                             : rob_tail + 1;
             end
             if (retire_valid) begin
+                rob_entries[rob_head]                   <=  `SD 0;
                 rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
                                                                                             : rob_head + 1;
             end 

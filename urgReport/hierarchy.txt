@@ -2,10 +2,10 @@ Design Hierarchy
 
 
 ----------------
-SCORE  LINE   TOGGLE           
- 40.34  76.09   4.60 testbench 
+SCORE  LINE   COND   TOGGLE BRANCH           
+ 65.47  91.16  68.42  21.07  81.25 testbench 
   
   ----------------
-  SCORE  LINE   TOGGLE          
-   42.56  80.00   5.12 test_rob 
+  SCORE  LINE   COND   TOGGLE BRANCH          
+   66.29  93.75  68.42  21.76  81.25 test_rob 
 

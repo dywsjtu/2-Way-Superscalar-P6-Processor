@@ -1,0 +1,171 @@
+0 
+42
++cli+1
++itf+/usr/caen/vcs-2020.12-SP2-1/linux64/lib/vcsdp.tab
++memcbk
++vc
++vcs+vcdpluson
++vcsd
++vpi
+-Mamsrun=
+-Masflags=
+-Mcc=gcc
+-Mcfl= -pipe -fPIC -O -I/usr/caen/vcs-2020.12-SP2-1/include
+-Mcplusplus=g++
+-Mcrt0=
+-Mcrtn=
+-Mcsrc=testbench/pipe_print.c testbench/rob_print.c
+-Mexternalobj=
+-Mldflags= -rdynamic
+-Mobjects= /usr/caen/vcs-2020.12-SP2-1/linux64/lib/libvirsim.so /usr/caen/vcs-2020.12-SP2-1/linux64/lib/liberrorinf.so /usr/caen/vcs-2020.12-SP2-1/linux64/lib/libsnpsmalloc.so /usr/caen/vcs-2020.12-SP2-1/linux64/lib/libvfs.so
+-Mout=simv
+-Msaverestoreobj=/usr/caen/vcs-2020.12-SP2-1/linux64/lib/vcs_save_restore_new.o
+-Msyslibs=-ldl
+-Mupdate
+-Mvcsaceobjs=
+-Mxcflags= -pipe -fPIC -I/usr/caen/vcs-2020.12-SP2-1/include
+-Mxllcflags=
+-V
+-Xcbug=0x1
+-cm
+-debug=4
+-full64
+-gen_obj
+-line
+-o simv
+-picarchive
+-sverilog
+/usr/caen/vcs-2020.12-SP2-1/linux64/bin/vcs1
+line+cond+tgl+branch+assert
+simv
+sys_defs.svh
+ISA.svh
+verilog/rob.sv
+testbench/test_rob.sv
+108
+which_declare=declare -f
+__LMOD_REF_COUNT__LMFILES_=/usr/caen/misc/modules/gcc/7.1.0:1;/afs/umich.edu/class/coe/modules/eecs484/w17:1;/usr/caen/misc/modules/vscode/1.59.1:1;/usr/caen/misc/modules/vcs/2020.12-SP2-1:1
+__LMOD_REF_COUNT_PATH=/usr/caen/vcs-2020.12-SP2-1/bin:1;/usr/um/vscode-1.59.1/code/bin:1;/usr/lib/oracle/12.1/client64/bin:1;/usr/um/gcc-7.1.0/bin:1;/usr/local/bin:1;/usr/local/sbin:1;/usr/bin:1;/usr/sbin:1;/usr/um/bin:1;/usr/caen/bin:1
+__LMOD_REF_COUNT_MODULEPATH=/usr/caen/misc/modules:2;/etc/scl/modulefiles:1;/etc/modulefiles:1;/usr/share/modulefiles:1;/afs/umich.edu/class/coe/modules:1;/usr/share/modulefiles/Linux:1;/usr/share/modulefiles/Core:1;/usr/share/lmod/lmod/modulefiles/Core:1
+__LMOD_REF_COUNT_LOADEDMODULES=gcc/7.1.0:1;eecs484/w17:1;vscode/1.59.1:1;vcs/2020.12-SP2-1:1
+__LMOD_REF_COUNT_LM_LICENSE_FILE=license.dat:1;/usr/caen/FLEXlm/data/license.dat.synopsys:1
+__LMOD_REF_COUNT_LD_RUN_PATH=/usr/um/gcc-7.1.0/lib64:1
+__LMOD_REF_COUNT_LD_LIBRARY_PATH=/usr/lib/oracle/12.1/client64/lib:1;/usr/um/gcc-7.1.0/lib64:1
+__GL_SHADER_DISK_CACHE=0
+_ModuleTable_Sz_=4
+_ModuleTable004_=dWxlczovdXNyL3NoYXJlL21vZHVsZWZpbGVzL0xpbnV4Oi91c3Ivc2hhcmUvbW9kdWxlZmlsZXMvQ29yZTovdXNyL3NoYXJlL2xtb2QvbG1vZC9tb2R1bGVmaWxlcy9Db3JlIix9
+_ModuleTable003_=InZzY29kZSIsfSx9LG1wYXRoQT17Ii91c3IvY2Flbi9taXNjL21vZHVsZXMiLCIvZXRjL3NjbC9tb2R1bGVmaWxlcyIsIi9ldGMvbW9kdWxlZmlsZXMiLCIvdXNyL3NoYXJlL21vZHVsZWZpbGVzIiwiL2Fmcy91bWljaC5lZHUvY2xhc3MvY29lL21vZHVsZXMiLCIvdXNyL3NoYXJlL21vZHVsZWZpbGVzL0xpbnV4IiwiL3Vzci9zaGFyZS9tb2R1bGVmaWxlcy9Db3JlIiwiL3Vzci9zaGFyZS9sbW9kL2xtb2QvbW9kdWxlZmlsZXMvQ29yZSIsfSxbInN5c3RlbUJhc2VNUEFUSCJdPSIvZXRjL3NjbC9tb2R1bGVmaWxlczovZXRjL21vZHVsZWZpbGVzOi91c3Ivc2hhcmUvbW9kdWxlZmlsZXM6L3Vzci9jYWVuL21pc2MvbW9kdWxlczovYWZzL3VtaWNoLmVkdS9jbGFzcy9jb2UvbW9k
+_ModuleTable002_=cHRoIl09MCxbInN0YXR1cyJdPSJhY3RpdmUiLFsidXNlck5hbWUiXT0iZ2NjLzcuMS4wIix9LHZjcz17WyJmbiJdPSIvdXNyL2NhZW4vbWlzYy9tb2R1bGVzL3Zjcy8yMDIwLjEyLVNQMi0xIixbImZ1bGxOYW1lIl09InZjcy8yMDIwLjEyLVNQMi0xIixbImxvYWRPcmRlciJdPTQscHJvcFQ9e30sWyJzdGFja0RlcHRoIl09MCxbInN0YXR1cyJdPSJhY3RpdmUiLFsidXNlck5hbWUiXT0idmNzIix9LHZzY29kZT17WyJmbiJdPSIvdXNyL2NhZW4vbWlzYy9tb2R1bGVzL3ZzY29kZS8xLjU5LjEiLFsiZnVsbE5hbWUiXT0idnNjb2RlLzEuNTkuMSIsWyJsb2FkT3JkZXIiXT0zLHByb3BUPXt9LFsic3RhY2tEZXB0aCJdPTAsWyJzdGF0dXMiXT0iYWN0aXZlIixbInVzZXJOYW1lIl09
+_ModuleTable001_=X01vZHVsZVRhYmxlXz17WyJNVHZlcnNpb24iXT0zLFsiY19yZWJ1aWxkVGltZSJdPWZhbHNlLFsiY19zaG9ydFRpbWUiXT1mYWxzZSxkZXB0aFQ9e30sZmFtaWx5PXt9LG1UPXtlZWNzNDg0PXtbImZuIl09Ii9hZnMvdW1pY2guZWR1L2NsYXNzL2NvZS9tb2R1bGVzL2VlY3M0ODQvdzE3IixbImZ1bGxOYW1lIl09ImVlY3M0ODQvdzE3IixbImxvYWRPcmRlciJdPTIscHJvcFQ9e30sWyJzdGFja0RlcHRoIl09MCxbInN0YXR1cyJdPSJhY3RpdmUiLFsidXNlck5hbWUiXT0iZWVjczQ4NCIsfSxnY2M9e1siZm4iXT0iL3Vzci9jYWVuL21pc2MvbW9kdWxlcy9nY2MvNy4xLjAiLFsiZnVsbE5hbWUiXT0iZ2NjLzcuMS4wIixbImxvYWRPcmRlciJdPTEscHJvcFQ9e30sWyJzdGFja0Rl
+_LMFILES_=/usr/caen/misc/modules/gcc/7.1.0:/afs/umich.edu/class/coe/modules/eecs484/w17:/usr/caen/misc/modules/vscode/1.59.1:/usr/caen/misc/modules/vcs/2020.12-SP2-1
+XTERM_VERSION=XTerm(331)
+XTERM_SHELL=/bin/bash
+XTERM_LOCALE=en_US
+XMODIFIERS=@im=ibus
+XDG_VTNR=2
+XDG_SESSION_TYPE=x11
+XDG_SESSION_ID=2
+XDG_SESSION_DESKTOP=gnome
+XDG_SEAT=seat0
+XDG_RUNTIME_DIR=/run/user/114151648
+XDG_MENU_PREFIX=gnome-
+XDG_DATA_DIRS=/home/tonyztc/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:/usr/caen/misc/menus
+XDG_CURRENT_DESKTOP=GNOME
+XAUTHORITY=/run/user/114151648/gdm/Xauthority
+WINDOWPATH=2
+VSCODE_GIT_IPC_HANDLE=/run/user/114151648/vscode-git-489993f682.sock
+VSCODE_GIT_ASKPASS_NODE=/opt/caen/vscode-1.59.1/code/code
+VSCODE_GIT_ASKPASS_MAIN=/opt/caen/vscode-1.59.1/code/resources/app/extensions/git/dist/askpass-main.js
+VMR_MODE_FLAG=64
+VCS_PATHMAP_PRELOAD_DONE=1
+VCS_MX_HOME_INTERNAL=1
+VCS_MODE_FLAG=64
+VCS_HOME=/usr/caen/vcs-2020.12-SP2-1
+VCS_EXEC_DONE=1
+VCS_DEPTH=0
+VCS_ARG_ADDED_FOR_TMP=1
+VCS_ARCH=linux64
+USERNAME=tonyztc
+UNAME=/bin/uname
+TWO_TASK=muscle
+TOOL_HOME=/usr/caen/vcs-2020.12-SP2-1/linux64
+TNS_ADMIN=/usr/caen/oracle/local
+TERM_PROGRAM_VERSION=1.59.1
+TERM_PROGRAM=vscode
+S_COLORS=auto
+SSH_AUTH_SOCK=/run/user/114151648/keyring/ssh
+SESSION_MANAGER=local/unix:@/tmp/.ICE-unix/6056,unix/unix:/tmp/.ICE-unix/6056
+SCRNAME=vcs
+SCRIPT_NAME=vcs
+RESET_NET_NAME=reset
+QT_IM_MODULE=ibus
+PIPELINE_NAME=pipeline
+PIPEFILES=verilog/rob.sv
+OVA_UUM=0
+ORIGINAL_XDG_CURRENT_DESKTOP=GNOME
+ORACLE_HOME=/usr/caen/oracle
+NO_AT_BRIDGE=1
+MSI2LMP_LIBRARY=/usr/share/lammps/frc_files
+MODULESHOME=/usr/share/lmod/lmod
+MODULEPATH_ROOT=/usr/share/modulefiles
+MODULEPATH=/usr/caen/misc/modules:/etc/scl/modulefiles:/etc/modulefiles:/usr/share/modulefiles:/afs/umich.edu/class/coe/modules:/usr/share/modulefiles/Linux:/usr/share/modulefiles/Core:/usr/share/lmod/lmod/modulefiles/Core
+MFLAGS=
+MAKE_TERMOUT=/dev/pts/1
+MAKE_TERMERR=/dev/pts/1
+MAKELEVEL=1
+MAKEFLAGS=
+LOADEDMODULES=gcc/7.1.0:eecs484/w17:vscode/1.59.1:vcs/2020.12-SP2-1
+LMOD_sys=Linux
+LMOD_VERSION=8.2.7
+LMOD_SETTARG_FULL_SUPPORT=no
+LMOD_ROOT=/usr/share/lmod
+LMOD_PKG=/usr/share/lmod/lmod
+LMOD_DIR=/usr/share/lmod/lmod/libexec
+LMOD_CMD=/usr/share/lmod/lmod/libexec/lmod
+LESSOPEN=||/usr/bin/lesspipe.sh %s
+LD_RUN_PATH=/usr/um/gcc-7.1.0/lib64
+LC_ALL=C
+LAMMPS_POTENTIALS=/usr/share/lammps/potentials
+KRB5CCNAME=KEYRING:persistent:114151648
+HISTCONTROL=ignoredups
+HEADERS=sys_defs.svh ISA.svh
+GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+GJS_DEBUG_TOPICS=JS ERROR;JS LOG
+GJS_DEBUG_OUTPUT=stderr
+GIT_ASKPASS=/opt/caen/vscode-1.59.1/code/resources/app/extensions/git/dist/askpass.sh
+GIO_LAUNCHED_DESKTOP_FILE_PID=8400
+GIO_LAUNCHED_DESKTOP_FILE=/usr/share/applications/xterm.desktop
+GDM_LANG=en_US.UTF-8
+GDMSESSION=gnome
+GDK_BACKEND=x11
+DESKTOP_SESSION=gnome
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/114151648/bus
+COLORTERM=truecolor
+CLOCK_PERIOD=10	
+CLOCK_NET_NAME=clock
+CHROME_DESKTOP=code-url-handler.desktop
+BREAKPAD_DUMP_LOCATION=/home/tonyztc/.config/Code/exthost Crash Reports
+BASH_FUNC_which%%=() {  ( alias;_ eval ${which_declare} ) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot "$@"_}
+BASH_FUNC_scl%%=() {  if [ "$1" = "load" -o "$1" = "unload" ]; then_ eval "module $@";_ else_ /usr/bin/scl "$@";_ fi_}
+BASH_FUNC_module%%=() {  eval $($LMOD_CMD bash "$@") && eval $(${LMOD_SETTARG_CMD:-:} -s sh)_}
+BASH_FUNC_ml%%=() {  eval $($LMOD_DIR/ml_cmd "$@")_}
+BASH_ENV=/usr/share/lmod/lmod/init/bash
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL=true
+0
+0
+6
+1646942938 testbench/test_rob.sv
+1646942757 verilog/rob.sv
+1646939249 ISA.svh
+1646941986 sys_defs.svh
+1626663922 /usr/caen/vcs-2020.12-SP2-1/include/cm_vcsd.tab
+1626663962 /usr/caen/vcs-2020.12-SP2-1/linux64/lib/vcsdp.tab
+6
+1646939249 testbench/pipe_print.c
+1646939249 testbench/rob_print.c
+1626665287 /usr/caen/vcs-2020.12-SP2-1/linux64/lib/libvirsim.so
+1626664738 /usr/caen/vcs-2020.12-SP2-1/linux64/lib/liberrorinf.so
+1626664460 /usr/caen/vcs-2020.12-SP2-1/linux64/lib/libsnpsmalloc.so
+1626664734 /usr/caen/vcs-2020.12-SP2-1/linux64/lib/libvfs.so
+1646943250 simv.daidir
+-1 partitionlib

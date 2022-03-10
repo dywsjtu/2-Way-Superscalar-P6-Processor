@@ -20,7 +20,7 @@ module testbench;
 
     logic       [`ROB_IDX_LEN-1:0]  rob_head;
     logic       [`ROB_IDX_LEN-1:0]  rob_tail;
-    logic       [`ROB_IDX_LEN-1:0]  rob_counter;
+    logic       [`ROB_IDX_LEN:0]    rob_counter;
     ROB_ENTRY   [`ROB_SIZE-1:0]     rob_entries;
 
     rob test_rob (
@@ -144,7 +144,7 @@ module testbench;
         @(negedge clock);
         // check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
         
-        // test dispatch
+        // fill rob 0
         id_rob.PC                   = `XLEN'b0;
         id_rob.dest_reg_idx         = 5'b00011;
         id_rob.dispatch_enable      = 1'b1;
@@ -165,7 +165,7 @@ module testbench;
         @(negedge clock);
         check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);        
         
-        // test dispatch
+        // fill rob 1
         id_rob.PC                   = `XLEN'b1;
         id_rob.dest_reg_idx         = 5'b00010;
         id_rob.dispatch_enable      = 1'b1;
@@ -185,103 +185,305 @@ module testbench;
         gt_rob_reg.dest_value       = `XLEN'b0;
         @(negedge clock);
         check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
-        @(negedge clock);
 
-        // PC                  = 2;
+        // fill rob 2
+        id_rob.PC                   = `XLEN'b10;
+        id_rob.dest_reg_idx         = 5'b00100;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00011;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00011;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // fill rob 3
+        id_rob.PC                   = `XLEN'b11;
+        id_rob.dest_reg_idx         = 5'b01100;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00100;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00011;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+        
+        // fill rob 4; complete rob 1
+        id_rob.PC                   = `XLEN'b100;
+        id_rob.dest_reg_idx         = 5'b10000;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+        fu_rob.completed            = 1'b1;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b1;
+        fu_rob.value                = `XLEN'b01100;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00101;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00011;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // complete rob 0
+        id_rob.PC                   = `XLEN'b100;
+        id_rob.dest_reg_idx         = 5'b10000;
+        id_rob.dispatch_enable      = 1'b0;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b1;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b10;
+        fu_rob.completed            = 1'b1;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b1011;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00101;
+        gt_rob_rs.value1            = `XLEN'b01100;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b1;
+        gt_rob_reg.dest_reg_idx     = 5'b00011;
+        gt_rob_reg.dest_value       = `XLEN'b1011;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // retire rob 0; fill rob 5
+        id_rob.PC                   = `XLEN'b101;
+        id_rob.dest_reg_idx         = 5'b01000;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b1;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b1011;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00110;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b01100;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b1;
+        gt_rob_reg.dest_reg_idx     = 5'b00010;
+        gt_rob_reg.dest_value       = `XLEN'b01100;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // retire rob 1; fill rob 6
+        id_rob.PC                   = `XLEN'b110;
+        id_rob.dest_reg_idx         = 5'b11000;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b11;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b1011;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00111;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // fill rob 7
+        id_rob.PC                   = `XLEN'b111;
+        id_rob.dest_reg_idx         = 5'b00011;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b11;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00000;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // fill rob 0
+        id_rob.PC                   = `XLEN'b1000;
+        id_rob.dest_reg_idx         = 5'b00011;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00001;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // fill rob 1
+        id_rob.PC                   = `XLEN'b1001;
+        id_rob.dest_reg_idx         = 5'b00110;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00010;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // do nothing
+        id_rob.PC                   = `XLEN'b1001;
+        id_rob.dest_reg_idx         = 5'b00110;
+        id_rob.dispatch_enable      = 1'b0;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
+        
+        gt_rob_rs.rob_tail          = 5'b00010;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // complete 2, prepare to squash
+        id_rob.PC                   = `XLEN'b1001;
+        id_rob.dest_reg_idx         = 5'b00110;
+        id_rob.dispatch_enable      = 1'b0;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+        fu_rob.completed            = 1'b1;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b10;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b1;
+        
+        gt_rob_rs.rob_tail          = 5'b00010;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b1;
+        gt_rob_reg.dest_reg_idx     = 5'b00100;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+
+        // squash! tail=head=2
+        
+
+
+        // // test complete
+        // PC                  = 5;
+        // dispatch_enable     = 0;
+        // complete_enable     = 1;
+        // complete_rob_entry  = 0;
+        // dest_reg_idx        = 6;
+        // value               = 156;
+        // wrong_pred          = 0;
+        // reqire_entry_idx    = 2;
+        // @(negedge clock);
+
+        // // test retire
+        // PC                  = 5;
         // dispatch_enable     = 1;
         // complete_enable     = 0;
         // complete_rob_entry  = `ROB_IDX_LEN'b0;
-        // dest_reg_idx        = 2;
-        // value               = `XLEN'b0;
+        // dest_reg_idx        = 6;
+        // value               = `XLEN'b1;
         // wrong_pred          = 0;
         // reqire_entry_idx    = `ROB_IDX_LEN'b0;
         // @(negedge clock);
 
-        //// // test dispatch
-        //// PC                  = 3;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 0;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 3;
-        //// value               = `XLEN'b0;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-        //// @(negedge clock);
+        // PC                  = 6;
+        // dispatch_enable     = 1;
+        // complete_enable     = 0;
+        // complete_rob_entry  = `ROB_IDX_LEN'b0;
+        // dest_reg_idx        = 6;
+        // value               = `XLEN'b1;
+        // wrong_pred          = 0;
+        // reqire_entry_idx    = 2;
+        // @(negedge clock);
 
-        //// // test complete
-        //// PC                  = 4;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 1;
-        //// complete_rob_entry  = 2;
-        //// dest_reg_idx        = 2;
-        //// value               = `XLEN'b1;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-        //// @(negedge clock);
+        // // test wrong pred
+        // PC                  = 7;
+        // dispatch_enable     = 1;
+        // complete_enable     = 0;
+        // complete_rob_entry  = `ROB_IDX_LEN'b0;
+        // dest_reg_idx        = 2;
+        // value               = `XLEN'b1;
+        // wrong_pred          = 1;
+        // reqire_entry_idx    = 2;
+        // @(negedge clock);
 
-        //// // test complete
-        //// PC                  = 5;
-        //// dispatch_enable     = 0;
-        //// complete_enable     = 1;
-        //// complete_rob_entry  = 0;
-        //// dest_reg_idx        = 6;
-        //// value               = 156;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = 2;
-        //// @(negedge clock);
+        // // test complete after wrong predect
+        // PC                  = 8;
+        // dispatch_enable     = 1;
+        // complete_enable     = 1;
+        // complete_rob_entry  = `ROB_IDX_LEN'b0;
+        // dest_reg_idx        = 6;
+        // value               = `XLEN'b1;
+        // wrong_pred          = 0;
+        // reqire_entry_idx    = 2;
+        // @(negedge clock);
 
-        //// // test retire
-        //// PC                  = 5;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 0;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 6;
-        //// value               = `XLEN'b1;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-        //// @(negedge clock);
-
-        //// PC                  = 6;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 0;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 6;
-        //// value               = `XLEN'b1;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = 2;
-        //// @(negedge clock);
-
-        //// // test wrong pred
-        //// PC                  = 7;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 0;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 2;
-        //// value               = `XLEN'b1;
-        //// wrong_pred          = 1;
-        //// reqire_entry_idx    = 2;
-        //// @(negedge clock);
-
-        //// // test complete after wrong predect
-        //// PC                  = 8;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 1;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 6;
-        //// value               = `XLEN'b1;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = 2;
-        //// @(negedge clock);
-
-        //// PC                  = 9;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 1;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 6;
-        //// value               = `XLEN'b1;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = 2;
-        //// @(negedge clock);
+        // PC                  = 9;
+        // dispatch_enable     = 1;
+        // complete_enable     = 1;
+        // complete_rob_entry  = `ROB_IDX_LEN'b0;
+        // dest_reg_idx        = 6;
+        // value               = `XLEN'b1;
+        // wrong_pred          = 0;
+        // reqire_entry_idx    = 2;
+        // @(negedge clock);
         $display("@@@Passed");
         $finish;
     end

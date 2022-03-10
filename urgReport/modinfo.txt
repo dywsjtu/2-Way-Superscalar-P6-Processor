@@ -1,8 +1,8 @@
 ===============================================================================
 Module : testbench
 ===============================================================================
-SCORE  LINE   TOGGLE 
- 39.60  75.00   4.20 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 55.71  90.88 --      20.54 --     
 
 Source File(s) : 
 
@@ -10,8 +10,8 @@ Source File(s) :
 
 Module self-instances :
 
-SCORE  LINE   TOGGLE NAME      
- 39.60  75.00   4.20 testbench 
+SCORE  LINE   COND   TOGGLE BRANCH NAME      
+ 55.71  90.88 --      20.54 --     testbench 
 
 
 
@@ -19,10 +19,10 @@ SCORE  LINE   TOGGLE NAME
 Line Coverage for Module : testbench
 
              Line No.   Total   Covered  Percent
-TOTAL                      108       81    75.00
+TOTAL                      296      269    90.88
 ALWAYS             46        2        2   100.00
 ROUTINE            61       40       13    32.50
-INITIAL           119       66       66   100.00
+INITIAL           119      254      254   100.00
 
 45                      
 46         2/2              always #5 clock = ~clock;
@@ -136,7 +136,7 @@ INITIAL           119       66       66   100.00
 144        2/2                  @(negedge clock);
 145                             // check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
 146                             
-147                             // test dispatch
+147                             // fill rob 0
 148        1/1                  id_rob.PC                   = `XLEN'b0;
 149        1/1                  id_rob.dest_reg_idx         = 5'b00011;
 150        1/1                  id_rob.dispatch_enable      = 1'b1;
@@ -157,7 +157,7 @@ INITIAL           119       66       66   100.00
 165        2/2                  @(negedge clock);
 166        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);        
 167                             
-168                             // test dispatch
+168                             // fill rob 1
 169        1/1                  id_rob.PC                   = `XLEN'b1;
 170        1/1                  id_rob.dest_reg_idx         = 5'b00010;
 171        1/1                  id_rob.dispatch_enable      = 1'b1;
@@ -177,171 +177,357 @@ INITIAL           119       66       66   100.00
 185        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
 186        2/2                  @(negedge clock);
 187        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
-188        2/2                  @(negedge clock);
-189                     
-190                             // PC                  = 2;
-191                             // dispatch_enable     = 1;
-192                             // complete_enable     = 0;
-193                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
-194                             // dest_reg_idx        = 2;
-195                             // value               = `XLEN'b0;
-196                             // wrong_pred          = 0;
-197                             // reqire_entry_idx    = `ROB_IDX_LEN'b0;
-198                             // @(negedge clock);
-199                     
-200                             //// // test dispatch
-201                             //// PC                  = 3;
-202                             //// dispatch_enable     = 1;
-203                             //// complete_enable     = 0;
-204                             //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-205                             //// dest_reg_idx        = 3;
-206                             //// value               = `XLEN'b0;
-207                             //// wrong_pred          = 0;
-208                             //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-209                             //// @(negedge clock);
-210                     
-211                             //// // test complete
-212                             //// PC                  = 4;
-213                             //// dispatch_enable     = 1;
-214                             //// complete_enable     = 1;
-215                             //// complete_rob_entry  = 2;
-216                             //// dest_reg_idx        = 2;
-217                             //// value               = `XLEN'b1;
-218                             //// wrong_pred          = 0;
-219                             //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-220                             //// @(negedge clock);
-221                     
-222                             //// // test complete
-223                             //// PC                  = 5;
-224                             //// dispatch_enable     = 0;
-225                             //// complete_enable     = 1;
-226                             //// complete_rob_entry  = 0;
-227                             //// dest_reg_idx        = 6;
-228                             //// value               = 156;
-229                             //// wrong_pred          = 0;
-230                             //// reqire_entry_idx    = 2;
-231                             //// @(negedge clock);
-232                     
-233                             //// // test retire
-234                             //// PC                  = 5;
-235                             //// dispatch_enable     = 1;
-236                             //// complete_enable     = 0;
-237                             //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-238                             //// dest_reg_idx        = 6;
-239                             //// value               = `XLEN'b1;
-240                             //// wrong_pred          = 0;
-241                             //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-242                             //// @(negedge clock);
-243                     
-244                             //// PC                  = 6;
-245                             //// dispatch_enable     = 1;
-246                             //// complete_enable     = 0;
-247                             //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-248                             //// dest_reg_idx        = 6;
-249                             //// value               = `XLEN'b1;
-250                             //// wrong_pred          = 0;
-251                             //// reqire_entry_idx    = 2;
-252                             //// @(negedge clock);
-253                     
-254                             //// // test wrong pred
-255                             //// PC                  = 7;
-256                             //// dispatch_enable     = 1;
-257                             //// complete_enable     = 0;
-258                             //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-259                             //// dest_reg_idx        = 2;
-260                             //// value               = `XLEN'b1;
-261                             //// wrong_pred          = 1;
-262                             //// reqire_entry_idx    = 2;
-263                             //// @(negedge clock);
-264                     
-265                             //// // test complete after wrong predect
-266                             //// PC                  = 8;
-267                             //// dispatch_enable     = 1;
-268                             //// complete_enable     = 1;
-269                             //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-270                             //// dest_reg_idx        = 6;
-271                             //// value               = `XLEN'b1;
-272                             //// wrong_pred          = 0;
-273                             //// reqire_entry_idx    = 2;
-274                             //// @(negedge clock);
-275                     
-276                             //// PC                  = 9;
-277                             //// dispatch_enable     = 1;
-278                             //// complete_enable     = 1;
-279                             //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-280                             //// dest_reg_idx        = 6;
-281                             //// value               = `XLEN'b1;
-282                             //// wrong_pred          = 0;
-283                             //// reqire_entry_idx    = 2;
-284                             //// @(negedge clock);
-285        1/1                  $display("@@@Passed");
-286        1/1                  $finish;
+188                     
+189                             // fill rob 2
+190        1/1                  id_rob.PC                   = `XLEN'b10;
+191        1/1                  id_rob.dest_reg_idx         = 5'b00100;
+192        1/1                  id_rob.dispatch_enable      = 1'b1;
+193        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+194        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+195        1/1                  fu_rob.completed            = 1'b0;
+196        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+197        1/1                  fu_rob.value                = `XLEN'b0;
+198        1/1                  fu_rob.mis_pred             = 1'b0;
+199                             
+200        1/1                  gt_rob_rs.rob_tail          = 5'b00011;
+201        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+202        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+203        1/1                  gt_rob_rs.squash            = 1'b0;
+204        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+205        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00011;
+206        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+207        2/2                  @(negedge clock);
+208        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+209                     
+210                             // fill rob 3
+211        1/1                  id_rob.PC                   = `XLEN'b11;
+212        1/1                  id_rob.dest_reg_idx         = 5'b01100;
+213        1/1                  id_rob.dispatch_enable      = 1'b1;
+214        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+215        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+216        1/1                  fu_rob.completed            = 1'b0;
+217        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+218        1/1                  fu_rob.value                = `XLEN'b0;
+219        1/1                  fu_rob.mis_pred             = 1'b0;
+220                             
+221        1/1                  gt_rob_rs.rob_tail          = 5'b00100;
+222        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+223        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+224        1/1                  gt_rob_rs.squash            = 1'b0;
+225        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+226        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00011;
+227        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+228        2/2                  @(negedge clock);
+229        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+230                             
+231                             // fill rob 4; complete rob 1
+232        1/1                  id_rob.PC                   = `XLEN'b100;
+233        1/1                  id_rob.dest_reg_idx         = 5'b10000;
+234        1/1                  id_rob.dispatch_enable      = 1'b1;
+235        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+236        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+237        1/1                  fu_rob.completed            = 1'b1;
+238        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b1;
+239        1/1                  fu_rob.value                = `XLEN'b01100;
+240        1/1                  fu_rob.mis_pred             = 1'b0;
+241                             
+242        1/1                  gt_rob_rs.rob_tail          = 5'b00101;
+243        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+244        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+245        1/1                  gt_rob_rs.squash            = 1'b0;
+246        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+247        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00011;
+248        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+249        2/2                  @(negedge clock);
+250        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+251                     
+252                             // complete rob 0
+253        1/1                  id_rob.PC                   = `XLEN'b100;
+254        1/1                  id_rob.dest_reg_idx         = 5'b10000;
+255        1/1                  id_rob.dispatch_enable      = 1'b0;
+256        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b1;
+257        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b10;
+258        1/1                  fu_rob.completed            = 1'b1;
+259        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+260        1/1                  fu_rob.value                = `XLEN'b1011;
+261        1/1                  fu_rob.mis_pred             = 1'b0;
+262                             
+263        1/1                  gt_rob_rs.rob_tail          = 5'b00101;
+264        1/1                  gt_rob_rs.value1            = `XLEN'b01100;
+265        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+266        1/1                  gt_rob_rs.squash            = 1'b0;
+267        1/1                  gt_rob_reg.dest_valid       = 1'b1;
+268        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00011;
+269        1/1                  gt_rob_reg.dest_value       = `XLEN'b1011;
+270        2/2                  @(negedge clock);
+271        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+272                     
+273                             // retire rob 0; fill rob 5
+274        1/1                  id_rob.PC                   = `XLEN'b101;
+275        1/1                  id_rob.dest_reg_idx         = 5'b01000;
+276        1/1                  id_rob.dispatch_enable      = 1'b1;
+277        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+278        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b1;
+279        1/1                  fu_rob.completed            = 1'b0;
+280        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+281        1/1                  fu_rob.value                = `XLEN'b1011;
+282        1/1                  fu_rob.mis_pred             = 1'b0;
+283                             
+284        1/1                  gt_rob_rs.rob_tail          = 5'b00110;
+285        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+286        1/1                  gt_rob_rs.value2            = `XLEN'b01100;
+287        1/1                  gt_rob_rs.squash            = 1'b0;
+288        1/1                  gt_rob_reg.dest_valid       = 1'b1;
+289        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00010;
+290        1/1                  gt_rob_reg.dest_value       = `XLEN'b01100;
+291        2/2                  @(negedge clock);
+292        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+293                     
+294                             // retire rob 1; fill rob 6
+295        1/1                  id_rob.PC                   = `XLEN'b110;
+296        1/1                  id_rob.dest_reg_idx         = 5'b11000;
+297        1/1                  id_rob.dispatch_enable      = 1'b1;
+298        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+299        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b11;
+300        1/1                  fu_rob.completed            = 1'b0;
+301        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+302        1/1                  fu_rob.value                = `XLEN'b1011;
+303        1/1                  fu_rob.mis_pred             = 1'b0;
+304                             
+305        1/1                  gt_rob_rs.rob_tail          = 5'b00111;
+306        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+307        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+308        1/1                  gt_rob_rs.squash            = 1'b0;
+309        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+310        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00100;
+311        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+312        2/2                  @(negedge clock);
+313        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+314                     
+315                             // fill rob 7
+316        1/1                  id_rob.PC                   = `XLEN'b111;
+317        1/1                  id_rob.dest_reg_idx         = 5'b00011;
+318        1/1                  id_rob.dispatch_enable      = 1'b1;
+319        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b10;
+320        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b11;
+321        1/1                  fu_rob.completed            = 1'b0;
+322        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+323        1/1                  fu_rob.value                = `XLEN'b0;
+324        1/1                  fu_rob.mis_pred             = 1'b0;
+325                             
+326        1/1                  gt_rob_rs.rob_tail          = 5'b00000;
+327        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+328        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+329        1/1                  gt_rob_rs.squash            = 1'b0;
+330        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+331        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00100;
+332        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+333        2/2                  @(negedge clock);
+334        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+335                     
+336                             // fill rob 0
+337        1/1                  id_rob.PC                   = `XLEN'b1000;
+338        1/1                  id_rob.dest_reg_idx         = 5'b00011;
+339        1/1                  id_rob.dispatch_enable      = 1'b1;
+340        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+341        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+342        1/1                  fu_rob.completed            = 1'b0;
+343        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+344        1/1                  fu_rob.value                = `XLEN'b0;
+345        1/1                  fu_rob.mis_pred             = 1'b0;
+346                             
+347        1/1                  gt_rob_rs.rob_tail          = 5'b00001;
+348        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+349        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+350        1/1                  gt_rob_rs.squash            = 1'b0;
+351        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+352        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00100;
+353        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+354        2/2                  @(negedge clock);
+355        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+356                     
+357                             // fill rob 1
+358        1/1                  id_rob.PC                   = `XLEN'b1001;
+359        1/1                  id_rob.dest_reg_idx         = 5'b00110;
+360        1/1                  id_rob.dispatch_enable      = 1'b1;
+361        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+362        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+363        1/1                  fu_rob.completed            = 1'b0;
+364        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+365        1/1                  fu_rob.value                = `XLEN'b0;
+366        1/1                  fu_rob.mis_pred             = 1'b0;
+367                             
+368        1/1                  gt_rob_rs.rob_tail          = 5'b00010;
+369        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+370        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+371        1/1                  gt_rob_rs.squash            = 1'b0;
+372        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+373        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00100;
+374        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+375        2/2                  @(negedge clock);
+376        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+377                     
+378                             // do nothing
+379        1/1                  id_rob.PC                   = `XLEN'b1001;
+380        1/1                  id_rob.dest_reg_idx         = 5'b00110;
+381        1/1                  id_rob.dispatch_enable      = 1'b0;
+382        1/1                  rs_rob.entry_idx1           = `ROB_IDX_LEN'b11;
+383        1/1                  rs_rob.entry_idx2           = `ROB_IDX_LEN'b100;
+384        1/1                  fu_rob.completed            = 1'b0;
+385        1/1                  fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+386        1/1                  fu_rob.value                = `XLEN'b0;
+387        1/1                  fu_rob.mis_pred             = 1'b0;
+388                             
+389        1/1                  gt_rob_rs.rob_tail          = 5'b00010;
+390        1/1                  gt_rob_rs.value1            = `XLEN'b0;
+391        1/1                  gt_rob_rs.value2            = `XLEN'b0;
+392        1/1                  gt_rob_rs.squash            = 1'b0;
+393        1/1                  gt_rob_reg.dest_valid       = 1'b0;
+394        1/1                  gt_rob_reg.dest_reg_idx     = 5'b00100;
+395        1/1                  gt_rob_reg.dest_value       = `XLEN'b0;
+396        2/2                  @(negedge clock);
+397        1/1                  check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+398                     
+399                     
+400                             // // test complete
+401                             // PC                  = 5;
+402                             // dispatch_enable     = 0;
+403                             // complete_enable     = 1;
+404                             // complete_rob_entry  = 0;
+405                             // dest_reg_idx        = 6;
+406                             // value               = 156;
+407                             // wrong_pred          = 0;
+408                             // reqire_entry_idx    = 2;
+409                             // @(negedge clock);
+410                     
+411                             // // test retire
+412                             // PC                  = 5;
+413                             // dispatch_enable     = 1;
+414                             // complete_enable     = 0;
+415                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+416                             // dest_reg_idx        = 6;
+417                             // value               = `XLEN'b1;
+418                             // wrong_pred          = 0;
+419                             // reqire_entry_idx    = `ROB_IDX_LEN'b0;
+420                             // @(negedge clock);
+421                     
+422                             // PC                  = 6;
+423                             // dispatch_enable     = 1;
+424                             // complete_enable     = 0;
+425                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+426                             // dest_reg_idx        = 6;
+427                             // value               = `XLEN'b1;
+428                             // wrong_pred          = 0;
+429                             // reqire_entry_idx    = 2;
+430                             // @(negedge clock);
+431                     
+432                             // // test wrong pred
+433                             // PC                  = 7;
+434                             // dispatch_enable     = 1;
+435                             // complete_enable     = 0;
+436                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+437                             // dest_reg_idx        = 2;
+438                             // value               = `XLEN'b1;
+439                             // wrong_pred          = 1;
+440                             // reqire_entry_idx    = 2;
+441                             // @(negedge clock);
+442                     
+443                             // // test complete after wrong predect
+444                             // PC                  = 8;
+445                             // dispatch_enable     = 1;
+446                             // complete_enable     = 1;
+447                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+448                             // dest_reg_idx        = 6;
+449                             // value               = `XLEN'b1;
+450                             // wrong_pred          = 0;
+451                             // reqire_entry_idx    = 2;
+452                             // @(negedge clock);
+453                     
+454                             // PC                  = 9;
+455                             // dispatch_enable     = 1;
+456                             // complete_enable     = 1;
+457                             // complete_rob_entry  = `ROB_IDX_LEN'b0;
+458                             // dest_reg_idx        = 6;
+459                             // value               = `XLEN'b1;
+460                             // wrong_pred          = 0;
+461                             // reqire_entry_idx    = 2;
+462                             // @(negedge clock);
+463        1/1                  $display("@@@Passed");
+464        1/1                  $finish;
 
 -------------------------------------------------------------------------------
 Toggle Coverage for Module : testbench
                 Total Covered Percent 
-Totals          33    1       3.03    
-Total Bits      666   28      4.20    
-Total Bits 0->1 333   19      5.71    
-Total Bits 1->0 333   9       2.70    
+Totals          33    11      33.33   
+Total Bits      628   129     20.54   
+Total Bits 0->1 314   68      21.66   
+Total Bits 1->0 314   61      19.43   
 
-                               
-Signals          33  1  3.03   
-Signal Bits      666 28 4.20   
-Signal Bits 0->1 333 19 5.71   
-Signal Bits 1->0 333 9  2.70   
+                                
+Signals          33  11  33.33  
+Signal Bits      628 129 20.54  
+Signal Bits 0->1 314 68  21.66  
+Signal Bits 1->0 314 61  19.43  
 
 Signal Details
                              Toggle Toggle 1->0 Toggle 0->1 
 clock                        Yes    Yes         Yes         
 reset                        No     Yes         No          
-id_rob.dest_reg_idx[0]       Yes    Yes         Yes         
-id_rob.dest_reg_idx[1]       No     No          Yes         
-id_rob.dest_reg_idx[4:2]     No     No          No          
-id_rob.dispatch_enable       No     No          Yes         
-id_rob.PC[0]                 No     No          Yes         
-id_rob.PC[31:1]              No     No          No          
-rs_rob.entry_idx2[4:0]       No     No          No          
-rs_rob.entry_idx1[4:0]       No     No          No          
+id_rob.dest_reg_idx[4:0]     Yes    Yes         Yes         
+id_rob.dispatch_enable       Yes    Yes         Yes         
+id_rob.PC[2:0]               Yes    Yes         Yes         
+id_rob.PC[3]                 No     No          Yes         
+id_rob.PC[31:4]              No     No          No          
+rs_rob.entry_idx2[1:0]       Yes    Yes         Yes         
+rs_rob.entry_idx2[2]         No     No          Yes         
+rs_rob.entry_idx1[0]         Yes    Yes         Yes         
+rs_rob.entry_idx1[1]         No     No          Yes         
+rs_rob.entry_idx1[2]         No     No          No          
 fu_rob.mis_pred              No     No          No          
-fu_rob.value[31:0]           No     No          No          
-fu_rob.entry_idx[4:0]        No     No          No          
-fu_rob.completed             No     No          No          
-rob_full                     No     No          No          
+fu_rob.value[3:0]            Yes    Yes         Yes         
+fu_rob.value[31:4]           No     No          No          
+fu_rob.entry_idx[0]          Yes    Yes         Yes         
+fu_rob.entry_idx[2:1]        No     No          No          
+fu_rob.completed             Yes    Yes         Yes         
+rob_full                     No     No          Yes         
 rob_rs.squash                No     No          No          
-rob_rs.value2[31:0]          No     No          No          
-rob_rs.value1[31:0]          No     No          No          
-rob_rs.rob_tail[0]           Yes    Yes         Yes         
-rob_rs.rob_tail[1]           No     No          Yes         
-rob_rs.rob_tail[4:2]         No     No          No          
+rob_rs.value2[1:0]           No     No          No          
+rob_rs.value2[3:2]           Yes    Yes         Yes         
+rob_rs.value2[31:4]          No     No          No          
+rob_rs.value1[1:0]           No     No          No          
+rob_rs.value1[3:2]           Yes    Yes         Yes         
+rob_rs.value1[31:4]          No     No          No          
+rob_rs.rob_tail[2:0]         Yes    Yes         Yes         
 rob_mt.squash                No     No          No          
-rob_mt.rob_tail[0]           Yes    Yes         Yes         
-rob_mt.rob_tail[1]           No     No          Yes         
-rob_mt.rob_tail[4:2]         No     No          No          
-rob_reg.dest_value[31:0]     No     No          No          
-rob_reg.dest_reg_idx[4:0]    No     No          No          
-rob_reg.dest_valid           No     No          No          
+rob_mt.rob_tail[2:0]         Yes    Yes         Yes         
+rob_reg.dest_value[3:0]      Yes    Yes         Yes         
+rob_reg.dest_value[31:4]     No     No          No          
+rob_reg.dest_reg_idx[1:0]    Yes    Yes         Yes         
+rob_reg.dest_reg_idx[2]      No     No          Yes         
+rob_reg.dest_reg_idx[4:3]    No     No          No          
+rob_reg.dest_valid           Yes    Yes         Yes         
 gt_rob_rs.squash             No     No          No          
-gt_rob_rs.value2[31:0]       No     No          No          
-gt_rob_rs.value1[31:0]       No     No          No          
-gt_rob_rs.rob_tail[0]        Yes    Yes         Yes         
-gt_rob_rs.rob_tail[1]        No     No          Yes         
-gt_rob_rs.rob_tail[4:2]      No     No          No          
+gt_rob_rs.value2[1:0]        No     No          No          
+gt_rob_rs.value2[3:2]        Yes    Yes         Yes         
+gt_rob_rs.value2[31:4]       No     No          No          
+gt_rob_rs.value1[1:0]        No     No          No          
+gt_rob_rs.value1[3:2]        Yes    Yes         Yes         
+gt_rob_rs.value1[31:4]       No     No          No          
+gt_rob_rs.rob_tail[2:0]      Yes    Yes         Yes         
 gt_rob_mt.squash             No     No          No          
-gt_rob_mt.rob_tail[0]        Yes    Yes         Yes         
-gt_rob_mt.rob_tail[1]        No     No          Yes         
-gt_rob_mt.rob_tail[4:2]      No     No          No          
-gt_rob_reg.dest_value[31:0]  No     No          No          
-gt_rob_reg.dest_reg_idx[1:0] No     No          Yes         
-gt_rob_reg.dest_reg_idx[4:2] No     No          No          
-gt_rob_reg.dest_valid        No     No          No          
-rob_head[4:0]                No     No          No          
-rob_tail[0]                  Yes    Yes         Yes         
-rob_tail[1]                  No     No          Yes         
-rob_tail[4:2]                No     No          No          
-rob_counter[0]               Yes    Yes         Yes         
-rob_counter[1]               No     No          Yes         
-rob_counter[4:2]             No     No          No          
+gt_rob_mt.rob_tail[2:0]      Yes    Yes         Yes         
+gt_rob_reg.dest_value[3:0]   Yes    Yes         Yes         
+gt_rob_reg.dest_value[31:4]  No     No          No          
+gt_rob_reg.dest_reg_idx[1:0] Yes    Yes         Yes         
+gt_rob_reg.dest_reg_idx[2]   No     No          Yes         
+gt_rob_reg.dest_reg_idx[4:3] No     No          No          
+gt_rob_reg.dest_valid        Yes    Yes         Yes         
+rob_head[0]                  Yes    Yes         Yes         
+rob_head[1]                  No     No          Yes         
+rob_head[2]                  No     No          No          
+rob_tail[2:0]                Yes    Yes         Yes         
+rob_counter[2:0]             Yes    Yes         Yes         
+rob_counter[3]               No     No          Yes         
 
 
 -------------------------------------------------------------------------------
@@ -351,20 +537,20 @@ Module Instance : testbench
 
 Instance :
 
-SCORE  LINE   TOGGLE 
- 39.60  75.00   4.20 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 55.71  90.88 --      20.54 --     
 
 
 Instance's subtree :
 
-SCORE  LINE   TOGGLE 
- 40.34  76.09   4.60 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 65.47  91.16  68.42  21.07  81.25 
 
 
 Module : 
 
-SCORE  LINE   TOGGLE NAME      
- 39.60  75.00   4.20 testbench 
+SCORE  LINE   COND   TOGGLE BRANCH NAME      
+ 55.71  90.88 --      20.54 --     testbench 
 
 
 Parent : 
@@ -375,8 +561,8 @@ none
 
 Subtrees :
 
-SCORE  LINE   TOGGLE NAME     
- 42.56  80.00   5.12 test_rob 
+SCORE  LINE   COND   TOGGLE BRANCH NAME     
+ 66.29  93.75  68.42  21.76  81.25 test_rob 
 
 
 
@@ -385,8 +571,8 @@ Since this is the module's only instance, the coverage report is the same as for
 ===============================================================================
 Module : rob
 ===============================================================================
-SCORE  LINE   TOGGLE 
- 42.56  80.00   5.12 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 66.29  93.75  68.42  21.76  81.25 
 
 Source File(s) : 
 
@@ -394,8 +580,8 @@ Source File(s) :
 
 Module self-instances :
 
-SCORE  LINE   TOGGLE NAME               
- 42.56  80.00   5.12 testbench.test_rob 
+SCORE  LINE   COND   TOGGLE BRANCH NAME               
+ 66.29  93.75  68.42  21.76  81.25 testbench.test_rob 
 
 
 
@@ -403,9 +589,9 @@ SCORE  LINE   TOGGLE NAME
 Line Coverage for Module : rob
 
              Line No.   Total   Covered  Percent
-TOTAL                       30       24    80.00
+TOTAL                       32       30    93.75
 ALWAYS             67        9        9   100.00
-ALWAYS             87       21       15    71.43
+ALWAYS             87       23       21    91.30
 
 66                          always_ff @(negedge clock) begin
 67         1/1                  if(reset) begin
@@ -416,7 +602,7 @@ ALWAYS             87       21       15    71.43
 72         1/1                      $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
 73         1/1                      $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
 74                                  // TODO print only 5 for now
-75         1/1                      for(int i = 0; i < 5; i += 1) begin
+75         1/1                      for(int i = 0; i < 8; i += 1) begin
 76                                      // For some reason pretty printing doesn't work if I index directly
 77                                      ROB_ENTRY rob_entry;
 78         1/1                          rob_entry = rob_entries[i];
@@ -432,100 +618,287 @@ ALWAYS             87       21       15    71.43
 88         1/1                      rob_head    <=  `SD `ROB_IDX_LEN'b0;
 89         1/1                      rob_tail    <=  `SD `ROB_IDX_LEN'b0;
 90         1/1                      rob_counter <=  `SD `ROB_IDX_LEN'b0;
-91         1/1                  end else if (squash) begin
-92         0/1     ==>              rob_head    <=  `SD rob_tail;
-93         0/1     ==>              rob_counter <=  `SD `ROB_IDX_LEN'b0;
-94                              end else begin
-95         1/1                      if (id_rob.dispatch_enable) begin
-96                                      // initalize rob entry
-97         1/1                          rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
-98         1/1                          rob_entries[rob_tail].ready             <=  `SD 1'b0;
-99         1/1                          rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
-100        1/1                          rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
-101        1/1                          rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
-102        1/1                          rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-103                                                                                                                 : rob_tail + 1;
-104                                 end
+91         1/1                      rob_entries <=  `SD 0;
+92         1/1                  end else if (squash) begin
+93         0/1     ==>              rob_head    <=  `SD rob_tail;
+94         0/1     ==>              rob_counter <=  `SD `ROB_IDX_LEN'b0;
+95                              end else begin
+96         1/1                      if (id_rob.dispatch_enable) begin
+97                                      // initalize rob entry
+98         1/1                          rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
+99         1/1                          rob_entries[rob_tail].ready             <=  `SD 1'b0;
+100        1/1                          rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
+101        1/1                          rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
+102        1/1                          rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
+103        1/1                          rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+104                                                                                                                 : rob_tail + 1;
+105                                 end
                         MISSING_ELSE
-105        1/1                      if (retire_valid) begin
-106        0/1     ==>                  rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-107                                                                                                                 : rob_head + 1;
-108                                 end 
+106        1/1                      if (retire_valid) begin
+107        1/1                          rob_entries[rob_head]                   <=  `SD 0;
+108        1/1                          rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+109                                                                                                                 : rob_head + 1;
+110                                 end 
                         MISSING_ELSE
-109        1/1                      if (fu_rob.completed) begin
-110        0/1     ==>                  rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
-111        0/1     ==>                  rob_entries[fu_rob.entry_idx].value     <=  `SD fu_rob.value;
-112        0/1     ==>                  rob_entries[fu_rob.entry_idx].mis_pred  <=  `SD fu_rob.mis_pred;
-113                                 end
+111        1/1                      if (fu_rob.completed) begin
+112        1/1                          rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
+113        1/1                          rob_entries[fu_rob.entry_idx].value     <=  `SD fu_rob.value;
+114        1/1                          rob_entries[fu_rob.entry_idx].mis_pred  <=  `SD fu_rob.mis_pred;
+115                                 end
                         MISSING_ELSE
-114        1/1                      rob_counter <=  `SD id_rob.dispatch_enable  ? (retire_valid ? rob_counter
+116        1/1                      rob_counter <=  `SD id_rob.dispatch_enable  ? (retire_valid ? rob_counter
+
+-------------------------------------------------------------------------------
+Cond Coverage for Module : rob
+
+               Total   Covered  Percent
+Conditions         19       13    68.42
+Logical            19       13    68.42
+Non-Logical         0        0
+Event               0        0
+
+ LINE       103
+ EXPRESSION ((rob_tail == (8 - 1)) ? 3'b0 : ((rob_tail + 1)))
+             ----------1----------
+
+-1- Status
+ 0  Covered
+ 1  Covered
+
+ LINE       108
+ EXPRESSION ((rob_head == (8 - 1)) ? 3'b0 : ((rob_head + 1)))
+             ----------1----------
+
+-1- Status
+ 0  Covered
+ 1  Not Covered
+
+ LINE       116
+ EXPRESSION (id_rob.dispatch_enable ? (retire_valid ? rob_counter : ((rob_counter + 1))) : (retire_valid ? ((rob_counter - 1)) : rob_counter))
+             -----------1----------
+
+-1- Status
+ 0  Covered
+ 1  Covered
+
+ LINE       116
+ SUB-EXPRESSION (retire_valid ? rob_counter : ((rob_counter + 1)))
+                 ------1-----
+
+-1- Status
+ 0  Covered
+ 1  Covered
+
+ LINE       116
+ SUB-EXPRESSION (retire_valid ? ((rob_counter - 1)) : rob_counter)
+                 ------1-----
+
+-1- Status
+ 0  Covered
+ 1  Not Covered
+
+ LINE       49
+ EXPRESSION (rob_entries[rob_head].ready && ((~rob_empty)))
+             -------------1-------------    -------2------
+
+-1- -2- Status
+ 0   1  Covered
+ 1   0  Not Covered
+ 1   1  Covered
+
+ LINE       50
+ EXPRESSION (rob_entries[rob_head].mis_pred && retire_valid)
+             ---------------1--------------    ------2-----
+
+-1- -2- Status
+ 0   1  Covered
+ 1   0  Not Covered
+ 1   1  Not Covered
+
+ LINE       60
+ EXPRESSION (retire_valid && (rob_entries[rob_head].dest_reg_idx != 5'b0))
+             ------1-----    ----------------------2---------------------
+
+-1- -2- Status
+ 0   1  Covered
+ 1   0  Not Covered
+ 1   1  Covered
 
 -------------------------------------------------------------------------------
 Toggle Coverage for Module : rob
                 Total Covered Percent 
-Totals          28    1       3.57    
-Total Bits      508   26      5.12    
-Total Bits 0->1 254   16      6.30    
-Total Bits 1->0 254   10      3.94    
+Totals          28    9       32.14   
+Total Bits      478   104     21.76   
+Total Bits 0->1 239   55      23.01   
+Total Bits 1->0 239   49      20.50   
 
                              
-Ports          24  1  4.17   
-Port Bits      438 20 4.57   
-Port Bits 0->1 219 13 5.94   
-Port Bits 1->0 219 7  3.20   
+Ports          24  8  33.33  
+Port Bits      408 94 23.04  
+Port Bits 0->1 204 50 24.51  
+Port Bits 1->0 204 44 21.57  
 
-                             
-Signals          4  0 0.00   
-Signal Bits      70 6 8.57   
-Signal Bits 0->1 35 3 8.57   
-Signal Bits 1->0 35 3 8.57   
+                              
+Signals          4  1  25.00  
+Signal Bits      70 10 14.29  
+Signal Bits 0->1 35 5  14.29  
+Signal Bits 1->0 35 5  14.29  
 
 Port Details
                           Toggle Toggle 1->0 Toggle 0->1 Direction 
 clock                     Yes    Yes         Yes         INPUT     
 reset                     No     Yes         No          INPUT     
-id_rob.dest_reg_idx[0]    Yes    Yes         Yes         INPUT     
-id_rob.dest_reg_idx[1]    No     No          Yes         INPUT     
-id_rob.dest_reg_idx[4:2]  No     No          No          INPUT     
-id_rob.dispatch_enable    No     No          Yes         INPUT     
-id_rob.PC[0]              No     No          Yes         INPUT     
-id_rob.PC[31:1]           No     No          No          INPUT     
-rs_rob.entry_idx2[4:0]    No     No          No          INPUT     
-rs_rob.entry_idx1[4:0]    No     No          No          INPUT     
+id_rob.dest_reg_idx[4:0]  Yes    Yes         Yes         INPUT     
+id_rob.dispatch_enable    Yes    Yes         Yes         INPUT     
+id_rob.PC[2:0]            Yes    Yes         Yes         INPUT     
+id_rob.PC[3]              No     No          Yes         INPUT     
+id_rob.PC[31:4]           No     No          No          INPUT     
+rs_rob.entry_idx2[1:0]    Yes    Yes         Yes         INPUT     
+rs_rob.entry_idx2[2]      No     No          Yes         INPUT     
+rs_rob.entry_idx1[0]      Yes    Yes         Yes         INPUT     
+rs_rob.entry_idx1[1]      No     No          Yes         INPUT     
+rs_rob.entry_idx1[2]      No     No          No          INPUT     
 fu_rob.mis_pred           No     No          No          INPUT     
-fu_rob.value[31:0]        No     No          No          INPUT     
-fu_rob.entry_idx[4:0]     No     No          No          INPUT     
-fu_rob.completed          No     No          No          INPUT     
-rob_full                  No     No          No          OUTPUT    
+fu_rob.value[3:0]         Yes    Yes         Yes         INPUT     
+fu_rob.value[31:4]        No     No          No          INPUT     
+fu_rob.entry_idx[0]       Yes    Yes         Yes         INPUT     
+fu_rob.entry_idx[2:1]     No     No          No          INPUT     
+fu_rob.completed          Yes    Yes         Yes         INPUT     
+rob_full                  No     No          Yes         OUTPUT    
 rob_rs.squash             No     No          No          OUTPUT    
-rob_rs.value2[31:0]       No     No          No          OUTPUT    
-rob_rs.value1[31:0]       No     No          No          OUTPUT    
-rob_rs.rob_tail[0]        Yes    Yes         Yes         OUTPUT    
-rob_rs.rob_tail[1]        No     No          Yes         OUTPUT    
-rob_rs.rob_tail[4:2]      No     No          No          OUTPUT    
+rob_rs.value2[1:0]        No     No          No          OUTPUT    
+rob_rs.value2[3:2]        Yes    Yes         Yes         OUTPUT    
+rob_rs.value2[31:4]       No     No          No          OUTPUT    
+rob_rs.value1[1:0]        No     No          No          OUTPUT    
+rob_rs.value1[3:2]        Yes    Yes         Yes         OUTPUT    
+rob_rs.value1[31:4]       No     No          No          OUTPUT    
+rob_rs.rob_tail[2:0]      Yes    Yes         Yes         OUTPUT    
 rob_mt.squash             No     No          No          OUTPUT    
-rob_mt.rob_tail[0]        Yes    Yes         Yes         OUTPUT    
-rob_mt.rob_tail[1]        No     No          Yes         OUTPUT    
-rob_mt.rob_tail[4:2]      No     No          No          OUTPUT    
-rob_reg.dest_value[31:0]  No     No          No          OUTPUT    
-rob_reg.dest_reg_idx[4:0] No     No          No          OUTPUT    
-rob_reg.dest_valid        No     No          No          OUTPUT    
-rob_head[4:0]             No     No          No          OUTPUT    
-rob_tail[0]               Yes    Yes         Yes         OUTPUT    
-rob_tail[1]               No     No          Yes         OUTPUT    
-rob_tail[4:2]             No     No          No          OUTPUT    
-rob_counter[0]            Yes    Yes         Yes         OUTPUT    
-rob_counter[1]            No     No          Yes         OUTPUT    
-rob_counter[4:2]          No     No          No          OUTPUT    
+rob_mt.rob_tail[2:0]      Yes    Yes         Yes         OUTPUT    
+rob_reg.dest_value[3:0]   Yes    Yes         Yes         OUTPUT    
+rob_reg.dest_value[31:4]  No     No          No          OUTPUT    
+rob_reg.dest_reg_idx[1:0] Yes    Yes         Yes         OUTPUT    
+rob_reg.dest_reg_idx[2]   No     No          Yes         OUTPUT    
+rob_reg.dest_reg_idx[4:3] No     No          No          OUTPUT    
+rob_reg.dest_valid        Yes    Yes         Yes         OUTPUT    
+rob_head[0]               Yes    Yes         Yes         OUTPUT    
+rob_head[1]               No     No          Yes         OUTPUT    
+rob_head[2]               No     No          No          OUTPUT    
+rob_tail[2:0]             Yes    Yes         Yes         OUTPUT    
+rob_counter[2:0]          Yes    Yes         Yes         OUTPUT    
+rob_counter[3]            No     No          Yes         OUTPUT    
 
 Signal Details
                   Toggle Toggle 1->0 Toggle 0->1 
 rob_empty         No     Yes         No          
-retire_valid      No     No          No          
+retire_valid      Yes    Yes         Yes         
 squash            No     No          No          
-cycle_count[1:0]  Yes    Yes         Yes         
-cycle_count[2]    No     No          Yes         
-cycle_count[31:3] No     No          No          
+cycle_count[2:0]  Yes    Yes         Yes         
+cycle_count[3]    No     No          Yes         
+cycle_count[31:4] No     No          No          
+
+
+-------------------------------------------------------------------------------
+Branch Coverage for Module : rob
+         Line No. Total Covered Percent 
+Branches          16    13      81.25   
+IF       67       2     2       100.00  
+IF       87       14    11      78.57   
+
+
+67                 if(reset) begin
+                   -1-  
+68                     cycle_count = 0;
+                       ==>
+69                 end
+70                 else begin
+71                     $display("DEBUG %4d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
+                       ==>
+
+Branches:
+
+-1- Status  
+1   Covered 
+0   Covered 
+
+
+87                 if (reset) begin
+                   -1-  
+88                     rob_head    <=  `SD `ROB_IDX_LEN'b0;
+                       ==>
+89                     rob_tail    <=  `SD `ROB_IDX_LEN'b0;
+90                     rob_counter <=  `SD `ROB_IDX_LEN'b0;
+91                     rob_entries <=  `SD 0;
+92                 end else if (squash) begin
+                            -2-  
+93                     rob_head    <=  `SD rob_tail;
+                       ==>
+94                     rob_counter <=  `SD `ROB_IDX_LEN'b0;
+95                 end else begin
+96                     if (id_rob.dispatch_enable) begin
+                       -3-  
+97                         // initalize rob entry
+98                         rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
+99                         rob_entries[rob_tail].ready             <=  `SD 1'b0;
+100                        rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
+101                        rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
+102                        rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
+103                        rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                                                                                                       -4-  
+                                                                                                       ==>  
+                                                                                                       ==>  
+104                                                                                                    : rob_tail + 1;
+105                    end
+                       MISSING_ELSE
+                       ==>
+106                    if (retire_valid) begin
+                       -5-  
+107                        rob_entries[rob_head]                   <=  `SD 0;
+108                        rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                                                                                                       -6-  
+                                                                                                       ==>  
+                                                                                                       ==>  
+109                                                                                                    : rob_head + 1;
+110                    end 
+                       MISSING_ELSE
+                       ==>
+111                    if (fu_rob.completed) begin
+                       -7-  
+112                        rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
+                           ==>
+113                        rob_entries[fu_rob.entry_idx].value     <=  `SD fu_rob.value;
+114                        rob_entries[fu_rob.entry_idx].mis_pred  <=  `SD fu_rob.mis_pred;
+115                    end
+                       MISSING_ELSE
+                       ==>
+116                    rob_counter <=  `SD id_rob.dispatch_enable  ? (retire_valid ? rob_counter
+                                                                   -8-             -9-   
+                                                                                   ==>  
+                                                                                   ==>  
+117                                                                                : rob_counter + 1)
+                                                                                                     
+118                                                                : (retire_valid ? rob_counter - 1
+                                                                                   -10-  
+                                                                                   ==>  
+                                                                                   ==>  
+
+Branches:
+
+-1- -2- -3- -4- -5- -6- -7- -8- -9- -10- Status      
+1   -   -   -   -   -   -   -   -   -    Covered     
+0   1   -   -   -   -   -   -   -   -    Not Covered 
+0   0   1   1   -   -   -   -   -   -    Covered     
+0   0   1   0   -   -   -   -   -   -    Covered     
+0   0   0   -   -   -   -   -   -   -    Covered     
+0   0   -   -   1   1   -   -   -   -    Not Covered 
+0   0   -   -   1   0   -   -   -   -    Covered     
+0   0   -   -   0   -   -   -   -   -    Covered     
+0   0   -   -   -   -   1   -   -   -    Covered     
+0   0   -   -   -   -   0   -   -   -    Covered     
+0   0   -   -   -   -   -   1   1   -    Covered     
+0   0   -   -   -   -   -   1   0   -    Covered     
+0   0   -   -   -   -   -   0   -   1    Not Covered 
+0   0   -   -   -   -   -   0   -   0    Covered     
 
 
 -------------------------------------------------------------------------------
@@ -535,26 +908,26 @@ Module Instance : testbench.test_rob
 
 Instance :
 
-SCORE  LINE   TOGGLE 
- 42.56  80.00   5.12 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 66.29  93.75  68.42  21.76  81.25 
 
 
 Instance's subtree :
 
-SCORE  LINE   TOGGLE 
- 42.56  80.00   5.12 
+SCORE  LINE   COND   TOGGLE BRANCH 
+ 66.29  93.75  68.42  21.76  81.25 
 
 
 Module : 
 
-SCORE  LINE   TOGGLE NAME 
- 42.56  80.00   5.12 rob  
+SCORE  LINE   COND   TOGGLE BRANCH NAME 
+ 66.29  93.75  68.42  21.76  81.25 rob  
 
 
 Parent : 
 
-SCORE  LINE   TOGGLE NAME      
- 39.60  75.00   4.20 testbench 
+SCORE  LINE   COND   TOGGLE BRANCH NAME      
+ 55.71  90.88 --      20.54 --     testbench 
 
 
 Subtrees :

@@ -1,0 +1,16 @@
+rc file Version 1.0
+
+[Design]
+COMPILE_PATH=/afs/umich.edu/user/t/o/tonyztc/Desktop/group17w22
+VCS_HOME=/usr/caen/vcs-2020.12-SP2-1
+VERDI_HOME=
+SystemC=FALSE
+UUM=FALSE
+KDB=FALSE
+USE_NOVAS_HOME=FALSE
+COSIM=FALSE
+TOP=testbench 
+
+[Value]
+WREALX=ffff534e50535f58
+WREALZ=ffff534e50535f5a
