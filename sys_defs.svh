@@ -13,6 +13,8 @@
 
 /* Synthesis testing definition, used in DUT module instantiation */
 
+`define DEBUG
+
 `ifdef  SYNTH_TEST
 `define DUT(mod) mod``_svsim
 `else

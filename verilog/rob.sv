@@ -61,6 +61,25 @@ module rob(
     assign rob_reg.dest_reg_idx = rob_entries[rob_head].dest_reg_idx;
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
 
+    `ifdef DEBUG
+    logic cycle_count;
+    always_ff @(posedge clock) begin
+        if(reset) begin
+            cycle_count = 0;
+        end
+        else begin
+            $display("DEBUG %d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
+            $display("DEBUG %d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
+            $display("DEBUG %d: rob_head = %d, rob_tail = %p, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
+            // TODO print only 5 for now
+            for(int i = 0; i < 5; i += 1) begin
+                $display("DEBUG %d: rob_entries[%02d] = %p", cycle_count, i,  rob_entries[i]);
+            end
+            cycle_count += 1;
+        end
+    end
+    `endif
+
     always_ff @(posedge clock) begin
         if (reset) begin
             rob_head    <=  `SD `ROB_IDX_LEN'b0;
