@@ -1,6 +1,6 @@
-<session version="1.1" release="R-2020.12-SP2-1" timestp="2022-03-10 04:06:05 GMT">
+<session version="1.1" release="R-2020.12-SP2-1" timestp="2022-03-10 19:31:41 GMT">
   <info>
-    <attr name="datetime" value="Wed Mar  9 23:06:16 2022
+    <attr name="datetime" value="Thu Mar 10 14:31:49 2022
 "/>
     <attr name="command" value="urg -dir simv.vdb -format text"/>
     <attr name="top_instance" value="testbench"/>
@@ -13,8 +13,8 @@
   </hvp>
   <old_coverage>
   <scope type="top" name="top">
-    <metric name="Line" value="51/86" />
-    <metric name="Toggle" value="6/1110" />
+    <metric name="Line" value="105/138" />
+    <metric name="Toggle" value="54/1174" />
   </scope>
   <scope type="instance" name="top">
   </scope>

@@ -1,8 +1,8 @@
 Dashboard
 
-Date: Wed Mar  9 23:06:16 2022
+Date: Thu Mar 10 14:31:49 2022
 
-User: dywsjtu
+User: tonyztc
 
 Version: R-2020.12-SP2-1
 Command line: urg -dir simv.vdb -format text 
@@ -12,17 +12,17 @@ Number of tests: 1
 -------------------------------------------------------------------------------
 Total Coverage Summary 
 SCORE  LINE   TOGGLE 
- 29.92  59.30   0.54 
+ 40.34  76.09   4.60 
 
 
 -------------------------------------------------------------------------------
 Hierarchical coverage data for top-level instances 
 SCORE  LINE   TOGGLE NAME      
- 29.92  59.30   0.54 testbench 
+ 40.34  76.09   4.60 testbench 
 
 
 -------------------------------------------------------------------------------
 Total Module Definition Coverage Summary 
 SCORE  LINE   TOGGLE 
- 29.92  59.30   0.54 
+ 40.34  76.09   4.60 
 

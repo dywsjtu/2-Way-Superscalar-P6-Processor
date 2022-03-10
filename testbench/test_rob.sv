@@ -99,9 +99,13 @@ module testbench;
 
             #1;
             if (flag) begin
-                $display("id_rob: %p", id_rob);
-                $display("rs_rob: %p", rs_rob);
-                $display("fu_rob: %p", fu_rob);
+                $display("id_rob:  %p", id_rob);
+                $display("rs_rob:  %p", rs_rob);
+                $display("fu_rob:  %p", fu_rob);
+                $display("rob_rs:  %p", rob_rs);
+                $display("rob_mt:  %p", rob_mt);
+                $display("rob_reg: %p", rob_reg);
+
                 $display("@@@ Failed at time %f", $time);
                 $finish;
             end
@@ -138,42 +142,60 @@ module testbench;
         @(negedge clock);
         reset = 0;
         @(negedge clock);
-        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_rs);
+        // check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
         
         // test dispatch
-        id_rob.PC           = `XLEN'b0;
-        id_rob.dest_reg_idx = 5'd3;
-        id_rob.dispatch_enable = 1'b1;
-        rs_rob.entry_idx1   = `ROB_IDX_LEN'b0;
-        rs_rob.entry_idx2   = `ROB_IDX_LEN'b0;
-        fu_rob.completed    = 1'b0;
-        fu_rob.entry_idx    = `ROB_IDX_LEN'b0;
-        fu_rob.value        = `XLEN'b0;
-        fu_rob.mis_pred     = 1'b0;
+        id_rob.PC                   = `XLEN'b0;
+        id_rob.dest_reg_idx         = 5'b00011;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
         
         gt_rob_rs.rob_tail          = 5'b1;
         gt_rob_rs.value1            = `XLEN'b0;
         gt_rob_rs.value2            = `XLEN'b0;
         gt_rob_rs.squash            = 1'b0;
         gt_rob_reg.dest_valid       = 1'b0;
-        gt_rob_reg.dest_reg_idx     = 5'd3;
+        gt_rob_reg.dest_reg_idx     = 5'b00011;
         gt_rob_reg.dest_value       = `XLEN'b0;
         @(negedge clock);
-        @(negedge clock);
-        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_rs);
-        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);        
         
+        // test dispatch
+        id_rob.PC                   = `XLEN'b1;
+        id_rob.dest_reg_idx         = 5'b00010;
+        id_rob.dispatch_enable      = 1'b1;
+        rs_rob.entry_idx1           = `ROB_IDX_LEN'b0;
+        rs_rob.entry_idx2           = `ROB_IDX_LEN'b0;
+        fu_rob.completed            = 1'b0;
+        fu_rob.entry_idx            = `ROB_IDX_LEN'b0;
+        fu_rob.value                = `XLEN'b0;
+        fu_rob.mis_pred             = 1'b0;
         
-        //// // test dispatch
-        //// PC                  = 2;
-        //// dispatch_enable     = 1;
-        //// complete_enable     = 0;
-        //// complete_rob_entry  = `ROB_IDX_LEN'b0;
-        //// dest_reg_idx        = 2;
-        //// value               = `XLEN'b0;
-        //// wrong_pred          = 0;
-        //// reqire_entry_idx    = `ROB_IDX_LEN'b0;
-        //// @(negedge clock);
+        gt_rob_rs.rob_tail          = 5'b00010;
+        gt_rob_rs.value1            = `XLEN'b0;
+        gt_rob_rs.value2            = `XLEN'b0;
+        gt_rob_rs.squash            = 1'b0;
+        gt_rob_reg.dest_valid       = 1'b0;
+        gt_rob_reg.dest_reg_idx     = 5'b00011;
+        gt_rob_reg.dest_value       = `XLEN'b0;
+        @(negedge clock);
+        check(id_rob, rs_rob, fu_rob, rob_rs, rob_mt, rob_reg, gt_rob_rs, gt_rob_mt, gt_rob_reg);
+        @(negedge clock);
+
+        // PC                  = 2;
+        // dispatch_enable     = 1;
+        // complete_enable     = 0;
+        // complete_rob_entry  = `ROB_IDX_LEN'b0;
+        // dest_reg_idx        = 2;
+        // value               = `XLEN'b0;
+        // wrong_pred          = 0;
+        // reqire_entry_idx    = `ROB_IDX_LEN'b0;
+        // @(negedge clock);
 
         //// // test dispatch
         //// PC                  = 3;

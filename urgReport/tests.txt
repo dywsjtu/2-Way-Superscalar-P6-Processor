@@ -2,7 +2,7 @@ Tests
 
 Total Coverage Summary 
 SCORE  LINE   TOGGLE 
- 29.92  59.30   0.54 
+ 40.34  76.09   4.60 
 
 
 Total tests in report: 1
