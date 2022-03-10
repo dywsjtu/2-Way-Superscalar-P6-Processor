@@ -94,6 +94,10 @@ all:    simv
 sim:	simv
 	./simv -cm line+tgl | tee sim_program.out
 
+#Test only
+simv_mt:	$(HEADERS) verilog/map_table.sv testbench/test_map.sv
+	$(VCS) $^ -o simv_mt
+
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
 	$(VCS) $^ -o simv
 
