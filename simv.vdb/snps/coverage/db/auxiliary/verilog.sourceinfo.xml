@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE cov SYSTEM "ucdb_srcinfo.dtd">
-  <srcinfo name="/afs/umich.edu/user/t/o/tonyztc/Desktop/group17w22"  >
-    <ucapi_version  major_ver="13"  minor_ver="1"  patch_str="R-2020.12-SP2-1"  />
-      <fileinfo name="sys_defs.svh"  id="0"  timestamp="1646941986"  />
-      <fileinfo name="ISA.svh"  id="1"  timestamp="1646939249"  />
-      <fileinfo name="verilog/rob.sv"  id="2"  timestamp="1646942757"  />
-      <fileinfo name="testbench/test_rob.sv"  id="3"  timestamp="1646942938"  />
-    </srcinfo>

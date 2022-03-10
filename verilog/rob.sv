@@ -84,14 +84,14 @@ module rob(
     `endif
 
     always_ff @(posedge clock) begin
-        if (reset) begin
+        if (reset || squash) begin
             rob_head    <=  `SD `ROB_IDX_LEN'b0;
             rob_tail    <=  `SD `ROB_IDX_LEN'b0;
             rob_counter <=  `SD `ROB_IDX_LEN'b0;
             rob_entries <=  `SD 0;
-        end else if (squash) begin
-            rob_head    <=  `SD rob_tail;
-            rob_counter <=  `SD `ROB_IDX_LEN'b0;
+        // end else if (squash) begin
+        //     rob_head    <=  `SD rob_tail;
+        //     rob_counter <=  `SD `ROB_IDX_LEN'b0;
         end else begin
             if (id_rob.dispatch_enable) begin
                 // initalize rob entry
@@ -100,13 +100,15 @@ module rob(
                 rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
                 rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
                 rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
-                rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-                                                                                            : rob_tail + 1;
+                // rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                //                                                                             : rob_tail + 1;
+                rob_tail                                <=  `SD rob_tail + 1;
             end
             if (retire_valid) begin
                 rob_entries[rob_head]                   <=  `SD 0;
-                rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-                                                                                            : rob_head + 1;
+                // rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                //                                                                             : rob_head + 1;
+                rob_head                                <=  `SD rob_head + 1;
             end 
             if (fu_rob.completed) begin
                 rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
