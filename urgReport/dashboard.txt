@@ -1,0 +1,28 @@
+Dashboard
+
+Date: Thu Mar 10 17:05:11 2022
+
+User: dywsjtu
+
+Version: R-2020.12-SP2-1
+Command line: urg -dir simv.vdb -format text 
+
+Number of tests: 1
+
+-------------------------------------------------------------------------------
+Total Coverage Summary 
+SCORE  LINE   COND   BRANCH 
+ 96.33  93.75  95.24 100.00 
+
+
+-------------------------------------------------------------------------------
+Hierarchical coverage data for top-level instances 
+SCORE  LINE   COND   BRANCH NAME      
+ 96.33  93.75  95.24 100.00 testbench 
+
+
+-------------------------------------------------------------------------------
+Total Module Definition Coverage Summary 
+SCORE  LINE   COND   BRANCH 
+ 96.33  93.75  95.24 100.00 
+

@@ -63,6 +63,7 @@ module rob(
 
     `ifdef DEBUG
     logic [31:0] cycle_count;
+    // synopsys sync_set_reset "reset"
     always_ff @(negedge clock) begin
         if(reset) begin
             cycle_count = 0;
@@ -71,7 +72,7 @@ module rob(
             $display("DEBUG %4d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
             $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
-            // TODO print only 5 for now
+            // TODO print only 8 for now
             for(int i = 0; i < 8; i += 1) begin
                 // For some reason pretty printing doesn't work if I index directly
                 ROB_ENTRY rob_entry;
@@ -82,7 +83,7 @@ module rob(
         end
     end
     `endif
-
+    // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if (reset || squash) begin
             rob_head    <=  `SD `ROB_IDX_LEN'b0;

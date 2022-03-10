@@ -1,0 +1,11 @@
+Design Hierarchy
+
+
+----------------
+SCORE  LINE   COND   BRANCH           
+ 96.33  93.75  95.24 100.00 testbench 
+  
+  ----------------
+  SCORE  LINE   COND   BRANCH          
+   98.41 100.00  95.24 100.00 test_rob 
+

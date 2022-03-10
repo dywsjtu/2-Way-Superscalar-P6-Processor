@@ -68,7 +68,7 @@ SYNTH_DIR = ./synth
 export HEADERS
 export PIPEFILES
 
-export PIPELINE_NAME = pipeline
+export PIPELINE_NAME = rob
 
 PIPELINE  = $(SYNTH_DIR)/$(PIPELINE_NAME).vg 
 SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
@@ -160,8 +160,8 @@ clean:
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
 	rm -f *.elf *.dump *.mem debug_bin
 	rm -rf simv.vdb
-	rm -rf urgReport/*
 
 nuke:	clean
 	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn
 	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl
+	rm -rf syn_simv.vdb

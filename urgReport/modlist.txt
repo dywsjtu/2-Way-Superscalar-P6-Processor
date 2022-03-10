@@ -1,0 +1,13 @@
+Design Module List
+
+Total Module Definition Coverage Summary 
+SCORE  LINE   COND   BRANCH 
+ 96.33  93.75  95.24 100.00 
+
+
+Total modules in report: 2
+-------------------------------------------------------------------------------
+SCORE  LINE   COND   BRANCH NAME      
+ 93.28  93.28 --     --     testbench 
+ 98.41 100.00  95.24 100.00 rob       
+
