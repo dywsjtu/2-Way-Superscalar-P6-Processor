@@ -404,5 +404,14 @@ typedef struct packed {
 	
 // } CDB_MT_PACKET;
 
+// Functional unit tags and a count
+
+enum { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
+
+typedef struct packed {
+	logic busy;
+	logic [`ROB_SIZE-1:0] T, T1, T2;
+	logic [`XLEN-1:0] V1, V2;
+} RS_ENTRY;
 
 `endif // __SYS_DEFS_VH__
