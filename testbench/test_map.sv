@@ -1,25 +1,22 @@
 module testbench;
 
-    logic clock, reset, clear, squash;
-    logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch, rs2_dispatch, rd_retire, rd_dispatch;
-    logic [$clog2(`ROB_SIZE+1)-1:0] rs1_tag, rs2_tag, rob_idx, CDB_tag;
-    logic rs1_ready, rs2_ready;
+    logic clock, reset, clear,dispatch_enable;
+    logic [$clog2(`REG_SIZE)-1:0] rd_retire, rd_dispatch;
+    RS_MT_PACKET rs_mt;
+    logic [`ROB_IDX_LEN:0] CDB_tag;
+    MT_RS_PACKET mt_rs;
+    ROB_MT_PACKET rob_mt;
 
     map_table test_map (.clock(clock),
     .reset(reset),
-    .rob_idx(rob_idx),
+    .rob_mt(rob_mt),
     .rd_dispatch(rd_dispatch),
     .CDB_tag(CDB_tag),
-    .rs1_dispatch(rs1_dispatch),
-    .rs2_dispatch(rs2_dispatch),
+    .rs_mt(rs_mt),
     .rd_retire(rd_retire),
     .clear(clear),
-    .squash(squash),
-
-    .rs1_tag(rs1_tag),
-    .rs2_tag(rs2_tag),
-    .rs1_ready(rs1_ready),
-    .rs2_ready(rs2_ready)
+    .dispatch_enable(dispatch_enable),
+    .mt_rs(mt_rs)
     );
 
     always #5 clock = ~clock;
@@ -30,71 +27,89 @@ module testbench;
 			$finish;
 		end
 	endtask
+    
+    task check_rf;
+        for(int i=0; i<`REG_SIZE; i++) begin
+                rs_mt.rs1_dispatch = i;
+                if (mt_rs.rs1_tag != `ZERO_TAG | mt_rs.rs1_ready) begin
+                    $display("@@@Reset Error");
+                    exit_on_error;
+                end
+        end
+    endtask
 
     initial begin
         clock = 0;
 
         /**RESET TEST**/
         reset = 1;
-        squash = 0;
+        rob_mt.squash = 0;
         @(negedge clock);
-
-        //all tag = 0 and not ready
-        for(int i=0; i<`REG_SIZE; i++) begin
-            rs1_dispatch = i;
-            if (rs1_tag != 0 | rs1_ready) begin
-                $display("@@@Reset Error");
-                exit_on_error;
-            end
-        end
-
+        check_rf;
         reset = 0;
 
         /**Dispatch TEST**/
+        dispatch_enable = 1;
         rd_dispatch = 15;
-        rob_idx = 1;
+        rob_mt.rob_tail = 1;
         @(negedge clock);
+        dispatch_enable = 0;
         rd_dispatch = 11;
-        rob_idx = 2;
+        rob_mt.rob_tail = 2;
         @(negedge clock);
 
         #1
         for(int i=0; i<`REG_SIZE; i++) begin
-            rs1_dispatch = i;
-            if (rs1_dispatch == 11) begin
-                if (rs1_tag != 2 | rs1_ready) begin 
-                    $display("@@@Dispatch Error");
+            rs_mt.rs1_dispatch = i;
+            #1
+            if (rs_mt.rs1_dispatch == 11) begin
+                if (mt_rs.rs1_tag != `ZERO_TAG | mt_rs.rs1_ready) begin
+                    $display("@@@Dispatch Error 11");
                     exit_on_error;
                 end
             end
-            else if (rs1_dispatch == 15) begin
-                if (rs1_tag != 1 | rs1_ready) begin 
+            else if (rs_mt.rs1_dispatch == 15) begin
+                if (mt_rs.rs1_tag != 1 | mt_rs.rs1_ready) begin 
                     $display("@@@Dispatch Error");
                     exit_on_error;
                 end
             end
             else begin
-                if (rs1_tag != 0 | rs1_ready) begin
+                if (mt_rs.rs1_tag != `ZERO_TAG | mt_rs.rs1_ready) begin
                     $display("@@@Dispatch Error");
                     exit_on_error;
                 end
             end
+
         end 
+
+        rd_dispatch = 11;
+        rob_mt.rob_tail = 2;
+        dispatch_enable = 1;
+        @(negedge clock);
+        rs_mt.rs1_dispatch = 11;
+        #1
+        if (mt_rs.rs1_tag != 2 | mt_rs.rs1_ready) begin
+            $display("@@@Dispatch Error 1");
+            exit_on_error;
+        end
         
 
         /**COMPLETE TEST**/
+        dispatch_enable = 1;
         rd_dispatch = 31;
-        rob_idx = 3;
+        rob_mt.rob_tail = 3;
         @(negedge clock);
+        dispatch_enable = 1;
         rd_dispatch = 7;
-        rob_idx = 4;
+        rob_mt.rob_tail = 4;
         @(negedge clock);
 
         //ROB#2 is completed
         CDB_tag = 2;
-        rs2_dispatch = 11;
+        rs_mt.rs2_dispatch = 11;
         #1
-        if (rs2_tag != 2 | ~rs2_ready) begin
+        if (mt_rs.rs2_tag != 2 | ~mt_rs.rs2_ready) begin
             $display("@@@Complete Error 1");
             exit_on_error;
         end
@@ -102,9 +117,9 @@ module testbench;
 
         //ROB#3 is completed
         CDB_tag = 3;
-        rs1_dispatch = 31;
+        rs_mt.rs1_dispatch = 31;
         #1
-        if (rs1_tag != 3 | ~rs1_ready) begin
+        if (mt_rs.rs1_tag != 3 | ~mt_rs.rs1_ready) begin
             $display("@@@Complete Error 2");
             exit_on_error;
         end
@@ -112,9 +127,9 @@ module testbench;
         
         //ROB#5 is completed +  ROB#5 is not in MapTable
         CDB_tag = 5;
-        rs2_dispatch = 7;
+        rs_mt.rs2_dispatch = 7;
         #1
-        if (rs2_tag != 4 | rs2_ready) begin
+        if (mt_rs.rs2_tag != 4 | mt_rs.rs2_ready) begin
             $display("@@@Complete Error 3");
             exit_on_error;
         end
@@ -123,10 +138,10 @@ module testbench;
         //retire reg[31]
         clear = 1;
         rd_retire = 31;
-        rs1_dispatch = 31;
-        rs2_dispatch = 11;
+        rs_mt.rs1_dispatch = 31;
+        rs_mt.rs2_dispatch = 11;
         @(negedge clock);
-        if (rs1_tag !=0 | rs1_ready | rs2_tag != 2| ~rs2_ready) begin
+        if (mt_rs.rs1_tag != `ZERO_TAG | mt_rs.rs1_ready | mt_rs.rs2_tag != 2| ~mt_rs.rs2_ready) begin
             $display("@@@Retire Error 1");
             exit_on_error;
         end
@@ -137,27 +152,28 @@ module testbench;
         //no instruction retire
         #1
         for(int i=0; i<`REG_SIZE; i++) begin
-            rs1_dispatch = i;
-            if (rs1_dispatch == 7) begin //dispatched
-                if (rs1_tag != 4 | rs1_ready) begin 
+            rs_mt.rs1_dispatch = i;
+            #1
+            if (rs_mt.rs1_dispatch == 7) begin //dispatched
+                if (mt_rs.rs1_tag != 4 | mt_rs.rs1_ready) begin 
                     $display("@@@Retire Error");
                     exit_on_error;
                 end
             end
-            else if (rs1_dispatch == 11) begin // completed
-                if (rs1_tag != 2 | ~rs1_ready) begin 
+            else if (rs_mt.rs1_dispatch == 11) begin // completed
+                if (mt_rs.rs1_tag != 2 | ~mt_rs.rs1_ready) begin 
                     $display("@@@Retire Error");
                     exit_on_error;
                 end
             end
-            else if (rs1_dispatch == 15) begin //dispatched
-                if (rs1_tag != 1 | rs1_ready) begin 
+            else if (rs_mt.rs1_dispatch == 15) begin //dispatched
+                if (mt_rs.rs1_tag != 1 | mt_rs.rs1_ready) begin 
                     $display("@@@Retire Error");
                     exit_on_error;
                 end
             end
             else begin
-                if (rs1_tag != 0 | rs1_ready) begin
+                if (mt_rs.rs1_tag != `ZERO_TAG | mt_rs.rs1_ready) begin
                     $display("@@@Retire Error");
                     exit_on_error;
                 end
@@ -168,24 +184,18 @@ module testbench;
         clear = 1;
         rd_retire = 11;
         @(negedge clock);
-        if (rs1_tag !=0 | rs1_ready | rs2_tag != 0| rs2_ready) begin
+        if (mt_rs.rs1_tag != `ZERO_TAG | mt_rs.rs1_ready | mt_rs.rs2_tag != `ZERO_TAG| mt_rs.rs2_ready) begin
             $display("@@@Retire Error 3");
             exit_on_error;
         end
 
         /**FLUSH TEST**/
-        squash = 1;
+        rob_mt.squash = 1;
         reset = 0;
         @(negedge clock);
 
         //all tag = 0 and not ready
-        for(int i=0; i<`REG_SIZE; i++) begin
-            rs1_dispatch = i;
-            if (rs1_tag != 0 | rs1_ready) begin
-                $display("@@@Flush Error");
-                exit_on_error;
-            end
-        end
+        check_rf;
 
      $display("@@@Passed");
      $finish;
