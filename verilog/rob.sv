@@ -50,8 +50,9 @@ module rob(
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
 
     assign rob_rs.rob_tail      = rob_tail;
-    assign rob_rs.value1        = rob_entries[rs_rob.entry_idx1].value;
-    assign rob_rs.value2        = rob_entries[rs_rob.entry_idx2].value;
+    for(int idx = 0; idx < 2; idx += 1) begin
+        assign rob_rs.value[idx] = rob_entries[rs_rob.entry_idx[idx]].value;
+    end
     assign rob_rs.squash        = squash;
 
     assign rob_mt.rob_tail      = rob_tail;

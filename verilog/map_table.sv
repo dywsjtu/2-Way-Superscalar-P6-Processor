@@ -18,10 +18,10 @@ module map_table (
         input logic clock,
         input logic reset,
 
-        input logic [$clog2(`ROB_SIZE+1)-1:0] rob_idx, //rd tag from ROB in dispatch stage: start from 1
+        input logic [ROB_IDX_LEN-1:0] rob_idx, //rd tag from ROB in dispatch stage: start from 1
         input logic [$clog2(`REG_SIZE)-1:0] rd_dispatch, // dest reg idx in dispatch stage
 
-        input logic [$clog2(`ROB_SIZE+1)-1:0] CDB_tag, //rd tag from CDB in complete stage
+        input logic [ROB_IDX_LEN-1:0] CDB_tag, //rd tag from CDB in complete stage
 
         input logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch, //rs1 idx request from RS
         input logic [$clog2(`REG_SIZE)-1:0] rs2_dispatch, //rs2 idx request from RS
@@ -32,18 +32,15 @@ module map_table (
         input logic squash, //for brach or exception 
 
         //OUTPUT
-        output logic [$clog2(`ROB_SIZE+1)-1:0] rs1_tag,
-        output logic [$clog2(`ROB_SIZE+1)-1:0] rs2_tag, 
-        output logic rs1_ready, 
-        output logic rs2_ready
+        output MT_RS_PACKET mt_rs;
     );
 
     //MapTable
-    logic [$clog2(`ROB_SIZE+1)-1:0] Tag [`REG_SIZE-1:0];
+    logic [`ROB_IDX_LEN-1:0] Tag [`REG_SIZE-1:0];
     logic [`REG_SIZE-1:0] ready_in_ROB;
 
     //Avoid multi drive
-    logic [$clog2(`ROB_SIZE+1)-1:0] Tag_next [`REG_SIZE-1:0];
+    logic [`ROB_IDX_LEN-1:0] Tag_next [`REG_SIZE-1:0];
     logic [`REG_SIZE-1:0] ready_in_ROB_next;
 
     always_comb begin
@@ -75,10 +72,10 @@ module map_table (
 
     
     //MapTable output in dispatch
-    assign rs1_tag = Tag_next[rs1_dispatch]; 
-    assign rs2_tag = Tag_next[rs2_dispatch];
-    assign rs1_ready = ready_in_ROB_next[rs1_dispatch];
-    assign rs2_ready = ready_in_ROB_next[rs2_dispatch];
+    assign mt_rs.rs_infos[0].tag = Tag_next[rs1_dispatch]; 
+    assign mt_rs.rs_infos[1].tag = Tag_next[rs2_dispatch];
+    assign mt_rs.rs_infos[0].ready = ready_in_ROB_next[rs1_dispatch];
+    assign mt_rs.rs_infos[1].ready = ready_in_ROB_next[rs2_dispatch];
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
