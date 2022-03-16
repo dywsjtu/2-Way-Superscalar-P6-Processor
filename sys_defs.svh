@@ -368,35 +368,37 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			dest_value;	  // the value to write to destination register in regfile
 } ROB_REG_PACKET;
 
-// typedef struct packed {
-	
-// } ID_RS_PACKET;
+
 
 // typedef struct packed {
 	
 // } ROB_CDB_PACKET; // seems we don't need this
 
-// typedef struct packed {
+typedef struct packed {
 	
-// } MT_RS_PACKET;
+} ID_RS_PACKET;
 
-// typedef struct packed {
+typedef struct packed {
 	
-// } RS_FU_PACKET;
+} MT_RS_PACKET;
 
-
-// typedef struct packed {
+typedef struct packed {
 	
-// } RS_REG_PACKET;
+} RS_FU_PACKET;
 
-// typedef struct packed {
+
+typedef struct packed {
 	
-// } REG_RS_PACKET;
+} RS_REG_PACKET;
 
-
-// typedef struct packed {
+typedef struct packed {
 	
-// } CDB_RS_PACKET;
+} REG_RS_PACKET;
+
+
+typedef struct packed {
+	
+} CDB_RS_PACKET;
 
 
 
@@ -404,5 +406,8 @@ typedef struct packed {
 	
 // } CDB_MT_PACKET;
 
+// Functional unit tag
+
+enum bit[3:0] {ALU, LOAD, STORE, FP} FU_TAG;
 
 `endif // __SYS_DEFS_VH__
