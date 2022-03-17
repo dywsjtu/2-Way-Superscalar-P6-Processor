@@ -19,25 +19,26 @@ module rs(
     input   ID_RS_PACKET        id_rs,
     input   MT_RS_PACKET        mt_rs,
     input   REG_RS_PACKET       reg_rs,
-    input   CDB_RS_PACKET       cdb_rs,
+    input   CDB_ENTRY           cdb_rs,
     input   ROB_RS_PACKET       rob_rs,
 
     output  RS_MT_PACKET        rs_mt,
     output  RS_FU_PACKET        rs_fu,
-    // output  RS_REG_PACKET       rs_reg,
+    output  RS_REG_PACKET       rs_reg, // TODO
     output  RS_ROB_PACKET       rs_rob,
-    output  logic               rs_entry_full
+    output  logic               rs_entry_full,
 );  
     // TODO add debug outputs for below data
-    RS_ENTRY rs_entries[FU_COUNT-1:0];
+    RS_ENTRY [FU_COUNT-1:0] rs_entries;
 
     assign rs_rob.entry_idx[0] = mt_rs.rs_infos[0].tag;
     assign rs_rob.entry_idx[1] = mt_rs.rs_infos[1].tag;
-    assign rs_mt.register_idxes = id_rs.input_reg_idx;
+    //assign rs_mt.register_idxes = id_rs.input_reg_idx;
     
     assign fu_type = id_rs.wr_mem ? FU_STORE : id_rs.rd_mem ? FU_LOAD : FU_ALU;
     assign rs_entry_full = rs_entries[fu_type].busy;
 
+    // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if(reset || rob_rs.squash) begin
             rs_entries  <= `SD 0;
@@ -68,7 +69,14 @@ module rs(
                     end
                 end
             end
-            // TODO clear entry when FU finishes executing
+            for(int fu = 0; fu < FU_COUNT; fu += 1) begin
+                for(int reg_idx = 0; reg_idx < 2; reg_idx += 1) begin
+                    rs_entries[i].rs_entry_info[reg_idx].V_ready == need_value;
+                end
+                rs_entries[i].ready_execute = ??;
+            end
+            ALU(rs_entries[FU_ALU].rs_entry_info[0].V, .. .ready(rs_entries[FU_ALU].ready_execute));
+            // TODO clear entry when we send it to FU for execution
         end
     end
 

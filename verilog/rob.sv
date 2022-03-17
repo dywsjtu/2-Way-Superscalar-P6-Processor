@@ -59,6 +59,8 @@ module rob(
     assign rob_mt.squash        = squash;
     
     assign rob_reg.dest_valid   = (retire_valid && (rob_entries[rob_head].dest_reg_idx != `ZERO_REG));
+    assign rob_mt.dest_valid    = rob_reg.dest_valid;
+    assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
     assign rob_reg.dest_reg_idx = rob_entries[rob_head].dest_reg_idx;
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
 

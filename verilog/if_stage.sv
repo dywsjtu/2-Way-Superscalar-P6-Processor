@@ -14,8 +14,9 @@
 module if_stage(
 	input         clock,                  // system clock
 	input         reset,                  // system reset
-	input         mem_wb_valid_inst,      // only go to next instruction when true
-	                                      // makes pipeline behave as single-cycle
+	// input         mem_wb_valid_inst,      // only go to next instruction when true
+	//                                       // makes pipeline behave as single-cycle
+	input 		  stall,
 	input         ex_mem_take_branch,      // taken-branch signal
 	input  [`XLEN-1:0] ex_mem_target_pc,        // target pc: use if take_branch is TRUE
 	input  [63:0] Imem2proc_data,          // Data coming back from instruction-memory
@@ -62,10 +63,11 @@ module if_stage(
 	// fetch to stall until the previous instruction has completed
 	// This must be removed for Project 3
 	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset)
-			if_packet_out.valid <= `SD 1;  // must start with something
-		else
-			if_packet_out.valid <= `SD mem_wb_valid_inst;
-	end
+	// always_ff @(posedge clock) begin
+	// 	if (reset)
+	// 		if_packet_out.valid <= `SD 1;  // must start with something
+	// 	else
+	// 		if_packet_out.valid <= `SD mem_wb_valid_inst;
+	// end
+	assign if_packet_out.valid = !stall;
 endmodule  // module if_stage

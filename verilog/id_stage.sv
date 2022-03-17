@@ -228,7 +228,7 @@ module id_stage(
 	input  [`XLEN-1:0] wb_reg_wr_data_out,  // Reg write data from WB Stage
 	input  IF_ID_PACKET if_id_packet_in,
 	
-	output ID_EX_PACKET id_packet_out
+	output ID_EX_PACKET id_packet_out,
 );
 
     assign id_packet_out.inst = if_id_packet_in.inst;
@@ -276,6 +276,30 @@ module id_stage(
 			DEST_NONE:  id_packet_out.dest_reg_idx = `ZERO_REG;
 			default:    id_packet_out.dest_reg_idx = `ZERO_REG; 
 		endcase
+
+
+		id_packet_out.req_reg[0] = 1'b0;
+		casez (if_id_packet_in.inst) 
+			`RV32_LUI, `RV32_AUIPC, `RV32_JAL: begin
+				id_packet_out.req_reg[0] = 1'b0;
+			end
+			default: 
+				id_packet_out.req_reg[0] = 1'b1;
+		endcase
+
+		id_packet_out.req_reg[1] = 1'b0;
+		if (if_id_packet.valid) begin
+			casez (if_id_packet.inst) 
+				`RV32_LUI, `RV32_AUIPC, `RV32_JAL, `RV32_JALR, `RV32_LB, `RV32_LH, 
+				`RV32_LW, `RV32_LBU, `RV32_LHU, `RV32_ADDI, `RV32_SLTI, `RV32_SLTIU, `RV32_ANDI, 
+				`RV32_ORI, `RV32_XORI, `RV32_SLLI, `RV32_SRLI, `RV32_SRAI: begin
+					id_packet_out.req_reg[1] = 1'b0;
+				end
+				default: 
+					id_packet_out.req_reg[1] = 1'b1;
+			endcase
+		end
+
 	end
    
 endmodule // module id_stage

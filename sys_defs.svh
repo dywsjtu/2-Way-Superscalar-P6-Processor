@@ -83,6 +83,7 @@ typedef enum logic [3:0] {
 //`define ROB_IDX_LEN clog2(`ROB_SIZE+1)
 `define ROB_IDX_LEN 6
 `define ZERO_TAG 6'b100000
+`define CDB_BUFFER_SIZE 2
 
 
 //////////////////////////////////////////////
@@ -131,15 +132,7 @@ typedef enum logic [4:0] {
 	ALU_SLT     = 5'h02,
 	ALU_SLTU    = 5'h03,
 	ALU_AND     = 5'h04,
-	ALU_OR      = 5'h05,
-	ALU_XOR     = 5'h06,
-	ALU_SLL     = 5'h07,
-	ALU_SRL     = 5'h08,
-	ALU_SRA     = 5'h09,
-	ALU_MUL     = 5'h0a,
-	ALU_MULH    = 5'h0b,
-	ALU_MULHSU  = 5'h0c,
-	ALU_MULHU   = 5'h0d,
+	ALU_OR      = 5'h05,r
 	ALU_DIV     = 5'h0e,
 	ALU_DIVU    = 5'h0f,
 	ALU_REM     = 5'h10,
@@ -309,6 +302,7 @@ typedef struct packed {
 	logic       illegal;       // is this instruction illegal?
 	logic       csr_op;        // is this a CSR operation? (we only used this as a cheap way to get return code)
 	logic       valid;         // is inst a valid instruction to be counted for CPI calculations?
+	logic	[1:0]		req_reg; // whether the register value is actually needed.
 } ID_EX_PACKET;
 
 typedef struct packed {
@@ -346,7 +340,12 @@ typedef struct packed {
 } ID_ROB_PACKET;
 
 typedef struct packed {
-	logic	[`ROB_IDX_LEN-1:0]	entry_idx[2]; // query index from RS to ROB
+	logic dispatch_enable; 
+	logic [4:0] dest_reg_idx;
+} ID_MT_PACKET;
+
+typedef struct packed {
+	logic	[1:0][`ROB_IDX_LEN-1:0]	entry_idx; // query index from RS to ROB
 } RS_ROB_PACKET;
 
 typedef struct packed {
@@ -358,13 +357,15 @@ typedef struct packed {
 
 typedef struct packed {
 	logic	[`ROB_IDX_LEN-1:0]	rob_tail;	 // the tail of ROB
-	logic	[`XLEN-1:0]			value [1:0]; // query values from ROB
+	logic	[1:0][`XLEN-1:0]	value ; // query values from ROB
 	logic						squash;		 // signal of flushing
 } ROB_RS_PACKET;
 
 typedef struct packed {
 	logic	[`ROB_IDX_LEN-1:0]	rob_tail;	// the tail of ROB
 	logic						squash;		// signal of flushing
+	logic 						dest_valid;
+	logic 	[4:0]				dest_reg_idx;
 } ROB_MT_PACKET;
 
 typedef struct packed {
@@ -373,27 +374,27 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			dest_value;	  // the value to write to destination register in regfile
 } ROB_REG_PACKET;
 
-typedef struct packed {
- logic [`ROB_IDX_LEN:0] rs1_tag;
- logic [`ROB_IDX_LEN:0] rs2_tag;
- logic        rs1_ready;
- logic        rs2_ready;
-} MT_RS_PACKET;
+// typedef struct packed {
+//  logic [`ROB_IDX_LEN:0] rs1_tag;
+//  logic [`ROB_IDX_LEN:0] rs2_tag;
+//  logic        rs1_ready;
+//  logic        rs2_ready;
+// } MT_RS_PACKET;
 
-/*
+
 typedef struct packed {
 	logic [`ROB_IDX_LEN:0] tag;
 	logic ready;
 } REG_INFO;
 
 typedef struct packed{
-	REG_INFO rs_infos [1:0];
+	REG_INFO [1:0] rs_infos;
 } MT_RS_PACKET;
-*/
 
 typedef struct packed {
- logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch;
- logic [$clog2(`REG_SIZE)-1:0] rs2_dispatch;
+ //logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch;
+ //logic [$clog2(`REG_SIZE)-1:0] rs2_dispatch;
+ logic [1:0][4:0]				register_idxes
 } RS_MT_PACKET;
 
 // typedef struct packed {
@@ -415,21 +416,22 @@ typedef struct packed {
 typedef struct packed {
 	logic busy;
 	logic [`ROB_SIZE-1:0]	T_dest;
-	RS_ENTRY_INFO rs_entry_info[2];
+	RS_ENTRY_INFO [1:0] rs_entry_info;
+	logic ready_execute;
 } RS_ENTRY;
 
 typedef struct packed {
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC
 
-	logic	[`XLEN-1:0]			rs_value [1:0];	// reg A & B value                                  
+	logic	[1:0][`XLEN-1:0]	rs_value ;	// reg A & B value                                  
 	logic						dispatch_enable;// whether is enable to dispatch                             
 	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
 	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
 	INST						inst;			// instruction
 	
 	logic	[4:0]				dest_reg_idx;	// destination (writeback) register index      
-	logic	[4:0]				input_reg_idx	[1:0];
+	logic	[1:0][4:0]			input_reg_idx;
 	
 	ALU_FUNC					alu_func;		// ALU function select (ALU_xxx *)
 	logic						rd_mem;			// does inst read memory?
@@ -440,6 +442,7 @@ typedef struct packed {
 	logic						illegal;		// is this instruction illegal?
 	logic						csr_op;			// is this a CSR operation? (we only used this as a cheap way to get return code)
 	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
+	logic	[1:0]				req_reg; 		// whether the register value is actually needed. (i.e. whether need T and V)
 } ID_RS_PACKET;
 
 typedef struct packed {
@@ -448,10 +451,11 @@ typedef struct packed {
 } RS_INFO;
 
 typedef struct packed {
+	logic						squash;
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC
 
-	logic	[`XLEN-1:0]			rs_value [1:0];	// reg A & B value                                  
+	logic	[1:0][`XLEN-1:0]	rs_value;	// reg A & B value                                  
 
 	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
 	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
@@ -470,9 +474,9 @@ typedef struct packed {
 	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
 } RS_FU_PACKET;
 
-// typedef struct packed {
+typedef struct packed {
 	
-// } RS_REG_PACKET;
+} RS_REG_PACKET;
 
 typedef struct packed {
 	logic	[`ROB_IDX_LEN-1:0]	entry_idx1; // query index1 from RS to ROB

@@ -18,15 +18,17 @@ module map_table (
         input logic                             clock,
         input logic                             reset,
         input logic                             dispatch_enable, //from ID
-        input ROB_MT_PACKET                     rob_mt,
         input logic [$clog2(`REG_SIZE)-1:0]     rd_dispatch, // dest reg idx (from ID)
+        //input ID_MT_PACKET                      id_mt, 
+        input ROB_MT_PACKET                     rob_mt,
+        
 
         //input logic [`ROB_IDX_LEN:0]            CDB_tag, //rd tag from CDB in complete stage
         input CDB_ENTRY                         cdb_in,
         input RS_MT_PACKET                      rs_mt,
 
-        input logic [$clog2(`REG_SIZE)-1:0]     rd_retire, // rd idx to clear in retire stage
-        input logic                             clear, //tag-clear signal in retire stage (should sent from ROB?)
+        //input logic [$clog2(`REG_SIZE)-1:0]     rd_retire, // rd idx to clear in retire stage
+        //input logic                             clear, //tag-clear signal in retire stage (should sent from ROB?)
 
          
 
@@ -41,8 +43,8 @@ module map_table (
 
     //Avoid multi drive
     //logic [$clog2(`ROB_SIZE+1)-1:0] Tag_next [`REG_SIZE-1:0];
-    logic [`REG_SIZE-1:0][`ROB_IDX_LEN:0] Tag_next;
-    logic [`REG_SIZE-1:0] ready_in_ROB_next;
+    //logic [`REG_SIZE-1:0][`ROB_IDX_LEN:0] Tag_next;
+    //logic [`REG_SIZE-1:0] ready_in_ROB_next;
     
     `ifdef DEBUG_1
     always_ff @(negedge clock)
@@ -52,51 +54,61 @@ module map_table (
             end
     `endif
 
-    always_comb begin
-        if (rob_mt.squash) begin
-            Tag_next = '{`REG_SIZE{`ZERO_TAG}};
-            ready_in_ROB_next = 0;
-        end
-        else begin
-            Tag_next = Tag;
-            ready_in_ROB_next = ready_in_ROB;
+    // always_comb begin
+    //     if (rob_mt.squash) begin
+    //         Tag_next = '{`REG_SIZE{`ZERO_TAG}};
+    //         ready_in_ROB_next = 0;
+    //     end
+    //     else begin
+    //         Tag_next = Tag;
+    //         ready_in_ROB_next = ready_in_ROB;
 
-            //clear Tag in retire stage
-            if (clear) begin
-                Tag_next[rd_retire] = `ZERO_TAG;
-                ready_in_ROB_next[rd_retire] = 0;
-            end
+    //         //clear Tag in retire stage
+    //         if (rob_mt.dest_valid) begin
+    //             Tag_next[rob_mt.dest_reg_idx] = `ZERO_TAG;
+    //             ready_in_ROB_next[rob_mt.dest_reg_idx] = 0;
+    //         end
 
-            //set ready bit in complete stage
-            if (cdb_in.valid) begin
-                for (int i = 0; i < `REG_SIZE; i++)  begin
-                    if (Tag[i] == CDB_tag) begin
-                        ready_in_ROB_next[i] = 1'b1;
-                        //break; 
-                    end
-                end
-            end
-            //set rd tag in dispatch stage
-            if (dispatch_enable)
-            begin
-                Tag_next[rd_dispatch] = rob_mt.rob_tail;
-            end
-            end
-    end
+    //         //set ready bit in complete stage
+    //         if (cdb_in.valid) begin
+    //             for (int i = 0; i < `REG_SIZE; i++)  begin
+    //                 if (Tag[i] == CDB_tag) begin
+    //                     ready_in_ROB_next[i] = 1'b1;
+    //                     //break; 
+    //                 end
+    //             end
+    //         end
+    //         //set rd tag in dispatch stage
+    //         if (dispatch_enable & rd_dispatch != `ZERO_REG)
+    //             begin
+    //                 Tag_next[rd_dispatch] = rob_mt.rob_tail;
+    //             end
+    //         end
+    // end
 
     
     //MapTable output in dispatch
-    assign mt_rs.rs1_tag = Tag_next[rs_mt.rs1_dispatch]; 
-    assign mt_rs.rs2_tag = Tag_next[rs_mt.rs2_dispatch];
-    assign mt_rs.rs1_ready = ready_in_ROB_next[rs_mt.rs1_dispatch];
-    assign mt_rs.rs2_ready = ready_in_ROB_next[rs_mt.rs2_dispatch];
+    // assign mt_rs.rs1_tag = Tag_next[rs_mt.rs1_dispatch]; 
+    // assign mt_rs.rs2_tag = Tag_next[rs_mt.rs2_dispatch];
+    // assign mt_rs.rs1_ready = ready_in_ROB_next[rs_mt.rs1_dispatch];
+    // assign mt_rs.rs2_ready = ready_in_ROB_next[rs_mt.rs2_dispatch];
 
-    /*
-    assign mt_rs.rs_infos[1].tag = Tag_next[rs_mt.rs1_dispatch]; 
-    assign mt_rs.rs_infos[0].tag = Tag_next[rs_mt.rs2_dispatch]; 
-    assign mt_rs.rs_infos[1].ready = ready_in_ROB_next[rs_mt.rs1_dispatch];
-    assign mt_rs.rs_infos[0].ready = ready_in_ROB_next[rs_mt.rs2_dispatch];
-    */
+    
+    // assign mt_rs.rs_infos[1].tag = Tag_next[rs_mt.register_idxes[1]]; 
+    // assign mt_rs.rs_infos[0].tag = Tag_next[rs_mt.register_idxes[0]]; 
+    // assign mt_rs.rs_infos[1].ready = ready_in_ROB_next[rs_mt.register_idxes[1]];
+    // assign mt_rs.rs_infos[0].ready = ready_in_ROB_next[rs_mt.register_idxes[0]];
+
+    assign mt_rs.rs_infos[1].tag = (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? `ZERO_TAG : 
+                                                                                                          Tag[rs_mt.register_idxes[1]];
+    assign mt_rs.rs_infos[0].tag = (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[0]) ? `ZERO_TAG : 
+                                                                                                          Tag[rs_mt.register_idxes[0]]
+    assign mt_rs.rs_infos[1].ready = (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? 1'b0 :
+                                     ((Tag[rs_mt.register_idxes[1]] == cdb_in.tag) & ready_in_ROB[rs_mt.register_idxes[1]]);
+    assign mt_rs.rs_infos[0].ready = (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[0]) ? 1'b0 :
+                                     ((Tag[rs_mt.register_idxes[1]] == cdb_in.tag) & ready_in_ROB[rs_mt.register_idxes[0]]);                              
+    
+
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if (reset | rob_mt.squash) begin 
@@ -106,8 +118,28 @@ module map_table (
         end
         else begin
             //update Maptable
-            Tag <= `SD Tag_next;
-            ready_in_ROB <= `SD ready_in_ROB_next;
+            // Tag <= `SD Tag_next;
+            // ready_in_ROB <= `SD ready_in_ROB_next;
+            if (rob_mt.dest_valid) begin
+                Tag[rob_mt.dest_reg_idx] = `ZERO_TAG;
+                ready_in_ROB[rob_mt.dest_reg_idx] = 0;
+            end
+
+            //set ready bit in complete stage
+            if (cdb_in.valid) begin
+                for (int i = 0; i < `REG_SIZE; i++)  begin
+                    if (Tag[i] == CDB_tag) begin
+                        ready_in_ROB[i] = 1'b1;
+                        //break; 
+                    end
+                end
+            end
+            //set rd tag in dispatch stage
+            if (dispatch_enable & rd_dispatch != `ZERO_REG)
+                begin
+                    Tag[rd_dispatch] = rob_mt.rob_tail;
+                end
+            end
         end
     end
 
