@@ -96,21 +96,41 @@ module brcond(// Inputs
 	output	logic			valid,
 	output	logic			cond    // 0/1 condition result (False/True)
 );
-	logic
+	logic	[`XLEN-1:0]		in_rs1;
+	logic	[`XLEN-1:0]		in_rs2;
+	logic	[2:0]			in_func;
+	logic					out_valid;
+	logic					out_cond;
 
 	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
-	assign signed_rs1 = rs1;
-	assign signed_rs2 = rs2;
+	assign signed_rs1 = in_rs1;
+	assign signed_rs2 = in_rs2;
 	always_comb begin
-		cond = 0;
+		out_cond = 0;
 		case (func)
-			3'b000: cond = signed_rs1 == signed_rs2;  // BEQ
-			3'b001: cond = signed_rs1 != signed_rs2;  // BNE
-			3'b100: cond = signed_rs1 < signed_rs2;   // BLT
-			3'b101: cond = signed_rs1 >= signed_rs2;  // BGE
-			3'b110: cond = rs1 < rs2;                 // BLTU
-			3'b111: cond = rs1 >= rs2;                // BGEU
+			3'b000: out_cond = signed_rs1 == signed_rs2;  // BEQ
+			3'b001: out_cond = signed_rs1 != signed_rs2;  // BNE
+			3'b100: out_cond = signed_rs1 < signed_rs2;   // BLT
+			3'b101: out_cond = signed_rs1 >= signed_rs2;  // BGE
+			3'b110: out_cond = in_rs1 < in_rs2;           // BLTU
+			3'b111: out_cond = in_rs1 >= in_rs2;          // BGEU
 		endcase
+	end
+
+	always_ff @(posedge clock) begin
+		in_rs1			<=	`SD	rs1;
+		in_rs2			<=	`SD	rs2;
+		in_func			<=	`SD	func;
+	end
+
+	always_ff @(posedge clock) begin
+		if (reset) begin
+			valid		<=	`SD	1'b0;
+			cond		<=	`SD	1'b0;
+		end else begin
+			valid		<=	`SD	out_valid;
+			cond		<=	`SD out_cond;
+		end
 	end
 	
 endmodule // brcond
