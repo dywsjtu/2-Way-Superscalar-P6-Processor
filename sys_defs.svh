@@ -336,6 +336,7 @@ typedef struct packed {
 typedef struct packed {
  logic [`ROB_IDX_LEN:0] tag;
  logic [`XLEN-1:0] value;
+ logic valid;
 } CDB_ENTRY;
 
 typedef struct packed {
@@ -378,6 +379,17 @@ typedef struct packed {
  logic        rs1_ready;
  logic        rs2_ready;
 } MT_RS_PACKET;
+
+/*
+typedef struct packed {
+	logic [`ROB_IDX_LEN:0] tag;
+	logic ready;
+} REG_INFO;
+
+typedef struct packed{
+	REG_INFO rs_infos [1:0];
+} MT_RS_PACKET;
+*/
 
 typedef struct packed {
  logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch;
@@ -436,14 +448,27 @@ typedef struct packed {
 } RS_INFO;
 
 typedef struct packed {
-	//FU_TYPE fu_type;
-	logic ready;
-	logic [`XLEN-1:0] V;
-} CDB_RS_PACKET;
+	logic	[`XLEN-1:0]			NPC;			// PC + 4
+	logic	[`XLEN-1:0]			PC;				// PC
 
-//typedef struct packed {
+	logic	[`XLEN-1:0]			rs_value [1:0];	// reg A & B value                                  
+
+	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
+	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
+	INST						inst;			// instruction
 	
-//} RS_FU_PACKET;
+	logic	[4:0]				dest_reg_idx;	// destination (writeback) register index      
+	
+	ALU_FUNC					alu_func;		// ALU function select (ALU_xxx *)
+	logic						rd_mem;			// does inst read memory?
+	logic						wr_mem;			// does inst write memory?
+	logic						cond_branch;	// is inst a conditional branch?
+	logic						uncond_branch;	// is inst an unconditional branch?
+	logic						halt;			// is this a halt?
+	logic						illegal;		// is this instruction illegal?
+	logic						csr_op;			// is this a CSR operation? (we only used this as a cheap way to get return code)
+	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
+} RS_FU_PACKET;
 
 // typedef struct packed {
 	
@@ -458,5 +483,17 @@ typedef struct packed {
 	
 // } CDB_MT_PACKET;
 
+typedef struct packed {
+	logic	[`XLEN-1:0]		alu_result; // alu_result
+	logic	[`XLEN-1:0]		NPC; //pc + 4
+	logic					take_branch; // is this a taken branch?
+	//pass throughs from decode stage
+	logic	[`XLEN-1:0]		rs2_value;
+	logic					rd_mem, wr_mem;
+	logic	[4:0]			dest_reg_idx;
+	logic					halt, illegal, csr_op;
+	logic					valid;	// whether the output of fu is valid
+	logic	[2:0]			mem_size; // byte, half-word or word
+} FU_RS_PACKET;
 
 `endif // __SYS_DEFS_VH__

@@ -19,9 +19,10 @@ module map_table (
         input logic                             reset,
         input logic                             dispatch_enable, //from ID
         input ROB_MT_PACKET                     rob_mt,
-        input logic [$clog2(`REG_SIZE)-1:0]     rd_dispatch, // dest reg idx (should from ROB?)
+        input logic [$clog2(`REG_SIZE)-1:0]     rd_dispatch, // dest reg idx (from ID)
 
-        input logic [`ROB_IDX_LEN:0]            CDB_tag, //rd tag from CDB in complete stage
+        //input logic [`ROB_IDX_LEN:0]            CDB_tag, //rd tag from CDB in complete stage
+        input CDB_ENTRY                         cdb_in,
         input RS_MT_PACKET                      rs_mt,
 
         input logic [$clog2(`REG_SIZE)-1:0]     rd_retire, // rd idx to clear in retire stage
@@ -67,10 +68,12 @@ module map_table (
             end
 
             //set ready bit in complete stage
-            for (int i = 0; i < `REG_SIZE; i++)  begin
-                if (Tag[i] == CDB_tag) begin
-                    ready_in_ROB_next[i] = 1'b1;
-                    //break; 
+            if (cdb_in.valid) begin
+                for (int i = 0; i < `REG_SIZE; i++)  begin
+                    if (Tag[i] == CDB_tag) begin
+                        ready_in_ROB_next[i] = 1'b1;
+                        //break; 
+                    end
                 end
             end
             //set rd tag in dispatch stage
@@ -88,6 +91,12 @@ module map_table (
     assign mt_rs.rs1_ready = ready_in_ROB_next[rs_mt.rs1_dispatch];
     assign mt_rs.rs2_ready = ready_in_ROB_next[rs_mt.rs2_dispatch];
 
+    /*
+    assign mt_rs.rs_infos[1].tag = Tag_next[rs_mt.rs1_dispatch]; 
+    assign mt_rs.rs_infos[0].tag = Tag_next[rs_mt.rs2_dispatch]; 
+    assign mt_rs.rs_infos[1].ready = ready_in_ROB_next[rs_mt.rs1_dispatch];
+    assign mt_rs.rs_infos[0].ready = ready_in_ROB_next[rs_mt.rs2_dispatch];
+    */
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if (reset | rob_mt.squash) begin 

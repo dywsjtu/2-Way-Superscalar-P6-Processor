@@ -11,7 +11,7 @@ module testbench;
         .FU_tag(FU_tag),
         .FU_value(FU_value),
         .cdb_out(cdb_out),
-        .full(full)
+        //.full(full)
     );
 
     always #5 clock = ~clock;

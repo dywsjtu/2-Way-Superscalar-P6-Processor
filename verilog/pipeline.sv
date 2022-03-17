@@ -86,30 +86,6 @@ module pipeline (
 	// Outputs from ID/EX Pipeline Register
 	ID_EX_PACKET id_ex_packet;
 	
-	// Outputs from EX-Stage
-	EX_MEM_PACKET ex_packet;
-	// Outputs from EX/MEM Pipeline Register
-	EX_MEM_PACKET ex_mem_packet;
-
-	// Outputs from MEM-Stage
-	logic [`XLEN-1:0] mem_result_out;
-	logic [`XLEN-1:0] proc2Dmem_addr;
-	logic [`XLEN-1:0] proc2Dmem_data;
-	logic [1:0]  proc2Dmem_command;
-	MEM_SIZE proc2Dmem_size;
-
-	// Outputs from MEM/WB Pipeline Register
-	logic        mem_wb_halt;
-	logic        mem_wb_illegal;
-	logic  [4:0] mem_wb_dest_reg_idx;
-	logic [`XLEN-1:0] mem_wb_result;
-	logic        mem_wb_take_branch;
-	
-	// Outputs from WB-Stage  (These loop back to the register file in ID)
-	logic [`XLEN-1:0] wb_reg_wr_data_out;
-	logic  [4:0] wb_reg_wr_idx_out;
-	logic        wb_reg_wr_en_out;
-	
 	assign pipeline_completed_insts = {3'b0, mem_wb_valid_inst};
 	assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
 	                                mem_wb_halt                ? HALTED_ON_WFI :
@@ -201,161 +177,98 @@ module pipeline (
 	);
 
 
-//////////////////////////////////////////////////
-//                                              //
-//            ID/EX Pipeline Register           //
-//                                              //
-//////////////////////////////////////////////////
+	// ID
+	ID_ROB_PACKET       id_rob;
+	ID_RS_PACKET        id_rs;
 
-	assign id_ex_NPC        = id_ex_packet.NPC;
-	assign id_ex_IR         = id_ex_packet.inst;
-	assign id_ex_valid_inst = id_ex_packet.valid;
-
-	assign id_ex_enable = 1'b1; // always enabled
-	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset) begin
-			id_ex_packet <= `SD '{{`XLEN{1'b0}},
-				{`XLEN{1'b0}}, 
-				{`XLEN{1'b0}}, 
-				{`XLEN{1'b0}}, 
-				OPA_IS_RS1, 
-				OPB_IS_RS2, 
-				`NOP,
-				`ZERO_REG,
-				ALU_ADD, 
-				1'b0, //rd_mem
-				1'b0, //wr_mem
-				1'b0, //cond
-				1'b0, //uncond
-				1'b0, //halt
-				1'b0, //illegal
-				1'b0, //csr_op
-				1'b0 //valid
-			}; 
-		end else begin // if (reset)
-			if (id_ex_enable) begin
-				id_ex_packet <= `SD id_packet;
-			end // if
-		end // else: !if(reset)
-	end // always
-
-
-//////////////////////////////////////////////////
-//                                              //
-//                  EX-Stage                    //
-//                                              //
-//////////////////////////////////////////////////
-	ex_stage ex_stage_0 (
-		// Inputs
-		.clock(clock),
-		.reset(reset),
-		.id_ex_packet_in(id_ex_packet),
-		// Outputs
-		.ex_packet_out(ex_packet)
-	);
-
-
-//////////////////////////////////////////////////
-//                                              //
-//           EX/MEM Pipeline Register           //
-//                                              //
-//////////////////////////////////////////////////
+	// CDB
+	CDB_ENTRY           cdb_out,
 	
-	assign ex_mem_NPC        = ex_mem_packet.NPC;
-	assign ex_mem_valid_inst = ex_mem_packet.valid;
+	// Map table
+	MT_RS_PACKET        mt_rs;
 
-	assign ex_mem_enable = 1'b1; // always enabled
-	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset) begin
-			ex_mem_IR     <= `SD `NOP;
-			ex_mem_packet <= `SD 0;
-		end else begin
-			if (ex_mem_enable)   begin
-				// these are forwarded directly from ID/EX registers, only for debugging purposes
-				ex_mem_IR     <= `SD id_ex_IR;
-				// EX outputs
-				ex_mem_packet <= `SD ex_packet;
-			end // if
-		end // else: !if(reset)
-	end // always
+	// RS
+	logic rs_entry_full;
+	RS_ROB_PACKET       rs_rob;
+	RS_MT_PACKET        rs_mt;
+    RS_FU_PACKET        rs_fu;
 
-   
-//////////////////////////////////////////////////
-//                                              //
-//                 MEM-Stage                    //
-//                                              //
-//////////////////////////////////////////////////
-	mem_stage mem_stage_0 (// Inputs
-		.clock(clock),
+	// ROB
+	logic rob_full;
+    ROB_RS_PACKET       rob_rs;
+    ROB_MT_PACKET       rob_mt;
+    ROB_REG_PACKET      rob_reg;
+
+	assign dispatch_enable = !rob_full && !rs_entry_full; // TODO check lsq not full
+	logic [$clog2(`REG_SIZE)-1:0]     rd_dispatch // where does this come from??
+
+    FU_ROB_PACKET       fu_rob;
+
+
+	REG_RS_PACKET       reg_rs;
+
+
+	cdb cdb_0(
+		//INPUT
+        .clock(clock),
 		.reset(reset),
-		.ex_mem_packet_in(ex_mem_packet),
-		.Dmem2proc_data(mem2proc_data[`XLEN-1:0]),
-		
-		// Outputs
-		.mem_result_out(mem_result_out),
-		.proc2Dmem_command(proc2Dmem_command),
-		.proc2Dmem_size(proc2Dmem_size),
-		.proc2Dmem_addr(proc2Dmem_addr),
-		.proc2Dmem_data(proc2Dmem_data)
+		.squash(rob_rs.squash),
+		input logic                 FU_valid,
+		input logic [`ROB_IDX_LEN:0]  FU_tag,
+		input logic [`XLEN-1:0]     FU_value,
+
+		//OUTPUT
+		.cdb_out(cdb_out)
 	);
 
+	// TODO fix this
+	map_table map_table_0 (
+        //INPUT
+        .clock(clock),
+		.reset(reset),
+        .dispatch_enable(dispatch_enable)
+        .rob_mt(rob_mt),
+        .rd_dispatch(rob_mt.rob_tail),
 
-//////////////////////////////////////////////////
-//                                              //
-//           MEM/WB Pipeline Register           //
-//                                              //
-//////////////////////////////////////////////////
-	assign mem_wb_enable = 1'b1; // always enabled
-	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset) begin
-			mem_wb_NPC          <= `SD 0;
-			mem_wb_IR           <= `SD `NOP;
-			mem_wb_halt         <= `SD 0;
-			mem_wb_illegal      <= `SD 0;
-			mem_wb_valid_inst   <= `SD 0;
-			mem_wb_dest_reg_idx <= `SD `ZERO_REG;
-			mem_wb_take_branch  <= `SD 0;
-			mem_wb_result       <= `SD 0;
-		end else begin
-			if (mem_wb_enable) begin
-				// these are forwarded directly from EX/MEM latches
-				mem_wb_NPC          <= `SD ex_mem_packet.NPC;
-				mem_wb_IR           <= `SD ex_mem_IR;
-				mem_wb_halt         <= `SD ex_mem_packet.halt;
-				mem_wb_illegal      <= `SD ex_mem_packet.illegal;
-				mem_wb_valid_inst   <= `SD ex_mem_packet.valid;
-				mem_wb_dest_reg_idx <= `SD ex_mem_packet.dest_reg_idx;
-				mem_wb_take_branch  <= `SD ex_mem_packet.take_branch;
-				// these are results of MEM stage
-				mem_wb_result       <= `SD mem_result_out;
-			end // if
-		end // else: !if(reset)
-	end // always
+        .cdb_in(cdb_out);
+        .rs_mt(rs_mt),
+
+        input logic [$clog2(`REG_SIZE)-1:0]     rd_retire, // rd idx to clear in retire stage
+        input logic                             clear, //tag-clear signal in retire stage (should sent from ROB?)         
+
+        //OUTPUT
+        .mt_rs(mt_rs)
+    );
 
 
-//////////////////////////////////////////////////
-//                                              //
-//                  WB-Stage                    //
-//                                              //
-//////////////////////////////////////////////////
-	wb_stage wb_stage_0 (
-		// Inputs
+	rs rs_0(
 		.clock(clock),
 		.reset(reset),
-		.mem_wb_NPC(mem_wb_NPC),
-		.mem_wb_result(mem_wb_result),
-		.mem_wb_dest_reg_idx(mem_wb_dest_reg_idx),
-		.mem_wb_take_branch(mem_wb_take_branch),
-		.mem_wb_valid_inst(mem_wb_valid_inst),
-		
-		// Outputs
-		.reg_wr_data_out(wb_reg_wr_data_out),
-		.reg_wr_idx_out(wb_reg_wr_idx_out),
-		.reg_wr_en_out(wb_reg_wr_en_out)
+		.id_rs(id_rs),
+		.mt_rs(mt_rs),
+		.reg_rs(reg_rs),
+		.cdb_rs(cdb_rs),
+		.rob_rs(rob_rs),
+		.rs_mt(rs_mt),
+		.rs_fu(rs_fu),
+		.rs_rob(rs_rob),
+		.rs_entry_full(rs_entry_full)
 	);
+
+	rob rob_0(
+		.clock(clock),
+		.reset(reset),
+
+		.id_rob(id_rob),
+		.rs_rob(rs_rob),
+		.fu_rob(fu_rob),
+
+		.rob_full(rob_full),
+
+		.rob_rs(rob_rs),
+		.rob_mt(rob_mt),
+		.rob_reg(rob_reg)
+	);  
 
 endmodule  // module verisimple
 `endif // __PIPELINE_V__
