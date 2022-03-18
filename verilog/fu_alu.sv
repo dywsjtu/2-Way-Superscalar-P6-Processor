@@ -11,10 +11,11 @@
 //
 // This module is purely combinational
 //
-module alu(
+module alu (
 	input							clock,
 	input							reset,
 
+	input							val_valid,
 	input           [`XLEN-1:0]     opa,
 	input           [`XLEN-1:0]     opb,
 	ALU_FUNC                        func,
@@ -22,11 +23,11 @@ module alu(
     output logic                    valid,
 	output logic    [`XLEN-1:0]     result
 );
-	logic           [`XLEN-1:0]     in_opa,
-	logic           [`XLEN-1:0]     in_opb,
-	ALU_FUNC                        in_func,
-	logic							out_valid,
-	logic			[`XLEN-1:0]		out_result,
+	logic           [`XLEN-1:0]     in_opa;
+	logic           [`XLEN-1:0]     in_opb;
+	ALU_FUNC                        in_func;
+	logic							out_valid;
+	logic			[`XLEN-1:0]		out_result;
 
 	wire signed [`XLEN-1:0]     signed_opa, signed_opb;
 	wire signed [2*`XLEN-1:0]   signed_mul, mixed_mul;
@@ -66,7 +67,7 @@ module alu(
 	end
 
 	always_ff @(posedge clock) begin
-		if (reset) begin
+		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;
 			result		<=	`SD	`XLEN'b0;
 		end else begin
@@ -85,10 +86,11 @@ endmodule // alu
 //
 // This module is purely combinational
 //
-module brcond(// Inputs
+module brcond (// Inputs
 	input					clock,
 	input					reset,
 
+	input					val_valid,
 	input   [`XLEN-1:0]     rs1,    // Value to check against condition
 	input   [`XLEN-1:0]     rs2,
 	input   [2:0]           func,  // Specifies which condition to check
@@ -124,7 +126,7 @@ module brcond(// Inputs
 	end
 
 	always_ff @(posedge clock) begin
-		if (reset) begin
+		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;
 			cond		<=	`SD	1'b0;
 		end else begin
@@ -201,6 +203,7 @@ module fu_alu(
 		.clock(clock),
 		.reset(reset),
 
+		.val_valid(rs_fu.rs_value_valid),
 		.opa(opa_mux_out),
 		.opb(opb_mux_out),
 		.func(id_ex_packet_in.alu_func),
@@ -217,6 +220,7 @@ module fu_alu(
 		.clock(clock),
 		.reset(reset),
 
+		.val_valid(rs_fu.rs_value_valid),
 		.rs1(rs_fu.rs_value[0]), 
 		.rs2(rs_fu.rs2_value[1]),
 		.func(rs_fu.inst.b.funct3), // inst bits to determine check

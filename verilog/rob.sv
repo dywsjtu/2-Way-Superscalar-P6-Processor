@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////
 
 
-`define DEBUG
+//`define DEBUG
 `ifndef __ROB_V__
 `define __ROB_V__
 
@@ -26,19 +26,17 @@ module rob(
     output  ROB_MT_PACKET       rob_mt,
     output  ROB_REG_PACKET      rob_reg
 
-    `ifdef DEBUG
-        , output logic      [`ROB_IDX_LEN-1:0]  rob_head
-        , output logic      [`ROB_IDX_LEN-1:0]  rob_tail
-        , output logic      [`ROB_IDX_LEN:0]    rob_counter
-        , output ROB_ENTRY  [`ROB_SIZE-1:0]     rob_entries
-    `endif
+    // `ifdef DEBUG
+    //     , output logic      [`ROB_IDX_LEN-1:0]  rob_head
+    //     , output logic      [`ROB_IDX_LEN-1:0]  rob_tail
+    //     , output logic      [`ROB_IDX_LEN:0]    rob_counter
+    //     , output ROB_ENTRY  [`ROB_SIZE-1:0]     rob_entries
+    // `endif
 );  
-    `ifndef DEBUG
-        logic               [`ROB_IDX_LEN-1:0]  rob_head;
-        logic               [`ROB_IDX_LEN-1:0]  rob_tail;
-        logic               [`ROB_IDX_LEN:0]    rob_counter;
-        ROB_ENTRY           [`ROB_SIZE-1:0]     rob_entries;
-    `endif
+    logic               [`ROB_IDX_LEN-1:0]  rob_head;
+    logic               [`ROB_IDX_LEN-1:0]  rob_tail;
+    logic               [`ROB_IDX_LEN:0]    rob_counter;
+    ROB_ENTRY           [`ROB_SIZE-1:0]     rob_entries;
 
     logic       rob_empty;
     logic       retire_valid;
@@ -50,9 +48,9 @@ module rob(
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
 
     assign rob_rs.rob_tail      = rob_tail;
-    for(int idx = 0; idx < 2; idx += 1) begin
-        assign rob_rs.value[idx] = rob_entries[rs_rob.entry_idx[idx]].value;
-    end
+    assign rob_rs.value[0] = rob_entries[rs_rob.entry_idx[0]].value;
+    assign rob_rs.value[1] = rob_entries[rs_rob.entry_idx[1]].value;
+
     assign rob_rs.squash        = squash;
 
     assign rob_mt.rob_tail      = rob_tail;

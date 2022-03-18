@@ -102,13 +102,8 @@ module ex_stage(
 	input ID_EX_PACKET   id_ex_packet_in,
 	output EX_MEM_PACKET ex_packet_out
 );
-	// Pass-throughs
-	assign ex_packet_out.NPC = id_ex_packet_in.NPC;
-	assign ex_packet_out.rs2_value = id_ex_packet_in.rs2_value;
-	assign ex_packet_out.rd_mem = id_ex_packet_in.rd_mem;
-	assign ex_packet_out.wr_mem = id_ex_packet_in.wr_mem;
-	assign ex_packet_out.dest_reg_idx = id_ex_packet_in.dest_reg_idx;
-	assign ex_packet_out.halt = id_ex_packet_in.halt;
+	// Pass-throughs_ex_packet_in.inst);
+		endcase n.halt;
 	assign ex_packet_out.illegal = id_ex_packet_in.illegal;
 	assign ex_packet_out.csr_op = id_ex_packet_in.csr_op;
 	assign ex_packet_out.valid = id_ex_packet_in.valid;

@@ -123,6 +123,7 @@ module testbench;
 		.mem2proc_data     (mem2proc_data),
 		.mem2proc_tag      (mem2proc_tag)
 	);
+	logic [63:0] tb_mem [`MEM_64BIT_LINES - 1:0];
 	
 	// Generate System Clock
 	always begin
@@ -152,9 +153,9 @@ module testbench;
 			$display("@@@");
 			showing_data=0;
 			for(int k=start_addr;k<=end_addr; k=k+1)
-				if (memory.unified_memory[k] != 0) begin
-					$display("@@@ mem[%5d] = %x : %0d", k*8, memory.unified_memory[k], 
-				                                            memory.unified_memory[k]);
+				if (tb_mem[k] != 0) begin
+					$display("@@@ mem[%5d] = %x : %0d", k*8, tb_mem[k], 
+				                                            tb_mem[k]);
 					showing_data=1;
 				end else if(showing_data!=0) begin
 					$display("@@@");
@@ -163,6 +164,7 @@ module testbench;
 			$display("@@@");
 		end
 	endtask  // task show_mem_with_decimal
+	
 	
 	initial begin
 		$dumpvars;
@@ -176,7 +178,9 @@ module testbench;
 		@(posedge clock);
 		@(posedge clock);
 		
-		$readmemh("program.mem", memory.unified_memory);
+		// $readmemh("program.mem", memory.unified_memory);
+
+		$readmemh("program.mem", tb_mem);
 		
 		@(posedge clock);
 		@(posedge clock);

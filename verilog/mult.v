@@ -5,18 +5,18 @@ module mult #(parameter XLEN = 32, parameter NUM_STAGE = 4) (
 				input clock, reset,
 				input start,
 				input [1:0] sign,
-				input [XLEN1:0] mcand, mplier,
+				input [XLEN-1:0] mcand, mplier,
 				
-				output [(2*XLEN)1:0] product,
+				output [(2*XLEN)-1:0] product,
 				output done
 			);
-	logic [(2*XLEN)1:0] mcand_out, mplier_out, mcand_in, mplier_in;
-	logic [NUM_STAGE:0][2*XLEN1:0] internal_mcands, internal_mpliers;
-	logic [NUM_STAGE:0][2*XLEN1:0] internal_products;
+	logic [(2*XLEN)-1:0] mcand_out, mplier_out, mcand_in, mplier_in;
+	logic [NUM_STAGE:0][2*XLEN-1:0] internal_mcands, internal_mpliers;
+	logic [NUM_STAGE:0][2*XLEN-1:0] internal_products;
 	logic [NUM_STAGE:0] internal_dones;
 
-	assign mcand_in  = sign[0] ? {{XLEN{mcand[XLEN1]}}, mcand}   : {{XLEN{1'b0}}, mcand} ;
-	assign mplier_in = sign[1] ? {{XLEN{mplier[XLEN1]}}, mplier} : {{XLEN{1'b0}}, mplier};
+	assign mcand_in  = sign[0] ? {{XLEN{mcand[XLEN-1]}}, mcand}   : {{XLEN{1'b0}}, mcand} ;
+	assign mplier_in = sign[1] ? {{XLEN{mplier[XLEN-1]}}, mplier} : {{XLEN{1'b0}}, mplier};
 
 	assign internal_mcands[0]   = mcand_in;
 	assign internal_mpliers[0]  = mplier_in;
@@ -62,8 +62,8 @@ module mult_stage #(parameter XLEN = 32, parameter NUM_STAGE = 4) (
 
 	assign next_partial_product = mplier_in[(NUM_BITS1):0] * mcand_in;
 
-	assign next_mplier = {{(NUM_BITS){1'b0}},mplier_in[2*XLEN1:(NUM_BITS)]};
-	assign next_mcand  = {mcand_in[(2*XLEN1NUM_BITS):0],{(NUM_BITS){1'b0}}};
+	assign next_mplier = {{(NUM_BITS){1'b0}},mplier_in[2*XLEN-1:(NUM_BITS)]};
+	assign next_mcand  = {mcand_in[(2*XLEN-1NUM_BITS):0],{(NUM_BITS){1'b0}}};
 
 	//synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin

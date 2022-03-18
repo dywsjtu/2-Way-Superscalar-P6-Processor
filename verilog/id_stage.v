@@ -17,7 +17,7 @@
   //
   // This is a *combinational* module (basically a PLA).
   //
-module decoder(
+module decoder (
 
 	//input [31:0] inst,
 	//input valid_inst_in,  // ignore inst when low, outputs will
@@ -223,12 +223,12 @@ endmodule // decoder
 module id_stage(         
 	input         clock,              // system clock
 	input         reset,              // system reset
-	input         wb_reg_wr_en_out,    // Reg write enable from WB Stage
-	input  [4:0] wb_reg_wr_idx_out,  // Reg write index from WB Stage
-	input  [`XLEN-1:0] wb_reg_wr_data_out,  // Reg write data from WB Stage
+	// input         wb_reg_wr_en_out,    // Reg write enable from WB Stage
+	// input  [4:0] wb_reg_wr_idx_out,  // Reg write index from WB Stage
+	// input  [`XLEN-1:0] wb_reg_wr_data_out,  // Reg write data from WB Stage
 	input  IF_ID_PACKET if_id_packet_in,
 	
-	output ID_EX_PACKET id_packet_out,
+	output ID_EX_PACKET id_packet_out
 );
 
     assign id_packet_out.inst = if_id_packet_in.inst;
@@ -237,18 +237,18 @@ module id_stage(
 	DEST_REG_SEL dest_reg_select; 
 
 	// Instantiate the register file used by this pipeline
-	regfile regf_0 (
-		.rda_idx(if_id_packet_in.inst.r.rs1),
-		.rda_out(id_packet_out.rs1_value), 
+	// regfile regf_0 (
+	// 	.rda_idx(if_id_packet_in.inst.r.rs1),
+	// 	.rda_out(id_packet_out.rs1_value), 
 
-		.rdb_idx(if_id_packet_in.inst.r.rs2),
-		.rdb_out(id_packet_out.rs2_value),
+	// 	.rdb_idx(if_id_packet_in.inst.r.rs2),
+	// 	.rdb_out(id_packet_out.rs2_value),
 
-		.wr_clk(clock),
-		.wr_en(wb_reg_wr_en_out),
-		.wr_idx(wb_reg_wr_idx_out),
-		.wr_data(wb_reg_wr_data_out)
-	);
+	// 	.wr_clk(clock),
+	// 	.wr_en(wb_reg_wr_en_out),
+	// 	.wr_idx(wb_reg_wr_idx_out),
+	// 	.wr_data(wb_reg_wr_data_out)
+	// );
 
 	// instantiate the instruction decoder
 	decoder decoder_0 (

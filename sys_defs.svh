@@ -26,7 +26,7 @@
 // Memory/testbench attribute definitions
 //
 //////////////////////////////////////////////
-`define CACHE_MODE //removes the byte-level interface from the memory mode, DO NOT MODIFY!
+//`define CACHE_MODE //removes the byte-level interface from the memory mode, DO NOT MODIFY!
 `define NUM_MEM_TAGS           15
 
 `define MEM_SIZE_IN_BYTES      (64*1024)
@@ -78,12 +78,13 @@ typedef enum logic [3:0] {
 // MapTable parameters
 //
 //////////////////////////////////////////////
-`define ROB_SIZE 8
-`define REG_SIZE 32
-//`define ROB_IDX_LEN clog2(`ROB_SIZE+1)
-`define ROB_IDX_LEN 6
-`define ZERO_TAG 6'b100000
-`define CDB_BUFFER_SIZE 2
+`define ROB_SIZE 		8
+`define REG_SIZE 		32
+//`define ROB_IDX_LEN 	clog2(`ROB_SIZE+1)
+`define ROB_IDX_LEN 	6
+`define ZERO_TAG 		6'b100000
+`define CDB_BUFFER_SIZE	2
+`define FU_SIZE			1
 
 
 //////////////////////////////////////////////
@@ -132,7 +133,15 @@ typedef enum logic [4:0] {
 	ALU_SLT     = 5'h02,
 	ALU_SLTU    = 5'h03,
 	ALU_AND     = 5'h04,
-	ALU_OR      = 5'h05,r
+	ALU_OR      = 5'h05,
+	ALU_XOR     = 5'h06,
+	ALU_SLL     = 5'h07,
+	ALU_SRL     = 5'h08,
+	ALU_SRA     = 5'h09,
+	ALU_MUL     = 5'h0a,
+	ALU_MULH    = 5'h0b,
+	ALU_MULHSU  = 5'h0c,
+	ALU_MULHU   = 5'h0d,
 	ALU_DIV     = 5'h0e,
 	ALU_DIVU    = 5'h0f,
 	ALU_REM     = 5'h10,
@@ -282,27 +291,27 @@ typedef struct packed {
 //////////////////////////////////////////////
 
 typedef struct packed {
-	logic [`XLEN-1:0] NPC;   // PC + 4
-	logic [`XLEN-1:0] PC;    // PC
+	logic 			[`XLEN-1:0] 	NPC;   			// PC + 4
+	logic 			[`XLEN-1:0] 	PC;    			// PC
 
-	logic [`XLEN-1:0] rs1_value;    // reg A value                                  
-	logic [`XLEN-1:0] rs2_value;    // reg B value                                  
+	// logic 		[`XLEN-1:0] 	rs1_value;    	// reg A value                                  
+	// logic 		[`XLEN-1:0]		rs2_value;    	// reg B value                                  
 	                                                                                
-	ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
-	ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-	INST inst;                 // instruction
+	ALU_OPA_SELECT 					opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
+	ALU_OPB_SELECT 					opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
+	INST 							inst;			// instruction
 	
-	logic [4:0] dest_reg_idx;  // destination (writeback) register index      
-	ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
-	logic       rd_mem;        // does inst read memory?
-	logic       wr_mem;        // does inst write memory?
-	logic       cond_branch;   // is inst a conditional branch?
-	logic       uncond_branch; // is inst an unconditional branch?
-	logic       halt;          // is this a halt?
-	logic       illegal;       // is this instruction illegal?
-	logic       csr_op;        // is this a CSR operation? (we only used this as a cheap way to get return code)
-	logic       valid;         // is inst a valid instruction to be counted for CPI calculations?
-	logic	[1:0]		req_reg; // whether the register value is actually needed.
+	logic 			[4:0] 			dest_reg_idx; 	// destination (writeback) register index      
+	ALU_FUNC    					alu_func;      	// ALU function select (ALU_xxx *)
+	logic       					rd_mem;        	// does inst read memory?
+	logic       					wr_mem;        	// does inst write memory?
+	logic       					cond_branch;   	// is inst a conditional branch?
+	logic       					uncond_branch; 	// is inst an unconditional branch?
+	logic       					halt;          	// is this a halt?
+	logic       					illegal;       	// is this instruction illegal?
+	logic       					csr_op;        	// is this a CSR operation? (we only used this as a cheap way to get return code)
+	logic       					valid;         	// is inst a valid instruction to be counted for CPI calculations?
+	logic			[1:0]			req_reg; 		// whether the register value is actually needed.
 } ID_EX_PACKET;
 
 typedef struct packed {
@@ -334,17 +343,6 @@ typedef struct packed {
 } CDB_ENTRY;
 
 typedef struct packed {
-	logic	[`XLEN-1:0]			PC;
-	logic						dispatch_enable; // whether is enable to dispatch
-	logic	[4:0]				dest_reg_idx;	 // destination register
-} ID_ROB_PACKET;
-
-typedef struct packed {
-	logic dispatch_enable; 
-	logic [4:0] dest_reg_idx;
-} ID_MT_PACKET;
-
-typedef struct packed {
 	logic	[1:0][`ROB_IDX_LEN-1:0]	entry_idx; // query index from RS to ROB
 } RS_ROB_PACKET;
 
@@ -374,6 +372,13 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			dest_value;	  // the value to write to destination register in regfile
 } ROB_REG_PACKET;
 
+typedef struct packed
+{
+	logic [1:0][`XLEN-1:0]  rs_values;
+} REG_RS_PACKET;
+
+
+
 // typedef struct packed {
 //  logic [`ROB_IDX_LEN:0] rs1_tag;
 //  logic [`ROB_IDX_LEN:0] rs2_tag;
@@ -392,14 +397,13 @@ typedef struct packed{
 } MT_RS_PACKET;
 
 typedef struct packed {
- //logic [$clog2(`REG_SIZE)-1:0] rs1_dispatch;
- //logic [$clog2(`REG_SIZE)-1:0] rs2_dispatch;
- logic [1:0][4:0]				register_idxes
+ logic [1:0][4:0]				register_idxes;
 } RS_MT_PACKET;
 
-// typedef struct packed {
-	
-// } ROB_CDB_PACKET; // seems we don't need this
+typedef struct packed {
+ logic [1:0][4:0]				register_idxes;
+} RS_REG_PACKET;
+
 
 // Functional unit tags and a count
 
@@ -408,23 +412,32 @@ typedef struct packed {
 typedef enum logic [2:0] { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
 
 typedef struct packed {
-	logic [`ROB_IDX_LEN-1:0] tag;
-	logic [`XLEN-1:0]		V;
-	logic V_ready;
+	logic [`ROB_IDX_LEN:0] 					tag;
+	logic [`XLEN-1:0]						V;
+	logic 									V_ready;
 } RS_ENTRY_INFO;
 
 typedef struct packed {
-	logic busy;
-	logic [`ROB_SIZE-1:0]	T_dest;
-	RS_ENTRY_INFO [1:0] rs_entry_info;
-	logic ready_execute;
+	logic 									busy;
+	logic 			[`ROB_IDX_LEN:0]		T_dest;
+	RS_ENTRY_INFO 	[1:0] 					rs_entry_info;
+	// logic ready_execute;
 } RS_ENTRY;
 
 typedef struct packed {
-	logic	[`XLEN-1:0]			NPC;			// PC + 4
-	logic	[`XLEN-1:0]			PC;				// PC
+	logic	[`XLEN-1:0]			PC;
+	logic						dispatch_enable; // whether is enable to dispatch
+	logic	[4:0]				dest_reg_idx;	 // destination register
+} ID_ROB_PACKET;
 
-	logic	[1:0][`XLEN-1:0]	rs_value ;	// reg A & B value                                  
+typedef struct packed {
+	logic dispatch_enable; 
+	logic [4:0] dest_reg_idx;
+} ID_MT_PACKET;
+
+typedef struct packed {
+	logic	[`XLEN-1:0]			NPC;			// PC + 4
+	logic	[`XLEN-1:0]			PC;				// PC                               
 	logic						dispatch_enable;// whether is enable to dispatch                             
 	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
 	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
@@ -455,7 +468,8 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC
 
-	logic	[1:0][`XLEN-1:0]	rs_value;	// reg A & B value                                  
+	logic	[1:0][`XLEN-1:0]	rs_value;		// reg A & B value
+	logic						rs_value_valid;                                  
 
 	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
 	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
@@ -474,14 +488,12 @@ typedef struct packed {
 	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
 } RS_FU_PACKET;
 
-typedef struct packed {
-	
-} RS_REG_PACKET;
 
-typedef struct packed {
-	logic	[`ROB_IDX_LEN-1:0]	entry_idx1; // query index1 from RS to ROB
-	logic	[`ROB_IDX_LEN-1:0]	entry_idx2;  // query index2 from RS to ROB
-} RS_ROB_PACKET;
+
+//typedef struct packed {
+//	logic	[`ROB_IDX_LEN-1:0]	entry_idx1; // query index1 from RS to ROB
+//	logic	[`ROB_IDX_LEN-1:0]	entry_idx2;  // query index2 from RS to ROB
+//} RS_ROB_PACKET;
 
 // typedef struct packed {
 	

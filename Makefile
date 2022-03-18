@@ -13,7 +13,7 @@
 #
 #
 
-SOURCE = test_progs/sampler.s
+SOURCE = test_progs/rv32_mult_no_lsq.s
 
 CRT = crt.s
 LINKERS = linker.lds
@@ -48,19 +48,19 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
 
-# HEADERS     = $(wildcard *.svh)
-# TESTBENCH   = $(wildcard testbench/*.sv)
-# TESTBENCH  += $(wildcard testbench/*.c)
-# PIPEFILES   = $(wildcard verilog/*.sv)
-
-# SIMFILES    = $(PIPEFILES)
-
 HEADERS     = $(wildcard *.svh)
-TESTBENCH   = testbench/test_rob.sv
+TESTBENCH   = testbench/testbench.sv #$(wildcard testbench/*.sv)
 TESTBENCH  += $(wildcard testbench/*.c)
-PIPEFILES   = verilog/rob.sv
+PIPEFILES   = $(wildcard verilog/*.sv)
 
 SIMFILES    = $(PIPEFILES)
+
+# HEADERS     = $(wildcard *.svh)
+# TESTBENCH   = testbench/test_rob.sv
+# TESTBENCH  += $(wildcard testbench/*.c)
+# PIPEFILES   = verilog/rob.sv
+
+# SIMFILES    = $(PIPEFILES)
 
 # SYNTHESIS CONFIG
 SYNTH_DIR = ./synth
@@ -68,7 +68,7 @@ SYNTH_DIR = ./synth
 export HEADERS
 export PIPEFILES
 
-export PIPELINE_NAME = rob
+export PIPELINE_NAME = pipline
 
 PIPELINE  = $(SYNTH_DIR)/$(PIPELINE_NAME).vg 
 SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
