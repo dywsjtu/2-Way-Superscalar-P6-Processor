@@ -275,7 +275,6 @@ module dispatch_stage(
 	// 	else
 	// 		if_packet_out.valid <= `SD mem_wb_valid_inst;
 	// end
-	assign id_packet_out.valid				= !stall;
 
 	DEST_REG_SEL dest_reg_select; 
 
@@ -295,7 +294,7 @@ module dispatch_stage(
 
 	// instantiate the instruction decoder
 	decoder decoder_0 (
-		.valid(id_packet_out.valid),
+		.valid(!stall),
 		.inst(id_packet_out.inst),
 		.NPC(id_packet_out.NPC),
 		.PC(id_packet_out.PC),
@@ -325,24 +324,32 @@ module dispatch_stage(
 		endcase
 
 
-		id_packet_out.req_reg[0] = 1'b0;
+		id_packet_out.req_reg[0]				= 1'b0;
+		id_packet_out.input_reg_idx[0]			= 5'b0;
 		casez (id_packet_out.inst) 
 			`RV32_LUI, `RV32_AUIPC, `RV32_JAL: begin
-				id_packet_out.req_reg[0] = 1'b0;
+				id_packet_out.req_reg[0]		= 1'b0;
+				id_packet_out.input_reg_idx[0]	= 5'b0;
 			end
-			default: 
-				id_packet_out.req_reg[0] = 1'b1;
+			default: begin
+				id_packet_out.req_reg[0]		= 1'b1;
+				id_packet_out.input_reg_idx[0]	= id_packet_out.inst.r.rs1;
+			end
 		endcase
 
-		id_packet_out.req_reg[1] = 1'b0;
+		id_packet_out.req_reg[1]				= 1'b0;
+		id_packet_out.input_reg_idx[1]			= 5'b0;
 		casez (id_packet_out.inst) 
 			`RV32_LUI, `RV32_AUIPC, `RV32_JAL, `RV32_JALR, `RV32_LB, `RV32_LH, 
 			`RV32_LW, `RV32_LBU, `RV32_LHU, `RV32_ADDI, `RV32_SLTI, `RV32_SLTIU, `RV32_ANDI, 
 			`RV32_ORI, `RV32_XORI, `RV32_SLLI, `RV32_SRLI, `RV32_SRAI: begin
-				id_packet_out.req_reg[1] = 1'b0;
+				id_packet_out.req_reg[1]		= 1'b0;
+				id_packet_out.input_reg_idx[1]	= 5'b0;
 			end
-			default: 
-				id_packet_out.req_reg[1] = 1'b1;
+			default: begin
+				id_packet_out.req_reg[1] 		= 1'b1;
+				id_packet_out.input_reg_idx[1]	= id_packet_out.inst.r.rs2;
+			end
 		endcase
 	end
 

@@ -73,7 +73,7 @@ module map_table (
             //set ready bit in complete stage
             if (cdb_in.valid) begin
                 for (int i = 0; i < `REG_SIZE; i++)  begin
-                    if (Tag[i] == cdb_in.Tag) begin
+                    if (Tag[i] == cdb_in.tag) begin
                         ready_in_ROB_next[i] = 1'b1;
                         //break; 
                     end

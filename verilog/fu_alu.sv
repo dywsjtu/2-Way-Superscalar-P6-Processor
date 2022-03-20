@@ -206,11 +206,11 @@ module fu_alu(
 		.val_valid(rs_fu.rs_value_valid),
 		.opa(opa_mux_out),
 		.opb(opb_mux_out),
-		.func(id_ex_packet_in.alu_func),
+		.func(rs_fu.alu_func),
 
 		// Output
 		.valid(alu_result_valid),
-		.result(ex_packet_out.alu_result)
+		.result(fu_rs.alu_result)
 	);
 
 	// 
@@ -222,7 +222,7 @@ module fu_alu(
 
 		.val_valid(rs_fu.rs_value_valid),
 		.rs1(rs_fu.rs_value[0]), 
-		.rs2(rs_fu.rs2_value[1]),
+		.rs2(rs_fu.rs_value[1]),
 		.func(rs_fu.inst.b.funct3), // inst bits to determine check
 
 		// Output

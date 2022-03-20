@@ -27,12 +27,12 @@ module pipeline (
 	output logic [63:0] proc2mem_data,      // Data sent to memory
 	output MEM_SIZE proc2mem_size,          // data size sent to memory
 
-	output logic [3:0]  pipeline_completed_insts,
-	output EXCEPTION_CODE   pipeline_error_status,
-	output logic [4:0]  pipeline_commit_wr_idx,
-	output logic [`XLEN-1:0] pipeline_commit_wr_data,
-	output logic        pipeline_commit_wr_en,
-	output logic [`XLEN-1:0] pipeline_commit_NPC,
+	// output logic [3:0]  pipeline_completed_insts,
+	// output EXCEPTION_CODE   pipeline_error_status,
+	// output logic [4:0]  pipeline_commit_wr_idx,
+	// output logic [`XLEN-1:0] pipeline_commit_wr_data,
+	// output logic        pipeline_commit_wr_en,
+	// output logic [`XLEN-1:0] pipeline_commit_NPC,
 	
 	
 	// testing hooks (these must be exported so we can test
@@ -164,12 +164,14 @@ module pipeline (
 		if (reset) begin
 			id_packet_out 	<= `SD '{	{`XLEN{1'b0}},
 										{`XLEN{1'b0}}, 
-										{`XLEN{1'b0}}, 
-										{`XLEN{1'b0}}, 
+ 
 										OPA_IS_RS1, 
 										OPB_IS_RS2, 
 										`NOP,
+										
 										`ZERO_REG,
+										{5'b0,5'b0},
+
 										ALU_ADD, 
 										1'b0, //rd_mem
 										1'b0, //wr_mem
@@ -178,7 +180,8 @@ module pipeline (
 										1'b0, //halt
 										1'b0, //illegal
 										1'b0, //csr_op
-										1'b0 //valid
+										1'b0, //valid
+										2'b0
 									}; 
 		end else begin // if (reset)
 			if (id_ex_enable) begin
@@ -294,8 +297,8 @@ module pipeline (
         .clock(clock),
 		.reset(reset),
         .dispatch_enable(dispatch_enable),
+        .rd_dispatch(id_packet_out.dest_reg_idx),
         .rob_mt(rob_mt),
-        .rd_dispatch(rob_mt.rob_tail),
 
         .cdb_in(cdb_out),
         .rs_mt(rs_mt),
@@ -315,7 +318,7 @@ module pipeline (
 		.id_rs(id_rs),
 		.mt_rs(mt_rs),
 		.reg_rs(reg_rs),
-		.cdb_rs(cdb_rs),
+		.cdb_rs(cdb_out),
 		.rob_rs(rob_rs),
 		// output
 		.rs_mt(rs_mt),

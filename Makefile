@@ -49,7 +49,7 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 # SIMULATION CONFIG
 
 HEADERS     = $(wildcard *.svh)
-TESTBENCH   = testbench/testbench.sv #$(wildcard testbench/*.sv)
+TESTBENCH   = testbench/testbench.sv testbench/mem.sv #$(wildcard testbench/*.sv)
 TESTBENCH  += $(wildcard testbench/*.c)
 PIPEFILES   = $(wildcard verilog/*.sv)
 

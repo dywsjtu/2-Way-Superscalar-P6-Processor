@@ -108,11 +108,11 @@ module rs (
                 rs_entries[fu_type].busy <= `SD 1;
                 rs_entries[fu_type].T_dest <= `SD rob_rs.rob_tail;
                 for (int idx = 0; idx < 2; idx += 1) begin
-                    rs_entries[fu_type].rs_entry_info[idx].T <= `SD mt_rs.rs_infos[idx].tag;
+                    rs_entries[fu_type].rs_entry_info[idx].tag <= `SD mt_rs.rs_infos[idx].tag;
                     if (mt_rs.rs_infos[idx].tag == `ZERO_TAG) begin
                         // Value is in regfile
                         // rs_entries[fu_type].rs_entry_info[idx] <= `SD {id_rs.rs_value[idx], 1};
-                        rs_entries[fu_type].rs_entry_info[idx] <= `SD {reg_rs.rs_value[idx], 1};
+                        rs_entries[fu_type].rs_entry_info[idx] <= `SD {reg_rs.rs_values[idx], 1'b1};
                     end
                     if (mt_rs.rs_infos[idx].tag != `ZERO_TAG) begin
                         // Grab value from ROB and ready bit
@@ -121,11 +121,11 @@ module rs (
                 end
             end
             // If CDB is not empty then update values with corresponding tag
-            if (cdb_rs.ready) begin
+            if (cdb_rs.valid) begin
                 for (int fu = 0; fu < FU_COUNT; fu += 1) begin
                     for (int reg_idx = 0; reg_idx < 2; reg_idx += 1) begin
                         if (rs_entries[fu].rs_entry_info[reg_idx].tag == cdb_rs.tag) begin
-                            rs_entries[fu].rs_entry_info[reg_idx] <= `SD {cdb_rs.V, 1};
+                            rs_entries[fu].rs_entry_info[reg_idx] <= `SD {cdb_rs.value, 1'b1};
                         end
                     end
                 end
