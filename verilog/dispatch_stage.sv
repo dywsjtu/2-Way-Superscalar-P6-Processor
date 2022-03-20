@@ -352,7 +352,8 @@ module dispatch_stage(
 			end
 		endcase
 	end
-
+	
+	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		if(reset)
 			PC_reg <= `SD 0;       // initial PC value is 0

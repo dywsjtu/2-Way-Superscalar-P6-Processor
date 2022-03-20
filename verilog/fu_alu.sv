@@ -66,6 +66,7 @@ module alu (
 		in_func			<=	`SD	func;
 	end
 
+	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;
@@ -124,7 +125,8 @@ module brcond (// Inputs
 		in_rs2			<=	`SD	rs2;
 		in_func			<=	`SD	func;
 	end
-
+	
+	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;

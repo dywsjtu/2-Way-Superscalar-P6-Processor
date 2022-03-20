@@ -46,12 +46,18 @@ module map_table (
     logic [`REG_SIZE-1:0][`ROB_IDX_LEN:0] Tag_next;
     logic [`REG_SIZE-1:0] ready_in_ROB_next;
     
-    `ifdef DEBUG_1
+    `ifdef DEBUG
+    logic [31:0] cycle_count;
+    // synopsys sync_set_reset "reset"
     always_ff @(negedge clock)
-        for(int i = 0; i < `REG_SIZE; i += 1) begin
-            // For some reason pretty printing doesn't work if I index directly
-            $display("mt_tag[%d] = %d, ", i,  Tag[i]);
+        if(reset) begin
+            cycle_count = 0;
+        end else begin
+            for(int i = 0; i < `REG_SIZE; i += 1) begin
+                $display("DEBUG %4d: mt_tag[%d] = %d, ", cycle_count, i,  Tag[i]);
+            end
         end
+       
     end
     `endif
 

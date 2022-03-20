@@ -23,30 +23,13 @@ module rs (
     input   ROB_RS_PACKET       rob_rs,
 
     output  RS_MT_PACKET        rs_mt,
-    // output  RS_FU_PACKET        rs_fu,
+    output  CDB_ENTRY           rs_cdb,
     output  RS_REG_PACKET       rs_reg, // TODO
     output  RS_ROB_PACKET       rs_rob,
     output  logic               rs_entry_full
 );  
-    // RS_FU_PACKET                    std_rs_fu;
-    // assign std_rs_fu.squash         = rob_rs.squash;
-    // assign std_rs_fu.NPC            = id_rs.NPC;
-    // assign std_rs_fu.PC             = id_rs.PC;
-    // assign std_rs_fu.rs_value[0]    = `XLEN'b0;
-    // assign std_rs_fu.rs_value[1]    = `XLEN'b0;
-    // assign std_rs_fu.opa_select     = id_rs.opa_select;
-    // assign std_rs_fu.opb_select     = id_rs.opb_select;
-    // assign std_rs_fu.inst           = id_rs.inst;
-    // assign std_rs_fu.dest_reg_idx   = id_rs.dest_reg_idx;
-    // assign std_rs_fu.alu_func       = id_rs.alu_func;
-    // assign std_rs_fu.rd_mem         = id_rs.rd_mem;
-    // assign std_rs_fu.wr_mem         = id_rs.wr_mem;
-    // assign std_rs_fu.cond_branch    = id_rs.cond_branch;
-    // assign std_rs_fu.uncond_branch  = id_rs.uncond_branch;
-    // assign std_rs_fu.halt           = id_rs.halt;
-    // assign std_rs_fu.illegal        = id_rs.illegal;
-    // assign std_rs_fu.csr_op         = id_rs.csr_op;
-    // assign std_rs_fu.valid          = id_rs.valid;
+    // TODO add debug outputs for below data
+    RS_ENTRY [FU_COUNT-1:0] rs_entries;
 
     RS_FU_PACKET    [`FU_SIZE-1:0]      rs_fu;
     FU_RS_PACKET    [`FU_SIZE-1:0]      fu_rs;
@@ -83,9 +66,28 @@ module rs (
         .fu_rs(fu_rs[0])
     );
 
-    // TODO add debug outputs for below data
-    RS_ENTRY [FU_COUNT-1:0] rs_entries;
+    logic           [$clog2(`FU_SIZE):0]    fu_num;
+    logic           [`FU_CAT-1:0]           cat_select;
+    FU_RS_PACKET                            fu_select;
+    
+    fu_selector (
+        .clock(clock),
+        .reset(reset),
 
+        .fu_rs(fu_rs),
+
+        .fu_num(fu_num),
+        .cat_select(cat_select),
+        .fu_select(fu_select)
+    );
+
+    assign rs_cdb.tag           = rs_entries[fu_num].T_dest;
+    assign rs_cdb.value         = fu_select.alu_result;
+    assign rs_cdb.valid         = fu_select.valid;
+    assign rs_cdb.take_branch   = fu_select.take_branch;
+
+
+    
     assign rs_rob.entry_idx[0] = mt_rs.rs_infos[0].tag;
     assign rs_rob.entry_idx[1] = mt_rs.rs_infos[1].tag;
     assign rs_mt.register_idxes = id_rs.input_reg_idx;

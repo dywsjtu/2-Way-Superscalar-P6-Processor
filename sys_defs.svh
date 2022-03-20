@@ -81,11 +81,32 @@ typedef enum logic [3:0] {
 `define ROB_SIZE 		8
 `define REG_SIZE 		32
 //`define ROB_IDX_LEN 	clog2(`ROB_SIZE+1)
-`define ROB_IDX_LEN 	6
+`define ROB_IDX_LEN 	4
 `define ZERO_TAG 		6'b100000
 `define CDB_BUFFER_SIZE	2
-`define FU_SIZE			1
 
+`define SMALL_FU_OUT_TEST
+`define FU_SIZE			1
+`define FU_CAT			4
+`define NUM_ALU			1
+`define NUM_LS			0
+`define NUM_MULT		0
+`define NUM_BEQ			0
+`define ALU_OFFSET		1
+`define LS_OFFSET		1
+`define MULT_OFFSET		1
+`define BEQ_OFFSET		1
+
+// `define FU_SIZE			20
+// `define CAT_FU			4
+// `define NUM_ALU			8
+// `define NUM_LS			4
+// `define NUM_MULT			4
+// `define NUM_BEQ			4
+// `define ALU_OFFSET		8
+// `define LS_OFFSET		12
+// `define MULT_OFFSET		16
+// `define BEQ_OFFSET		20
 
 //////////////////////////////////////////////
 //
@@ -339,9 +360,10 @@ typedef struct packed {
 } ROB_ENTRY;
 
 typedef struct packed {
- logic [`ROB_IDX_LEN:0] tag;
- logic [`XLEN-1:0] value;
- logic valid;
+	logic [`ROB_IDX_LEN:0] tag;
+	logic [`XLEN-1:0] value;
+	logic valid;
+	logic take_branch;
 } CDB_ENTRY;
 
 typedef struct packed {
@@ -374,8 +396,7 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			dest_value;	  // the value to write to destination register in regfile
 } ROB_REG_PACKET;
 
-typedef struct packed
-{
+typedef struct packed {
 	logic [1:0][`XLEN-1:0]  rs_values;
 } REG_RS_PACKET;
 

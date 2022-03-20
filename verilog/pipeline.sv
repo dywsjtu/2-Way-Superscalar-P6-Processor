@@ -204,6 +204,7 @@ module pipeline (
 
 	// CDB
 	CDB_ENTRY           cdb_out;
+	CDB_ENTRY			rs_cdb;
 	
 	// Map table
 	MT_RS_PACKET        mt_rs;
