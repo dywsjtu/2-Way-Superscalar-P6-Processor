@@ -118,6 +118,7 @@ module brcond (// Inputs
 			3'b110: out_cond = in_rs1 < in_rs2;           // BLTU
 			3'b111: out_cond = in_rs1 >= in_rs2;          // BGEU
 		endcase
+		out_valid = 1'b1;
 	end
 
 	always_ff @(posedge clock) begin
@@ -154,28 +155,30 @@ module fu_alu(
 	logic							brcond_result_valid;
 	logic	[`XLEN-1:0]				alu_result;
     logic                           alu_result_valid;
+	RS_FU_PACKET					working_rs_fu;
 
 	// Pass-throughs
-	assign fu_rs.NPC            = rs_fu.NPC;
-	assign fu_rs.rs2_value      = rs_fu.rs_value[1];
-	assign fu_rs.rd_mem         = rs_fu.rd_mem;
-	assign fu_rs.wr_mem         = rs_fu.wr_mem;
-	assign fu_rs.dest_reg_idx   = rs_fu.dest_reg_idx;
-	assign fu_rs.halt           = rs_fu.halt;
-	assign fu_rs.illegal        = rs_fu.illegal;
-	assign fu_rs.csr_op         = rs_fu.csr_op;
-	assign fu_rs.mem_size       = rs_fu.inst.r.funct3;
-	assign fu_rs.valid			= rs_fu.valid && brcond_result_valid && alu_result_valid;
+	assign fu_rs.NPC            = working_rs_fu.NPC;
+	assign fu_rs.rs2_value      = working_rs_fu.rs_value[1];
+	assign fu_rs.rd_mem         = working_rs_fu.rd_mem;
+	assign fu_rs.wr_mem         = working_rs_fu.wr_mem;
+	assign fu_rs.dest_reg_idx   = working_rs_fu.dest_reg_idx;
+	assign fu_rs.halt           = working_rs_fu.halt;
+	assign fu_rs.illegal        = working_rs_fu.illegal;
+	assign fu_rs.csr_op         = working_rs_fu.csr_op;
+	assign fu_rs.mem_size       = working_rs_fu.inst.r.funct3;
+	// assign fu_rs.valid			= rs_fu.valid && brcond_result_valid && alu_result_valid;
+	assign fu_rs.valid			= brcond_result_valid && alu_result_valid;
 	
 	//
 	// ALU opA mux
 	//
 	always_comb begin
 		opa_mux_out = `XLEN'hdeadfbac;
-		case (rs_fu.opa_select)
-			OPA_IS_RS1:  opa_mux_out = rs_fu.rs_value[0];
-			OPA_IS_NPC:  opa_mux_out = rs_fu.NPC;
-			OPA_IS_PC:   opa_mux_out = rs_fu.PC;
+		case (working_rs_fu.opa_select)
+			OPA_IS_RS1:  opa_mux_out = working_rs_fu.rs_value[0];
+			OPA_IS_NPC:  opa_mux_out = working_rs_fu.NPC;
+			OPA_IS_PC:   opa_mux_out = working_rs_fu.PC;
 			OPA_IS_ZERO: opa_mux_out = 0;
 		endcase
 	end
@@ -187,13 +190,13 @@ module fu_alu(
 		// Default value, Set only because the case isnt full.  If you see this
 		// value on the output of the mux you have an invalid opb_select
 		opb_mux_out = `XLEN'hfacefeed;
-		case (rs_fu.opb_select)
-			OPB_IS_RS2:   opb_mux_out = rs_fu.rs_value[1];
-			OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(rs_fu.inst);
-			OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(rs_fu.inst);
-			OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(rs_fu.inst);
-			OPB_IS_U_IMM: opb_mux_out = `RV32_signext_Uimm(rs_fu.inst);
-			OPB_IS_J_IMM: opb_mux_out = `RV32_signext_Jimm(rs_fu.inst);
+		case (working_rs_fu.opb_select)
+			OPB_IS_RS2:   opb_mux_out = working_rs_fu.rs_value[1];
+			OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(working_rs_fu.inst);
+			OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(working_rs_fu.inst);
+			OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(working_rs_fu.inst);
+			OPB_IS_U_IMM: opb_mux_out = `RV32_signext_Uimm(working_rs_fu.inst);
+			OPB_IS_J_IMM: opb_mux_out = `RV32_signext_Jimm(working_rs_fu.inst);
 		endcase 
 	end
 
@@ -205,10 +208,10 @@ module fu_alu(
 		.clock(clock),
 		.reset(reset),
 
-		.val_valid(rs_fu.rs_value_valid),
+		.val_valid(working_rs_fu.rs_value_valid),
 		.opa(opa_mux_out),
 		.opb(opb_mux_out),
-		.func(rs_fu.alu_func),
+		.func(working_rs_fu.alu_func),
 
 		// Output
 		.valid(alu_result_valid),
@@ -222,10 +225,10 @@ module fu_alu(
 		.clock(clock),
 		.reset(reset),
 
-		.val_valid(rs_fu.rs_value_valid),
-		.rs1(rs_fu.rs_value[0]), 
-		.rs2(rs_fu.rs_value[1]),
-		.func(rs_fu.inst.b.funct3), // inst bits to determine check
+		.val_valid(working_rs_fu.rs_value_valid),
+		.rs1(working_rs_fu.rs_value[0]), 
+		.rs2(working_rs_fu.rs_value[1]),
+		.func(working_rs_fu.inst.b.funct3), // inst bits to determine check
 
 		// Output
 		.valid(brcond_result_valid),
@@ -234,9 +237,16 @@ module fu_alu(
 
 	 // ultimate "take branch" signal:
 	 //	unconditional, or conditional and the condition is true
-	assign fu_rs.take_branch = rs_fu.uncond_branch
-		                        | (rs_fu.cond_branch & brcond_result);
+	assign fu_rs.take_branch = working_rs_fu.uncond_branch
+		                        | (working_rs_fu.cond_branch & brcond_result);
 
+	always_ff @(posedge clock) begin
+		if (reset) begin
+			working_rs_fu		<=	`SD 0;
+		end else if (rs_fu.valid && (fu_rs.valid || ~working_rs_fu.valid)) begin
+			working_rs_fu		<=	`SD rs_fu;
+		end
+	end
 
 endmodule // module fu_alu
 `endif // __FU_ALU_V__

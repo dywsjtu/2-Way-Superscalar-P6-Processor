@@ -128,9 +128,9 @@ module pipeline (
 	     (proc2Dmem_command == BUS_NONE) ? DOUBLE : proc2Dmem_size;
 	assign proc2mem_data = {32'b0, proc2Dmem_data};
 
-	always @* begin
-		$monitor("proc2mem_data", proc2mem_data);
-	end
+	// always @* begin
+	// 	$monitor("proc2mem_data", proc2mem_data);
+	// end
 
 //////////////////////////////////////////////////
 //                                              //
@@ -194,9 +194,9 @@ module pipeline (
 		.id_packet_out(id_packet)
 	);
 
-	always @(posedge clock) begin
-		$display("DEBUG pipeline I addr", proc2Imem_addr);
-	end
+	// always @(posedge clock) begin
+	// 	$display("DEBUG pipeline I addr", proc2Imem_addr);
+	// end
 
 
 //////////////////////////////////////////////////
