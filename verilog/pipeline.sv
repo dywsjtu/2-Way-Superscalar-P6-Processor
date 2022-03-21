@@ -27,8 +27,8 @@ module pipeline (
 	output logic [63:0] proc2mem_data,      // Data sent to memory
 	output MEM_SIZE proc2mem_size,          // data size sent to memory
 
-	// output logic [3:0]  pipeline_completed_insts,
-	// output EXCEPTION_CODE   pipeline_error_status,
+	output logic [3:0]  		pipeline_completed_insts,
+	output EXCEPTION_CODE   	pipeline_error_status,
 	output logic [4:0]  		pipeline_commit_wr_idx,
 	output logic [`XLEN-1:0] 	pipeline_commit_wr_data,
 	output logic        		pipeline_commit_wr_en,
@@ -101,11 +101,9 @@ module pipeline (
 	// assign pipeline_commit_wr_en = wb_reg_wr_en_out;
 	// assign pipeline_commit_NPC = mem_wb_NPC;
 
-	assign pipeline_completed_insts = {3'b0, mem_wb_valid_inst};
-	assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
-	                                mem_wb_halt                ? HALTED_ON_WFI :
-	                                (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
-	                                NO_ERROR;
+	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
+	assign pipeline_error_status 	= (mem2proc_response==4'h0) ? 	LOAD_ACCESS_FAULT :
+	                                								NO_ERROR;
 	
 	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
 	assign pipeline_commit_wr_data 	= rob_reg.dest_value;
@@ -118,6 +116,8 @@ module pipeline (
 	logic [`XLEN-1:0] proc2Dmem_data;
 	logic [1:0]  proc2Dmem_command;
 	MEM_SIZE proc2Dmem_size;
+
+	assign proc2Dmem_command = BUS_NONE;
 	
 	assign proc2mem_command =
 	     (proc2Dmem_command == BUS_NONE) ? BUS_LOAD : proc2Dmem_command;
@@ -127,6 +127,44 @@ module pipeline (
 	assign proc2mem_size =
 	     (proc2Dmem_command == BUS_NONE) ? DOUBLE : proc2Dmem_size;
 	assign proc2mem_data = {32'b0, proc2Dmem_data};
+
+	always @* begin
+		$monitor("proc2mem_data", proc2mem_data);
+	end
+
+//////////////////////////////////////////////////
+//                                              //
+//       ROB RS MT balabala start here          //
+//                                              //
+//////////////////////////////////////////////////
+
+
+	// ID
+	ID_ROB_PACKET       id_rob;   
+	ID_RS_PACKET        id_rs;
+
+	// CDB
+	CDB_ENTRY           cdb_out;
+	CDB_ENTRY			rs_cdb;
+	
+	// Map table
+	MT_RS_PACKET        mt_rs;
+
+	// RS
+	logic 				rs_entry_full;
+	RS_ROB_PACKET       rs_rob;
+	RS_MT_PACKET        rs_mt;
+    RS_FU_PACKET        rs_fu;
+	RS_REG_PACKET    	rs_reg;
+
+	// ROB
+	logic 				rob_full;
+    ROB_RS_PACKET       rob_rs;
+    ROB_MT_PACKET       rob_mt;
+    ROB_REG_PACKET      rob_reg;
+	ROB_ID_PACKET       rob_id;
+
+	REG_RS_PACKET       reg_rs;
 
 
 //////////////////////////////////////////////////
@@ -155,6 +193,10 @@ module pipeline (
 		.proc2Imem_addr(proc2Imem_addr),
 		.id_packet_out(id_packet)
 	);
+
+	always @(posedge clock) begin
+		$display("DEBUG pipeline I addr", proc2Imem_addr);
+	end
 
 
 //////////////////////////////////////////////////
@@ -200,50 +242,16 @@ module pipeline (
 		end // else: !if(reset)
 	end // always
 
-
-//////////////////////////////////////////////////
-//                                              //
-//       ROB RS MT balabala start here          //
-//                                              //
-//////////////////////////////////////////////////
-
-
-	// ID
-	ID_ROB_PACKET       id_rob;   
-	ID_RS_PACKET        id_rs;
-
-	// CDB
-	CDB_ENTRY           cdb_out;
-	CDB_ENTRY			rs_cdb;
-	
-	// Map table
-	MT_RS_PACKET        mt_rs;
-
-	// RS
-	logic 				rs_entry_full;
-	RS_ROB_PACKET       rs_rob;
-	RS_MT_PACKET        rs_mt;
-    RS_FU_PACKET        rs_fu;
-	RS_REG_PACKET    	rs_reg;
-
-	// ROB
-	logic 				rob_full;
-    ROB_RS_PACKET       rob_rs;
-    ROB_MT_PACKET       rob_mt;
-    ROB_REG_PACKET      rob_reg;
-	ROB_ID_PACKET       rob_id;
-
-	REG_RS_PACKET       reg_rs;
-	
-
-	
+		
 	assign dispatch_enable = !rob_full && !rs_entry_full; // TO DO check lsq not full
 	//ID TO ROB
-	assign id_rob = {	id_packet_out3
+	assign id_rob = {	
+						id_packet_out.valid && ~id_packet_out.illegal && ~id_packet_out.halt,
+						id_packet_out.PC,
 						dispatch_enable,
 						id_packet_out.dest_reg_idx,
-						id_packet_out.PC,
-						id_packet_out.take_branch	};
+						id_packet_out.take_branch	
+					};
 	//ID TO RS
 	assign id_rs = {
 						id_packet_out.NPC,			
@@ -295,10 +303,11 @@ module pipeline (
 		//INPUT
         .clock(clock),
 		.reset(reset),
-		.squash(rob_rs.squash),
-		.FU_valid(FU_valid),
-		.FU_tag(FU_tag),
-		.FU_value(FU_value),
+		//.squash(rob_rs.squash),
+		.rs_cdb(rs_cdb),
+		// .FU_valid(FU_valid),
+		// .FU_tag(FU_tag),
+		// .FU_value(FU_value),
 
 		//OUTPUT
 		.cdb_out(cdb_out)
@@ -328,6 +337,7 @@ module pipeline (
 		// input
 		.clock(clock),
 		.reset(reset),
+
 		.id_rs(id_rs),
 		.mt_rs(mt_rs),
 		.reg_rs(reg_rs),
@@ -335,6 +345,7 @@ module pipeline (
 		.rob_rs(rob_rs),
 		// output
 		.rs_mt(rs_mt),
+		.rs_cdb(rs_cdb),
 		.rs_reg(rs_reg),
 		//.rs_fu(rs_fu),
 		.rs_rob(rs_rob),
@@ -348,7 +359,7 @@ module pipeline (
 
 		.id_rob(id_rob),
 		.rs_rob(rs_rob),
-		.cdb_rob(cdb_out)),
+		.cdb_rob(cdb_out),
 		// output
 		.rob_full(rob_full),
 

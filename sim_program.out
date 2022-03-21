@@ -1,0 +1,243 @@
+Chronologic VCS simulator copyright 1991-2020
+Contains Synopsys proprietary information.
+Compiler version R-2020.12-SP2-1_Full64; Runtime version R-2020.12-SP2-1_Full64;  Mar 10 17:05 2022
+
+ VCS Coverage Metrics Release R-2020.12-SP2-1_Full64 Copyright (c) 1991-2020 by Synopsys Inc.
+VCD+ Writer R-2020.12-SP2-1_Full64 Copyright (c) 1991-2020 by Synopsys Inc.
+time:   0 head:  x tail:  x counter:  x 
+time:   6 head:  0 tail:  0 counter:  0 
+DEBUG    0: rob_empty = 1, retire_valid = 0, squash = 0
+DEBUG    0: rob_head = 0, rob_tail = 0, rob_counter =  0
+DEBUG    0: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h0, dest_value:'h0}
+DEBUG    0: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    0: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_empty = 1, retire_valid = 0, squash = 0
+DEBUG    1: rob_head = 0, rob_tail = 0, rob_counter =  0
+DEBUG    1: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h0, dest_value:'h0}
+DEBUG    1: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    1: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_empty = 1, retire_valid = 0, squash = 0
+DEBUG    2: rob_head = 0, rob_tail = 0, rob_counter =  0
+DEBUG    2: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h0, dest_value:'h0}
+DEBUG    2: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    2: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time:  36 head:  0 tail:  1 counter:  1 
+DEBUG    3: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG    3: rob_head = 0, rob_tail = 1, rob_counter =  1
+DEBUG    3: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h3, dest_value:'h0}
+DEBUG    3: rob_entries[ 0] = '{valid:'h1, PC:'h0, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    3: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time:  46 head:  0 tail:  2 counter:  2 
+DEBUG    4: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG    4: rob_head = 0, rob_tail = 2, rob_counter =  2
+DEBUG    4: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h3, dest_value:'h0}
+DEBUG    4: rob_entries[ 0] = '{valid:'h1, PC:'h0, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 1] = '{valid:'h1, PC:'h1, ready:'h0, dest_reg_idx:'h2, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    4: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time:  56 head:  0 tail:  3 counter:  3 
+DEBUG    5: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG    5: rob_head = 0, rob_tail = 3, rob_counter =  3
+DEBUG    5: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h3, dest_value:'h0}
+DEBUG    5: rob_entries[ 0] = '{valid:'h1, PC:'h0, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 1] = '{valid:'h1, PC:'h1, ready:'h0, dest_reg_idx:'h2, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    5: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time:  66 head:  0 tail:  4 counter:  4 
+DEBUG    6: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG    6: rob_head = 0, rob_tail = 4, rob_counter =  4
+DEBUG    6: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h3, dest_value:'h0}
+DEBUG    6: rob_entries[ 0] = '{valid:'h1, PC:'h0, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 1] = '{valid:'h1, PC:'h1, ready:'h0, dest_reg_idx:'h2, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    6: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time:  76 head:  0 tail:  5 counter:  5 
+DEBUG    7: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG    7: rob_head = 0, rob_tail = 5, rob_counter =  5
+DEBUG    7: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h3, dest_value:'h0}
+DEBUG    7: rob_entries[ 0] = '{valid:'h1, PC:'h0, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG    7: rob_entries[ 1] = '{valid:'h1, PC:'h1, ready:'h1, dest_reg_idx:'h2, value:'hc, mis_pred:'h0}
+DEBUG    7: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG    7: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG    7: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG    7: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    7: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    7: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    8: rob_empty = 0, retire_valid = 1, squash = 0
+DEBUG    8: rob_head = 0, rob_tail = 5, rob_counter =  5
+DEBUG    8: rob_reg = '{dest_valid:'h1, dest_reg_idx:'h3, dest_value:'hb}
+DEBUG    8: rob_entries[ 0] = '{valid:'h1, PC:'h0, ready:'h1, dest_reg_idx:'h3, value:'hb, mis_pred:'h0}
+DEBUG    8: rob_entries[ 1] = '{valid:'h1, PC:'h1, ready:'h1, dest_reg_idx:'h2, value:'hc, mis_pred:'h0}
+DEBUG    8: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG    8: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG    8: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG    8: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    8: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    8: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time:  96 head:  1 tail:  6 counter:  5 
+DEBUG    9: rob_empty = 0, retire_valid = 1, squash = 0
+DEBUG    9: rob_head = 1, rob_tail = 6, rob_counter =  5
+DEBUG    9: rob_reg = '{dest_valid:'h1, dest_reg_idx:'h2, dest_value:'hc}
+DEBUG    9: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    9: rob_entries[ 1] = '{valid:'h1, PC:'h1, ready:'h1, dest_reg_idx:'h2, value:'hc, mis_pred:'h0}
+DEBUG    9: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG    9: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG    9: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG    9: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG    9: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG    9: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time: 106 head:  2 tail:  6 counter:  4 
+DEBUG   10: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG   10: rob_head = 2, rob_tail = 6, rob_counter =  4
+DEBUG   10: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   10: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   10: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time: 116 head:  2 tail:  7 counter:  5 
+DEBUG   11: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG   11: rob_head = 2, rob_tail = 7, rob_counter =  5
+DEBUG   11: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   11: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 6] = '{valid:'h1, PC:'h6, ready:'h0, dest_reg_idx:'h18, value:'h0, mis_pred:'h0}
+DEBUG   11: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+time: 126 head:  2 tail:  0 counter:  6 
+DEBUG   12: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG   12: rob_head = 2, rob_tail = 0, rob_counter =  6
+DEBUG   12: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   12: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 6] = '{valid:'h1, PC:'h6, ready:'h0, dest_reg_idx:'h18, value:'h0, mis_pred:'h0}
+DEBUG   12: rob_entries[ 7] = '{valid:'h1, PC:'h7, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+time: 136 head:  2 tail:  1 counter:  7 
+DEBUG   13: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG   13: rob_head = 2, rob_tail = 1, rob_counter =  7
+DEBUG   13: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   13: rob_entries[ 0] = '{valid:'h1, PC:'h8, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 6] = '{valid:'h1, PC:'h6, ready:'h0, dest_reg_idx:'h18, value:'h0, mis_pred:'h0}
+DEBUG   13: rob_entries[ 7] = '{valid:'h1, PC:'h7, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+time: 146 head:  2 tail:  2 counter:  8 
+DEBUG   14: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG   14: rob_head = 2, rob_tail = 2, rob_counter =  8
+DEBUG   14: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   14: rob_entries[ 0] = '{valid:'h1, PC:'h8, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 1] = '{valid:'h1, PC:'h9, ready:'h0, dest_reg_idx:'h6, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 6] = '{valid:'h1, PC:'h6, ready:'h0, dest_reg_idx:'h18, value:'h0, mis_pred:'h0}
+DEBUG   14: rob_entries[ 7] = '{valid:'h1, PC:'h7, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_empty = 0, retire_valid = 0, squash = 0
+DEBUG   15: rob_head = 2, rob_tail = 2, rob_counter =  8
+DEBUG   15: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   15: rob_entries[ 0] = '{valid:'h1, PC:'h8, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 1] = '{valid:'h1, PC:'h9, ready:'h0, dest_reg_idx:'h6, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h0, dest_reg_idx:'h4, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 6] = '{valid:'h1, PC:'h6, ready:'h0, dest_reg_idx:'h18, value:'h0, mis_pred:'h0}
+DEBUG   15: rob_entries[ 7] = '{valid:'h1, PC:'h7, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_empty = 0, retire_valid = 1, squash = 1
+DEBUG   16: rob_head = 2, rob_tail = 2, rob_counter =  8
+DEBUG   16: rob_reg = '{dest_valid:'h1, dest_reg_idx:'h4, dest_value:'h0}
+DEBUG   16: rob_entries[ 0] = '{valid:'h1, PC:'h8, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_entries[ 1] = '{valid:'h1, PC:'h9, ready:'h0, dest_reg_idx:'h6, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_entries[ 2] = '{valid:'h1, PC:'h2, ready:'h1, dest_reg_idx:'h4, value:'h0, mis_pred:'h1}
+DEBUG   16: rob_entries[ 3] = '{valid:'h1, PC:'h3, ready:'h0, dest_reg_idx:'hc, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_entries[ 4] = '{valid:'h1, PC:'h4, ready:'h0, dest_reg_idx:'h10, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_entries[ 5] = '{valid:'h1, PC:'h5, ready:'h0, dest_reg_idx:'h8, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_entries[ 6] = '{valid:'h1, PC:'h6, ready:'h0, dest_reg_idx:'h18, value:'h0, mis_pred:'h0}
+DEBUG   16: rob_entries[ 7] = '{valid:'h1, PC:'h7, ready:'h0, dest_reg_idx:'h3, value:'h0, mis_pred:'h0}
+time: 176 head:  0 tail:  0 counter:  0 
+DEBUG   17: rob_empty = 1, retire_valid = 0, squash = 0
+DEBUG   17: rob_head = 0, rob_tail = 0, rob_counter =  0
+DEBUG   17: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h0, dest_value:'h0}
+DEBUG   17: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   17: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_empty = 1, retire_valid = 0, squash = 0
+DEBUG   18: rob_head = 0, rob_tail = 0, rob_counter =  0
+DEBUG   18: rob_reg = '{dest_valid:'h0, dest_reg_idx:'h0, dest_value:'h0}
+DEBUG   18: rob_entries[ 0] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 1] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 2] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 3] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 4] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 5] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 6] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+DEBUG   18: rob_entries[ 7] = '{valid:'h0, PC:'h0, ready:'h0, dest_reg_idx:'h0, value:'h0, mis_pred:'h0}
+@@@Passed
+$finish called from file "testbench/test_rob.sv", line 579.
+$finish at simulation time                 2010
+
+---------------------------------------------------------------------------
+VCS Coverage Metrics: during simulation line, cond, branch was monitored
+---------------------------------------------------------------------------
+
+ Coverage status: End of All Coverages ...
+
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 201000 ps
+CPU Time:      0.250 seconds;       Data structure size:   0.0Mb
+Thu Mar 10 17:05:11 2022

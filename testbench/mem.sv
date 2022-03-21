@@ -40,7 +40,11 @@ module mem (
 	
 	logic acquire_tag;
 	logic bus_filled;
-	
+
+	always @(posedge clk) begin
+		$monitor("DEBUG mem command = ", proc2mem_command);
+		$monitor("DEBUG mem address = ", proc2mem_data);
+	end	
 
 // Implement the Memory function
 `ifdef CACHE_MODE

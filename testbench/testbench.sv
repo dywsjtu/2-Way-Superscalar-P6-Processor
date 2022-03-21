@@ -39,12 +39,12 @@ module testbench;
 `ifndef CACHE_MODE
 	MEM_SIZE     proc2mem_size;
 `endif
-	// logic  [3:0] pipeline_completed_insts;
-	// EXCEPTION_CODE   pipeline_error_status;
-	// logic  [4:0] pipeline_commit_wr_idx;
-	// logic [`XLEN-1:0] pipeline_commit_wr_data;
-	// logic        pipeline_commit_wr_en;
-	// logic [`XLEN-1:0] pipeline_commit_NPC;
+	logic  [3:0] pipeline_completed_insts;
+	EXCEPTION_CODE   pipeline_error_status;
+	logic  [4:0] pipeline_commit_wr_idx;
+	logic [`XLEN-1:0] pipeline_commit_wr_data;
+	logic        pipeline_commit_wr_en;
+	logic [`XLEN-1:0] pipeline_commit_NPC;
 	
 	
 	// logic [`XLEN-1:0] if_NPC_out;
@@ -81,12 +81,12 @@ module testbench;
 		.proc2mem_data     (proc2mem_data),
 		.proc2mem_size     (proc2mem_size),
 		
-		// .pipeline_completed_insts(pipeline_completed_insts),
-		// .pipeline_error_status(pipeline_error_status),
-		// .pipeline_commit_wr_data(pipeline_commit_wr_data),
-		// .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
-		// .pipeline_commit_wr_en(pipeline_commit_wr_en),
-		// .pipeline_commit_NPC(pipeline_commit_NPC),
+		.pipeline_completed_insts(pipeline_completed_insts),
+		.pipeline_error_status(pipeline_error_status),
+		.pipeline_commit_wr_data(pipeline_commit_wr_data),
+		.pipeline_commit_wr_idx(pipeline_commit_wr_idx),
+		.pipeline_commit_wr_en(pipeline_commit_wr_en),
+		.pipeline_commit_NPC(pipeline_commit_NPC),
 		
 		// .if_NPC_out(if_NPC_out),
 		// .if_IR_out(if_IR_out),
@@ -207,7 +207,7 @@ module testbench;
 			instr_count <= `SD 0;
 		end else begin
 			clock_count <= `SD (clock_count + 1);
-			// instr_count <= `SD (instr_count + pipeline_completed_insts);
+			instr_count <= `SD (instr_count + pipeline_completed_insts);
 		end
 	end  
 	
@@ -228,49 +228,49 @@ module testbench;
 			 print_stage("|", id_ex_IR, id_ex_NPC[31:0], {31'b0,id_ex_valid_inst});
 			//  print_stage("|", ex_mem_IR, ex_mem_NPC[31:0], {31'b0,ex_mem_valid_inst});
 			//  print_stage("|", mem_wb_IR, mem_wb_NPC[31:0], {31'b0,mem_wb_valid_inst});
-			//  print_reg(32'b0, pipeline_commit_wr_data[31:0],
-			// 	{27'b0,pipeline_commit_wr_idx}, {31'b0,pipeline_commit_wr_en});
+			 print_reg(32'b0, pipeline_commit_wr_data[31:0],
+				{27'b0,pipeline_commit_wr_idx}, {31'b0,pipeline_commit_wr_en});
 			 print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
 				32'b0, proc2mem_addr[31:0],
 				proc2mem_data[63:32], proc2mem_data[31:0]);
 			
 			
 			// print the writeback information to writeback.out
-			// if(pipeline_completed_insts>0) begin
-			// 	if(pipeline_commit_wr_en)
-			// 		$fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
-			// 			pipeline_commit_NPC-4,
-			// 			pipeline_commit_wr_idx,
-			// 			pipeline_commit_wr_data);
-			// 	else
-			// 		$fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
-			// end
+			if(pipeline_completed_insts>0) begin
+				if(pipeline_commit_wr_en)
+					$fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+						pipeline_commit_NPC-4,
+						pipeline_commit_wr_idx,
+						pipeline_commit_wr_data);
+				else
+					$fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
+			end
 			
 			// deal with any halting conditions
-			// if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
-			// 	$display("@@@ Unified Memory contents hex on left, decimal on right: ");
-			// 	show_mem_with_decimal(0,`MEM_64BIT_LINES - 1); 
-			// 	// 8Bytes per line, 16kB total
+			if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
+				$display("@@@ Unified Memory contents hex on left, decimal on right: ");
+				show_mem_with_decimal(0,`MEM_64BIT_LINES - 1); 
+				// 8Bytes per line, 16kB total
 				
-			// 	$display("@@  %t : System halted\n@@", $realtime);
+				$display("@@  %t : System halted\n@@", $realtime);
 				
-			// 	case(pipeline_error_status)
-			// 		LOAD_ACCESS_FAULT:  
-			// 			$display("@@@ System halted on memory error");
-			// 		HALTED_ON_WFI:          
-			// 			$display("@@@ System halted on WFI instruction");
-			// 		ILLEGAL_INST:
-			// 			$display("@@@ System halted on illegal instruction");
-			// 		default: 
-			// 			$display("@@@ System halted on unknown error code %x", 
-			// 				pipeline_error_status);
-			// 	endcase
-			// 	$display("@@@\n@@");
-			// 	show_clk_count;
-			// 	print_close(); // close the pipe_print output file
-			// 	$fclose(wb_fileno);
-			// 	#100 $finish;
-			// end
+				case(pipeline_error_status)
+					LOAD_ACCESS_FAULT:  
+						$display("@@@ System halted on memory error");
+					HALTED_ON_WFI:          
+						$display("@@@ System halted on WFI instruction");
+					ILLEGAL_INST:
+						$display("@@@ System halted on illegal instruction");
+					default: 
+						$display("@@@ System halted on unknown error code %x", 
+							pipeline_error_status);
+				endcase
+				$display("@@@\n@@");
+				show_clk_count;
+				print_close(); // close the pipe_print output file
+				$fclose(wb_fileno);
+				#100 $finish;
+			end
             debug_counter <= debug_counter + 1;
 		end  // if(reset)   
 	end 

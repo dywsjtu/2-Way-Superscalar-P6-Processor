@@ -1,0 +1,74 @@
+
+program.debug.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <start-0x4>:
+   0:	00800113          	addi	x2,x0,8
+
+00000004 <start>:
+   4:	000021b7          	lui	x3,0x2
+   8:	7bb18193          	addi	x3,x3,1979 # 27bb <_ebss+0x26bb>
+   c:	01019193          	slli	x3,x3,0x10
+  10:	000030b7          	lui	x1,0x3
+  14:	ee608093          	addi	x1,x1,-282 # 2ee6 <_ebss+0x2de6>
+  18:	0011e1b3          	or	x3,x3,x1
+  1c:	000010b7          	lui	x1,0x1
+  20:	87b08093          	addi	x1,x1,-1925 # 87b <_ebss+0x77b>
+  24:	00c19193          	slli	x3,x3,0xc
+  28:	0011e1b3          	or	x3,x3,x1
+  2c:	0b000093          	addi	x1,x0,176
+  30:	00c19193          	slli	x3,x3,0xc
+  34:	0011e1b3          	or	x3,x3,x1
+  38:	0fd00093          	addi	x1,x0,253
+  3c:	00819193          	slli	x3,x3,0x8
+  40:	0011e1b3          	or	x3,x3,x1
+  44:	00001237          	lui	x4,0x1
+  48:	b5020213          	addi	x4,x4,-1200 # b50 <_ebss+0xa50>
+  4c:	00c21213          	slli	x4,x4,0xc
+  50:	4f300093          	addi	x1,x0,1267
+  54:	00126233          	or	x4,x4,x1
+  58:	02d00093          	addi	x1,x0,45
+  5c:	00421213          	slli	x4,x4,0x4
+  60:	00126233          	or	x4,x4,x1
+  64:	00000293          	addi	x5,x0,0
+
+00000068 <loop>:
+  68:	00128293          	addi	x5,x5,1
+  6c:	0102a313          	slti	x6,x5,16
+  70:	023105b3          	mul	x11,x2,x3
+  74:	004585b3          	add	x11,x11,x4
+  78:	02358633          	mul	x12,x11,x3
+  7c:	00460633          	add	x12,x12,x4
+  80:	023606b3          	mul	x13,x12,x3
+  84:	004686b3          	add	x13,x13,x4
+  88:	02368133          	mul	x2,x13,x3
+  8c:	00410133          	add	x2,x2,x4
+  90:	0105d593          	srli	x11,x11,0x10
+  94:	01065613          	srli	x12,x12,0x10
+  98:	0106d693          	srli	x13,x13,0x10
+  9c:	01015713          	srli	x14,x2,0x10
+  a0:	01008093          	addi	x1,x1,16
+  a4:	fc0312e3          	bne	x6,x0,68 <loop>
+  a8:	10500073          	wfi
+	...
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	1e41                	c.addi	x28,-16
+   2:	0000                	c.unimp
+   4:	7200                	c.flw	f8,32(x12)
+   6:	7369                	c.lui	x6,0xffffa
+   8:	01007663          	bgeu	x0,x16,14 <start+0x10>
+   c:	0014                	0x14
+   e:	0000                	c.unimp
+  10:	7205                	c.lui	x4,0xfffe1
+  12:	3376                	c.fldsp	f6,376(x2)
+  14:	6932                	c.flwsp	f18,12(x2)
+  16:	7032                	c.flwsp	f0,44(x2)
+  18:	5f30                	c.lw	x12,120(x14)
+  1a:	326d                	c.jal	fffff9c4 <_sp+0xfffef9c4>
+  1c:	3070                	c.fld	f12,224(x8)
+	...

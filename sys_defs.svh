@@ -393,6 +393,7 @@ typedef struct packed {
 } ROB_MT_PACKET;
 
 typedef struct packed {
+	logic						valid;
 	logic						dest_valid;   // whether is ready and valid to write to regfile
 	logic	[4:0]				dest_reg_idx; // the destination register to write to regfile
 	logic	[`XLEN-1:0]			dest_value;	  // the value to write to destination register in regfile

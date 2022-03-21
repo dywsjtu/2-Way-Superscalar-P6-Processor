@@ -39,13 +39,11 @@ module cdb (
     `ifdef DEBUG
     logic [31:0] cycle_count;
     // synopsys sync_set_reset "reset"
-    always_ff @(negedge clock)
+    always_ff @(negedge clock) begin
         if(reset) begin
             cycle_count = 0;
         end else begin
-            for(int i = 0; i < `REG_SIZE; i += 1) begin
-                $display("DEBUG %4d: cdb_out.tag = %d, cdb_out.value = %d, cdb_out.valid =  %d, take_branch = %d", cycle_count, cdb_out.tag, cdb_out.value, cdb_out.valid, cdb_out.take_branch);
-            end
+            $display("DEBUG %4d: cdb_out.tag = %d, cdb_out.value = %d, cdb_out.valid =  %d, take_branch = %d", cycle_count, cdb_out.tag, cdb_out.value, cdb_out.valid, cdb_out.take_branch);
             cycle_count = cycle_count + 1;
         end
        

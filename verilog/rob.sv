@@ -42,11 +42,13 @@ module rob(
     logic       rob_empty;
     logic       retire_valid;
     logic       squash;
+    logic       valid;
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full             = (rob_counter == `ROB_SIZE) & (rob_head == rob_tail);
     assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty));
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
+    assign valid                = id_rob.dispatch_enable && id_rob.valid;
 
     assign rob_id.squash        = squash;
     // rob_entries[rob_head].take_branch stores whether the dispatch use the unusual target pc.
@@ -68,6 +70,7 @@ module rob(
     assign rob_mt.rob_tail      = rob_tail;
     assign rob_mt.squash        = squash;
     
+    assign rob_reg.valid        = retire_valid;
     assign rob_reg.dest_valid   = (retire_valid && (rob_entries[rob_head].dest_reg_idx != `ZERO_REG));
     assign rob_mt.dest_valid    = rob_reg.dest_valid;
     assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
@@ -107,7 +110,7 @@ module rob(
         //     rob_head    <=  `SD rob_tail;
         //     rob_counter <=  `SD `ROB_IDX_LEN'b0;
         end else begin
-            if (id_rob.dispatch_enable) begin
+            if (valid) begin
                 // initalize rob entry
                 rob_entries[rob_tail].valid             <=  `SD 1'b1;
                 rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
@@ -137,10 +140,10 @@ module rob(
                 rob_entries[cdb_rob.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob.tag].take_branch && 
                                                                   cdb_rob.take_branch);
             end
-            rob_counter <=  `SD id_rob.dispatch_enable  ? (retire_valid ? rob_counter
-                                                                        : rob_counter + 1)
-                                                        : (retire_valid ? rob_counter - 1
-                                                                        : rob_counter);
+            rob_counter <=  `SD valid   ? (retire_valid ?  rob_counter
+                                                        : (rob_counter + 1))
+                                        : (retire_valid ? (rob_counter - 1)
+                                                        :  rob_counter);
         end
     end
 
