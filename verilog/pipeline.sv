@@ -29,10 +29,10 @@ module pipeline (
 
 	// output logic [3:0]  pipeline_completed_insts,
 	// output EXCEPTION_CODE   pipeline_error_status,
-	// output logic [4:0]  pipeline_commit_wr_idx,
-	// output logic [`XLEN-1:0] pipeline_commit_wr_data,
-	// output logic        pipeline_commit_wr_en,
-	// output logic [`XLEN-1:0] pipeline_commit_NPC,
+	output logic [4:0]  		pipeline_commit_wr_idx,
+	output logic [`XLEN-1:0] 	pipeline_commit_wr_data,
+	output logic        		pipeline_commit_wr_en,
+	output logic [`XLEN-1:0] 	pipeline_commit_NPC,
 	
 	
 	// testing hooks (these must be exported so we can test
@@ -96,12 +96,22 @@ module pipeline (
 	//                                 mem_wb_halt                ? HALTED_ON_WFI :
 	//                                 (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
 	//                                 NO_ERROR;
-	
 	// assign pipeline_commit_wr_idx = wb_reg_wr_idx_out;
 	// assign pipeline_commit_wr_data = wb_reg_wr_data_out;
 	// assign pipeline_commit_wr_en = wb_reg_wr_en_out;
 	// assign pipeline_commit_NPC = mem_wb_NPC;
 
+	assign pipeline_completed_insts = {3'b0, mem_wb_valid_inst};
+	assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
+	                                mem_wb_halt                ? HALTED_ON_WFI :
+	                                (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
+	                                NO_ERROR;
+	
+	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
+	assign pipeline_commit_wr_data 	= rob_reg.dest_value;
+	assign pipeline_commit_wr_en 	= rob_reg.dest_valid;
+	assign pipeline_commit_NPC 		= rob_id.squash	? rob_id.target_pc
+													: rob_id.other_pc;
 	
 	logic [`XLEN-1:0] mem_result_out;
 	logic [`XLEN-1:0] proc2Dmem_addr;
@@ -125,22 +135,21 @@ module pipeline (
 //                                              //
 //////////////////////////////////////////////////
 
-	logic         							ex_mem_take_branch;		// taken-branch signal
-	logic					[`XLEN-1:0]		ex_mem_target_pc;		// target pc: use if take_branch is TRUE
-	assign ex_mem_take_branch				= 1'b0;
-	assign ex_mem_target_pc					= `XLEN'b0;
+	// logic         							ex_mem_take_branch;		// taken-branch signal
+	// logic					[`XLEN-1:0]		ex_mem_target_pc;		// target pc: use if take_branch is TRUE
+	// assign ex_mem_take_branch				= 1'b0;
+	// assign ex_mem_target_pc					= `XLEN'b0;
 
 	dispatch_stage dispatch_stage_0 (
 		// Inputs
-		.clock (clock),
-		.reset (reset),
+		.clock(clock),
+		.reset(reset),
 		// .mem_wb_valid_inst(mem_wb_valid_inst),
-		.stall (dispatch_enable),
-		// .ex_mem_take_branch(ex_mem_packet.take_branch),
-		// .ex_mem_target_pc(ex_mem_packet.alu_result),
-		.ex_mem_take_branch(ex_mem_take_branch),
-		.ex_mem_target_pc(ex_mem_target_pc),
+		.stall(~dispatch_enable),
+		// .ex_mem_take_branch(ex_mem_take_branch),
+		// .ex_mem_target_pc(ex_mem_target_pc),
 		.Imem2proc_data(mem2proc_data),
+		.rob_id(rob_id),
 		
 		// Outputs
 		.proc2Imem_addr(proc2Imem_addr),
@@ -181,7 +190,8 @@ module pipeline (
 										1'b0, //illegal
 										1'b0, //csr_op
 										1'b0, //valid
-										2'b0
+										2'b0,
+										1'b0
 									}; 
 		end else begin // if (reset)
 			if (id_ex_enable) begin
@@ -210,23 +220,30 @@ module pipeline (
 	MT_RS_PACKET        mt_rs;
 
 	// RS
-	logic rs_entry_full;
+	logic 				rs_entry_full;
 	RS_ROB_PACKET       rs_rob;
 	RS_MT_PACKET        rs_mt;
     RS_FU_PACKET        rs_fu;
+	RS_REG_PACKET    	rs_reg;
 
 	// ROB
-	logic rob_full;
+	logic 				rob_full;
     ROB_RS_PACKET       rob_rs;
     ROB_MT_PACKET       rob_mt;
     ROB_REG_PACKET      rob_reg;
+	ROB_ID_PACKET       rob_id;
+
+	REG_RS_PACKET       reg_rs;
+	
 
 	
 	assign dispatch_enable = !rob_full && !rs_entry_full; // TO DO check lsq not full
 	//ID TO ROB
-	assign id_rob.dispatch_enable = dispatch_enable;
-	assign id_rob.dest_reg_idx = id_packet_out.dest_reg_idx;
-	assign id_rob.PC = id_packet_out.PC;
+	assign id_rob = {	id_packet_out3
+						dispatch_enable,
+						id_packet_out.dest_reg_idx,
+						id_packet_out.PC,
+						id_packet_out.take_branch	};
 	//ID TO RS
 	assign id_rs = {
 						id_packet_out.NPC,			
@@ -252,11 +269,6 @@ module pipeline (
 	logic [$clog2(`REG_SIZE)-1:0]     rd_dispatch; // where does this come from??
 	assign rd_dispatch = id_packet_out.dest_reg_idx;
 
-    FU_ROB_PACKET       fu_rob;
-
-
-	REG_RS_PACKET       reg_rs;
-	RS_REG_PACKET    	rs_reg;
 
 	regfile regf_0 (
 		/*RS TO REG*/
@@ -336,10 +348,11 @@ module pipeline (
 
 		.id_rob(id_rob),
 		.rs_rob(rs_rob),
-		.fu_rob(fu_rob),
+		.cdb_rob(cdb_out)),
 		// output
 		.rob_full(rob_full),
 
+		.rob_id(rob_id),
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),
 		.rob_reg(rob_reg)

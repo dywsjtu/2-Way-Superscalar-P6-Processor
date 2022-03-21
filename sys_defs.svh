@@ -335,19 +335,20 @@ typedef struct packed {
 	logic       					csr_op;        	// is this a CSR operation? (we only used this as a cheap way to get return code)
 	logic       					valid;         	// is inst a valid instruction to be counted for CPI calculations?
 	logic			[1:0]			req_reg; 		// whether the register value is actually needed.
+	logic							take_branch;
 } ID_EX_PACKET;
 
-typedef struct packed {
-	logic [`XLEN-1:0] alu_result; // alu_result
-	logic [`XLEN-1:0] NPC; //pc + 4
-	logic             take_branch; // is this a taken branch?
-	//pass throughs from decode stage
-	logic [`XLEN-1:0] rs2_value;
-	logic             rd_mem, wr_mem;
-	logic [4:0]       dest_reg_idx;
-	logic             halt, illegal, csr_op, valid;
-	logic [2:0]       mem_size; // byte, half-word or word
-} EX_MEM_PACKET;
+// typedef struct packed {
+// 	logic [`XLEN-1:0] alu_result; // alu_result
+// 	logic [`XLEN-1:0] NPC; //pc + 4
+// 	logic             take_branch; // is this a taken branch?
+// 	//pass throughs from decode stage
+// 	logic [`XLEN-1:0] rs2_value;
+// 	logic             rd_mem, wr_mem;
+// 	logic [4:0]       dest_reg_idx;
+// 	logic             halt, illegal, csr_op, valid;
+// 	logic [2:0]       mem_size; // byte, half-word or word
+// } EX_MEM_PACKET;
 
 
 typedef struct packed {
@@ -357,25 +358,26 @@ typedef struct packed {
 	logic	[4:0]				dest_reg_idx;	// dest reg index
 	logic	[`XLEN-1:0]			value;			// value
 	logic						mis_pred;  		// is mispredicted 
+	logic						take_branch;	// whether is predicted to take branch
 } ROB_ENTRY;
 
 typedef struct packed {
-	logic [`ROB_IDX_LEN:0] tag;
-	logic [`XLEN-1:0] value;
-	logic valid;
-	logic take_branch;
+	logic	[`ROB_IDX_LEN:0] 	tag;
+	logic	[`XLEN-1:0]			value;
+	logic						valid;
+	logic						take_branch;
 } CDB_ENTRY;
 
 typedef struct packed {
 	logic	[1:0][`ROB_IDX_LEN-1:0]	entry_idx; // query index from RS to ROB
 } RS_ROB_PACKET;
 
-typedef struct packed {
-	logic						completed;	// whether an instruction is completed or not
-	logic	[`ROB_IDX_LEN-1:0]	entry_idx;	// which ROB entry is completed
-	logic	[`XLEN-1:0]			value;		// the value for completed instruction
-	logic						mis_pred;	// whether is a mis pred
-} FU_ROB_PACKET;
+// typedef struct packed {
+// 	logic						completed;	// whether an instruction is completed or not
+// 	logic	[`ROB_IDX_LEN-1:0]	entry_idx;	// which ROB entry is completed
+// 	logic	[`XLEN-1:0]			value;		// the value for completed instruction
+// 	logic						mis_pred;	// whether is a mis pred
+// } FU_ROB_PACKET;
 
 typedef struct packed {
 	logic	[`ROB_IDX_LEN-1:0]	rob_tail;	 // the tail of ROB
@@ -397,17 +399,16 @@ typedef struct packed {
 } ROB_REG_PACKET;
 
 typedef struct packed {
+	logic						squash;
+	logic	[`XLEN-1:0]			target_pc;
+	`ifdef DEBUG
+		logic	[`XLEN-1:0]		other_pc;
+	`endif
+} ROB_ID_PACKET;
+
+typedef struct packed {
 	logic [1:0][`XLEN-1:0]  rs_values;
 } REG_RS_PACKET;
-
-
-
-// typedef struct packed {
-//  logic [`ROB_IDX_LEN:0] rs1_tag;
-//  logic [`ROB_IDX_LEN:0] rs2_tag;
-//  logic        rs1_ready;
-//  logic        rs2_ready;
-// } MT_RS_PACKET;
 
 
 typedef struct packed {
@@ -448,9 +449,11 @@ typedef struct packed {
 } RS_ENTRY;
 
 typedef struct packed {
+	logic 						valid;
 	logic	[`XLEN-1:0]			PC;
 	logic						dispatch_enable; // whether is enable to dispatch
 	logic	[4:0]				dest_reg_idx;	 // destination register
+	logic						take_branch;
 } ID_ROB_PACKET;
 
 typedef struct packed {

@@ -224,10 +224,11 @@ module dispatch_stage(
 	// input         						mem_wb_valid_inst,      // only go to next instruction when true
 	//                                       						// makes pipeline behave as single-cycle
 	input 		  							stall,
-	input         							ex_mem_take_branch,		// taken-branch signal
-	input					[`XLEN-1:0]		ex_mem_target_pc,		// target pc: use if take_branch is TRUE
+	// input         							ex_mem_take_branch,		// taken-branch signal
+	// input					[`XLEN-1:0]		ex_mem_target_pc,		// target pc: use if take_branch is TRUE
 	input					[63:0] 			Imem2proc_data,			// Data coming back from instruction-memory
-	
+	input	ROB_ID_PACKET       			rob_id,
+
 	// output	IF_ID_PACKET 				if_packet_out			// Output data packet from IF going to ID, see sys_defs for signal information 
 	// input	IF_ID_PACKET				if_id_packet_in,
 	
@@ -252,11 +253,16 @@ module dispatch_stage(
 	// next PC is target_pc if there is a taken branch or
 	// the next sequential PC (PC+4) if no branch
 	// (halting is handled with the enable PC_enable;
-	assign next_PC 							= ex_mem_take_branch 	? ex_mem_target_pc 
-																	: PC_plus_4;
+	// assign next_PC 							= ex_mem_take_branch 	? ex_mem_target_pc 
+	// 																: PC_plus_4;
 	
-	// The take-branch signal must override stalling (otherwise it may be lost)
-	assign PC_enable 						= id_packet_out.valid | ex_mem_take_branch;
+	// // The take-branch signal must override stalling (otherwise it may be lost)
+	// assign PC_enable 						= id_packet_out.valid | ex_mem_take_branch;
+	
+	assign next_PC 							= rob_id.squash ? rob_id.target_pc 
+															: PC_plus_4;
+	assign PC_enable 						= id_packet_out.valid | rob_id.squash;
+	
 	
 	// Pass PC+4 down pipeline w/instruction
 	assign id_packet_out.NPC				= PC_plus_4;
@@ -351,6 +357,8 @@ module dispatch_stage(
 				id_packet_out.input_reg_idx[1]	= id_packet_out.inst.r.rs2;
 			end
 		endcase
+
+		id_packet_out.take_branch				= 1'b0;
 	end
 	
 	// synopsys sync_set_reset "reset"

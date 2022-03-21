@@ -235,7 +235,7 @@ module testbench;
 				proc2mem_data[63:32], proc2mem_data[31:0]);
 			
 			
-			 // print the writeback information to writeback.out
+			// print the writeback information to writeback.out
 			// if(pipeline_completed_insts>0) begin
 			// 	if(pipeline_commit_wr_en)
 			// 		$fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
