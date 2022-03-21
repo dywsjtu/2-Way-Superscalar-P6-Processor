@@ -243,7 +243,7 @@ module fu_alu(
 	always_ff @(posedge clock) begin
 		if (reset) begin
 			working_rs_fu		<=	`SD 0;
-		end else if (rs_fu.valid && (fu_rs.valid || ~working_rs_fu.valid)) begin
+		end else if (rs_fu.valid && (fu_rs.valid || ~working_rs_fu.rs_value_valid)) begin
 			working_rs_fu		<=	`SD rs_fu;
 		end
 	end
