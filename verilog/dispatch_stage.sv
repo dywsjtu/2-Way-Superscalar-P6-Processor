@@ -44,7 +44,7 @@ module decoder(
 	                        							// 0 for HALT and illegal instructions (die on halt)
 );
 
-	assign valid_inst	= valid & ~illegal;
+	assign valid_inst	= valid && ~illegal;
 	
 	always_comb begin
 		// default control values:
@@ -261,7 +261,7 @@ module dispatch_stage(
 	
 	assign next_PC 							= rob_id.squash ? rob_id.target_pc 
 															: PC_plus_4;
-	assign PC_enable 						= id_packet_out.valid | rob_id.squash;
+	assign PC_enable 						= id_packet_out.valid || rob_id.squash;
 	
 	
 	// Pass PC+4 down pipeline w/instruction

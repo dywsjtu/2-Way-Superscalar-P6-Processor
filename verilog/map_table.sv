@@ -54,7 +54,7 @@ module map_table (
             cycle_count = 0;
         end else begin
             for(int i = 0; i < `REG_SIZE; i += 4) begin
-                $display("DEBUG %4d: mt_tag[%d] = %d, mt_tag[%d] = %d, mt_tag[%d] = %d, mt_tag[%d] = %d, ", cycle_count, i,  Tag[i], i+1,  Tag[i+1], i+2,  Tag[i+2], i+3,  Tag[i+3]);
+                $display("DEBUG %4d: mt_tag[%2d] = %d, mt_tag[%2d] = %d, mt_tag[%2d] = %d, mt_tag[%2d] = %d, ", cycle_count, i,  Tag[i], i+1,  Tag[i+1], i+2,  Tag[i+2], i+3,  Tag[i+3]);
             end
             cycle_count = cycle_count + 1;
         end

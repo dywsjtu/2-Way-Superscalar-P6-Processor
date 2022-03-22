@@ -238,7 +238,7 @@ module pipeline (
 										2'b0,
 										1'b0
 									}; 
-		end else begin // if (reset)
+		end else if (dispatch_enable) begin // if (reset)
 			if (id_ex_enable) begin
 				id_packet_out <= `SD id_packet;
 			end // if
@@ -246,7 +246,7 @@ module pipeline (
 	end // always
 
 		
-	assign dispatch_enable = !rob_full && !rs_entry_full; // TO DO check lsq not full
+	assign dispatch_enable = (!rob_full) && (!rs_entry_full); // TO DO check lsq not full
 	//ID TO ROB
 	assign id_rob = {	
 						id_packet_out.valid && ~id_packet_out.illegal,
@@ -372,116 +372,7 @@ module pipeline (
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),
 		.rob_reg(rob_reg)
-	);  
-
-
-// 	//////////////////////////////////////////////////
-// //                                              //
-// //            ID/EX Pipeline Register           //
-// //                                              //
-// //////////////////////////////////////////////////
-
-// 	assign id_ex_NPC        = id_ex_packet.NPC;
-// 	assign id_ex_IR         = id_ex_packet.inst;
-// 	assign id_ex_valid_inst = id_ex_packet.valid;
-
-// 	assign id_ex_enable = 1'b1; // always enabled
-// 	// synopsys sync_set_reset "reset"
-// 	always_ff @(posedge clock) begin
-// 		if (reset) begin
-// 			id_ex_packet <= `SD '{{`XLEN{1'b0}},
-// 				{`XLEN{1'b0}}, 
-// 				{`XLEN{1'b0}}, 
-// 				{`XLEN{1'b0}}, 
-// 				OPA_IS_RS1, 
-// 				OPB_IS_RS2, 
-// 				`NOP,
-// 				`ZERO_REG,
-// 				ALU_ADD, 
-// 				1'b0, //rd_mem
-// 				1'b0, //wr_mem
-// 				1'b0, //cond
-// 				1'b0, //uncond
-// 				1'b0, //halt
-// 				1'b0, //illegal
-// 				1'b0, //csr_op
-// 				1'b0 //valid
-// 			}; 
-// 		end else begin // if (reset)
-// 			if (id_ex_enable) begin
-// 				id_ex_packet <= `SD id_packet;
-// 			end // if
-// 		end // else: !if(reset)
-// 	end // always
-
-
-// //////////////////////////////////////////////////
-// //                                              //
-// //                  EX-Stage                    //
-// //                                              //
-// //////////////////////////////////////////////////
-// 	ex_stage ex_stage_0 (
-// 		// Inputs
-// 		.clock(clock),
-// 		.reset(reset),
-// 		.id_ex_packet_in(id_ex_packet),
-// 		// Outputs
-// 		.ex_packet_out(ex_packet)
-// 	);
-
-
-// //////////////////////////////////////////////////
-// //                                              //
-// //           EX/MEM Pipeline Register           //
-// //                                              //
-// //////////////////////////////////////////////////
-	
-// 	assign ex_mem_NPC        = ex_mem_packet.NPC;
-// 	assign ex_mem_valid_inst = ex_mem_packet.valid;
-
-// 	assign ex_mem_enable = 1'b1; // always enabled
-// 	// synopsys sync_set_reset "reset"
-// 	always_ff @(posedge clock) begin
-// 		if (reset) begin
-// 			ex_mem_IR     <= `SD `NOP;
-// 			ex_mem_packet <= `SD 0;
-// 		end else begin
-// 			if (ex_mem_enable)   begin
-// 				// these are forwarded directly from ID/EX registers, only for debugging purposes
-// 				ex_mem_IR     <= `SD id_ex_IR;
-// 				// EX outputs
-// 				ex_mem_packet <= `SD ex_packet;
-// 			end // if
-// 		end // else: !if(reset)
-// 	end // always
-
-   
-// //////////////////////////////////////////////////
-// //                                              //
-// //                 MEM-Stage                    //
-// //                                              //
-// //////////////////////////////////////////////////
-// 	mem_stage mem_stage_0 (// Inputs
-// 		.clock(clock),
-// 		.reset(reset),
-// 		.ex_mem_packet_in(ex_mem_packet),
-// 		.Dmem2proc_data(mem2proc_data[`XLEN-1:0]),
-		
-// 		// Outputs
-// 		.mem_result_out(mem_result_out),
-// 		.proc2Dmem_command(proc2Dmem_command),
-// 		.proc2Dmem_size(proc2Dmem_size),
-// 		.proc2Dmem_addr(proc2Dmem_addr),
-// 		.proc2Dmem_data(proc2Dmem_data)
-// 	);
-
-
-// //////////////////////////////////////////////////
-// //                                              //
-// //           MEM/WB Pipeline Register           //
-// //                                              //
-// //////////////////////////////////////////////////
-// 	assign mem_wb_enable = 1'b1; // always enabled
+	);
 
 endmodule  // module verisimple
 `endif // __PIPELINE_V__

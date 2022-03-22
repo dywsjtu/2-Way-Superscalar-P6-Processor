@@ -17,8 +17,7 @@
   $r1 = 8
 */
 	li	x2, 0x8
-	wfi
-/*
+
 start:	li	x3, 0x27bb
 	slli	x3,	x3,	16 #8	8
 	li	x1, 0x2ee6
@@ -57,4 +56,3 @@ loop:	addi	x5,	x5,	1 #88	58
 	addi	x1,	x1,	16 #144	90
 	bne	x6,	x0,	loop #148	94
 	wfi
-*/

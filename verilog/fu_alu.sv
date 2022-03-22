@@ -60,6 +60,7 @@ module alu (
         out_valid = 1'b1;
 	end
 
+	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		in_opa			<=	`SD	opa;
 		in_opb			<=	`SD	opb;
@@ -121,6 +122,7 @@ module brcond (// Inputs
 		out_valid = 1'b1;
 	end
 
+	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		in_rs1			<=	`SD	rs1;
 		in_rs2			<=	`SD	rs2;
@@ -169,7 +171,7 @@ module fu_alu(
 	assign fu_rs.csr_op         = working_rs_fu.csr_op;
 	assign fu_rs.mem_size       = working_rs_fu.inst.r.funct3;
 	// assign fu_rs.valid			= rs_fu.valid && brcond_result_valid && alu_result_valid;
-	assign fu_result_valid		= working_rs_fu.valid && brcond_result_valid && alu_result_valid;
+	assign fu_result_valid		= working_rs_fu.valid && working_rs_fu.rs_value_valid && brcond_result_valid && alu_result_valid;
 	
 	//
 	// ALU opA mux
@@ -241,12 +243,11 @@ module fu_alu(
 	assign fu_rs.take_branch = working_rs_fu.uncond_branch
 		                        | (working_rs_fu.cond_branch & brcond_result);
 
+	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
-		if (reset) begin
+		if (reset || rs_fu.squash || rs_fu.selected) begin
 			working_rs_fu		<=	`SD 0;
-		end else if (rs_fu.valid && (fu_rs.valid || 
-									 ~working_rs_fu.rs_value_valid || 
-									 ~working_rs_fu.valid)) begin
+		end else if (rs_fu.valid && (~working_rs_fu.rs_value_valid || ~working_rs_fu.valid)) begin
 			working_rs_fu		<=	`SD rs_fu;
 		end
 	end

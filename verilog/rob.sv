@@ -48,7 +48,7 @@ module rob(
     assign halt                 = rob_entries[rob_head].halt;
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
-    assign rob_full             = (rob_counter == `ROB_SIZE) & (rob_head == rob_tail);
+    assign rob_full             = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
     assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty));
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
@@ -65,8 +65,10 @@ module rob(
     `endif
 
     assign rob_rs.rob_tail      = rob_tail;
-    assign rob_rs.value[0]      = rob_entries[rs_rob.entry_idx[0]].value;
-    assign rob_rs.value[1]      = rob_entries[rs_rob.entry_idx[1]].value;
+    assign rob_rs.value[0]      = rs_rob.entry_idx[0] == `ZERO_TAG  ? `XLEN'b0 
+                                                                    : rob_entries[rs_rob.entry_idx[0]].value;
+    assign rob_rs.value[1]      = rs_rob.entry_idx[1] == `ZERO_TAG  ? `XLEN'b0 
+                                                                    : rob_entries[rs_rob.entry_idx[1]].value;
 
     assign rob_rs.squash        = squash;
 
@@ -124,15 +126,15 @@ module rob(
                 rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
                 rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
                 rob_entries[rob_tail].halt              <=  `SD id_rob.halt;
-                // rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-                //                                                                             : rob_tail + 1;
-                rob_tail                                <=  `SD rob_tail + 1;
+                rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                                                                                            : rob_tail + 1;
+                // rob_tail                                <=  `SD rob_tail + 1;
             end
             if (retire_valid) begin
                 rob_entries[rob_head]                   <=  `SD 0;
-                // rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-                //                                                                             : rob_head + 1;
-                rob_head                                <=  `SD rob_head + 1;
+                rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                                                                                            : rob_head + 1;
+                // rob_head                                <=  `SD rob_head + 1;
             end 
             // if (fu_rob.completed && rob_entries[fu_rob.entry_idx].valid) begin
             //     rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;

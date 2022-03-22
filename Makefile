@@ -76,7 +76,7 @@ SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD   = 10	# TODO: You will need to make match SYNTH_CLOCK_PERIOD in sys_defs
+export CLOCK_PERIOD   = 50	# TODO: You will need to make match SYNTH_CLOCK_PERIOD in sys_defs
                                 #       and make this more aggressive
 
 ################################################################################
@@ -159,7 +159,7 @@ clean:
 	rm -rf *simv *simv.daidir csrc vcs.key program.out *.key
 	rm -rf vis_simv vis_simv.daidir
 	rm -rf dve* inter.vpd DVEfiles
-	rm -rf syn_simv syn_simv.daidir syn_program.out
+	rm -rf syn_simv syn_simv.daidir syn_program.out sim_program.out
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
 	rm -f *.elf *.dump *.mem debug_bin
 	rm -rf simv.vdb

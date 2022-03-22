@@ -33,8 +33,8 @@
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
 //you can change the clock period to whatever, 10 is just fine
-`define VERILOG_CLOCK_PERIOD   10.0
-`define SYNTH_CLOCK_PERIOD     10.0 // Clock period for synth and memory latency
+`define VERILOG_CLOCK_PERIOD   50.0
+`define SYNTH_CLOCK_PERIOD     50.0 // Clock period for synth and memory latency
 
 `define MEM_LATENCY_IN_CYCLES (100.0/`SYNTH_CLOCK_PERIOD+0.49999)
 // the 0.49999 is to force ceiling(100/period).  The default behavior for
@@ -522,6 +522,7 @@ typedef struct packed {
 
 typedef struct packed {
 	logic						squash;
+	logic						selected;
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC
 
@@ -565,7 +566,6 @@ typedef struct packed {
 	logic					rd_mem, wr_mem;
 	logic	[4:0]			dest_reg_idx;
 	logic					halt, illegal, csr_op;
-	logic					valid;	// whether the output of fu is valid
 	logic	[2:0]			mem_size; // byte, half-word or word
 } FU_RS_PACKET;
 
