@@ -123,7 +123,7 @@ module rob(
                 rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
                 rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
                 rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
-                rob_entries[rob_rail].halt              <=  `SD id_rob.halt;
+                rob_entries[rob_tail].halt              <=  `SD id_rob.halt;
                 // rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
                 //                                                                             : rob_tail + 1;
                 rob_tail                                <=  `SD rob_tail + 1;
@@ -142,8 +142,7 @@ module rob(
             if (cdb_rob.valid && rob_entries[cdb_rob.tag].valid) begin
                 rob_entries[cdb_rob.tag].ready          <=  `SD 1'b1;
                 rob_entries[cdb_rob.tag].value          <=  `SD cdb_rob.value;
-                rob_entries[cdb_rob.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob.tag].take_branch && 
-                                                                  cdb_rob.take_branch);
+                rob_entries[cdb_rob.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob.tag].take_branch == cdb_rob.take_branch);
             end
             rob_counter <=  `SD valid   ? (retire_valid ?  rob_counter
                                                         : (rob_counter + 1))

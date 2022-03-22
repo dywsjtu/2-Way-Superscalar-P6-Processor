@@ -249,7 +249,7 @@ module pipeline (
 	assign dispatch_enable = !rob_full && !rs_entry_full; // TO DO check lsq not full
 	//ID TO ROB
 	assign id_rob = {	
-						id_packet_out.valid && ~id_packet_out.illegal && ~id_packet_out.halt,
+						id_packet_out.valid && ~id_packet_out.illegal,
 						id_packet_out.PC,
 						dispatch_enable,
 						id_packet_out.dest_reg_idx,

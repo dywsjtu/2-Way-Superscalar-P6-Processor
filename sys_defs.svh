@@ -86,16 +86,16 @@ typedef enum logic [3:0] {
 `define CDB_BUFFER_SIZE	2
 
 `define SMALL_FU_OUT_TEST
-`define FU_SIZE			1
+`define FU_SIZE			4
 `define FU_CAT			4
 `define NUM_ALU			1
-`define NUM_LS			0
-`define NUM_MULT		0
-`define NUM_BEQ			0
+`define NUM_LS			1
+`define NUM_MULT		1
+`define NUM_BEQ			1
 `define ALU_OFFSET		1
-`define LS_OFFSET		1
-`define MULT_OFFSET		1
-`define BEQ_OFFSET		1
+`define LS_OFFSET		2
+`define MULT_OFFSET		3
+`define BEQ_OFFSET		4
 
 // `define FU_SIZE			20
 // `define CAT_FU			4
@@ -108,20 +108,32 @@ typedef enum logic [3:0] {
 // `define MULT_OFFSET		16
 // `define BEQ_OFFSET		20
 
-typedef enum logic [5:0] { 
-	FU_ALU		=	5'b0, 
-	FU_LS		= 	ALU_OFFSET, 
-	FU_MULT		=	LS_OFFSET, 
-	FU_BEQ		=	MULT_OFFSET, 
-	FU_COUNT	=	BEQ_OFFSET
-} FU_TAG;
+`define		FU_ALU			5'b0
+`define 	FU_LS			`ALU_OFFSET
+`define		FU_MULT			`LS_OFFSET
+`define		FU_BEQ			`MULT_OFFSET
+`define 	FU_COUNT		`BEQ_OFFSET
 
-typedef enum logic [5:0] { 
-	FU_END_ALU		=	ALU_OFFSET, 
-	FU_END_LS		= 	LS_OFFSET, 
-	FU_END_MULT		=	MULT_OFFSET, 
-	FU_END_BEQ		=	BEQ_OFFSET
-} FU_END;
+`define		FU_END_ALU		`ALU_OFFSET 
+`define 	FU_END_LS		`LS_OFFSET
+`define		FU_END_MULT		`MULT_OFFSET
+`define		FU_END_BEQ		`BEQ_OFFSET
+
+
+// typedef enum logic [4:0] { 
+// 	FU_ALU		=	5'b0, 
+// 	FU_LS		= 	`ALU_OFFSET, 
+// 	FU_MULT		=	`LS_OFFSET, 
+// 	FU_BEQ		=	`MULT_OFFSET, 
+// 	FU_COUNT	=	`BEQ_OFFSET
+// } FU_TAG;
+
+// typedef enum logic [4:0] { 
+// 	FU_END_ALU		=	`ALU_OFFSET, 
+// 	FU_END_LS		= 	`LS_OFFSET, 
+// 	FU_END_MULT		=	`MULT_OFFSET, 
+// 	FU_END_BEQ		=	`BEQ_OFFSET
+// } FU_END;
 
 
 //////////////////////////////////////////////

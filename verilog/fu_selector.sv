@@ -20,18 +20,18 @@ endmodule
 module counter(
     input              clock,
     input              reset,
-    output logic [1:0] count
+    output logic [2:0] count
 );
-    logic [1:0] next_count;
+    logic [2:0] next_count;
 
 	always_comb begin
-		next_count = count + 2'b01;
+		next_count = count + 3'b01;
 	end
     
     // synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		if(reset)
-			count <= #1 2'b00;
+			count <= #1 3'b00;
 		else
 			count <= #1 next_count;
 	end
@@ -51,16 +51,15 @@ module rps2 (
 endmodule
 
 module rps4 (
-    input        [1:0] cnt,
     input        [3:0] req,
     input              en,
+    input        [1:0] cnt,
 
     output logic [3:0] gnt,
-    output logic [1:0] count
+    output logic       req_up
 );
     logic [1:0] req_up_t;
     logic [1:0] en_t;
-    logic       req_up;
 
     rps2 left (req[3:2], en_t[1], cnt[0], gnt[3:2], req_up_t[1]);
     rps2 right(req[1:0], en_t[0], cnt[0], gnt[1:0], req_up_t[0]);
@@ -68,20 +67,19 @@ module rps4 (
 endmodule
 
 module rps8 (
-    input        [1:0] cnt,
     input        [7:0] req,
     input              en,
+    input        [2:0] cnt,
 
     output logic [7:0] gnt,
-    output logic [1:0] count
+    output logic       req_up
 );
     logic [1:0] req_up_t;
     logic [1:0] en_t;
-    logic       req_up;
 
-    rps4 left (req[7:4], en_t[1], cnt[0], gnt[7:4], req_up_t[1]);
-    rps4 right(req[3:0], en_t[0], cnt[0], gnt[3:0], req_up_t[0]);
-    rps2 top  (req_up_t, en,      cnt[1], en_t,     req_up);
+    rps4 left (req[7:4], en_t[1], cnt[1:0], gnt[7:4], req_up_t[1]);
+    rps4 right(req[3:0], en_t[0], cnt[1:0], gnt[3:0], req_up_t[0]);
+    rps2 top  (req_up_t, en,      cnt[2],   en_t,     req_up);
 endmodule
 
 module fu_selector (
@@ -115,7 +113,7 @@ module fu_selector (
     `ifdef SMALL_FU_OUT_TEST
         assign selection    = 1'b1;
     `elsif
-        logic [1:0]     cnt
+        logic [2:0]     cnt
 
         counter cnt (
             .clock(clock),
@@ -131,21 +129,21 @@ module fu_selector (
         );
 
         rps4 ls_select (
-            .cnt(cnt),
+            .cnt(cnt[1:0]),
             .req(fu_result_valid[`LS_OFFSET-1   :`ALU_OFFSET]),
             .en(cat_select[1]),
             .gnt(selection[`LS_OFFSET-1    :`ALU_OFFSET])
         );
 
         rps4 mult_select (
-            .cnt(cnt),
+            .cnt(cnt[1:0]),
             .req(fu_result_valid[`MULT_OFFSET-1 :`LS_OFFSET]),
             .en(cat_select[2]),
             .gnt(selection[`MULT_OFFSET-1  :`LS_OFFSET_OFFSET])
         );
 
         rps4 beq_select (
-            .cnt(cnt),
+            .cnt(cnt[1:0]),
             .req(fu_result_valid[`BEQ_OFFSET-1  :`MULT_OFFSET]),
             .en(cat_select[3]),
             .gnt(selection[`BEQ_OFFSET-1   :`MULT_OFFSET])

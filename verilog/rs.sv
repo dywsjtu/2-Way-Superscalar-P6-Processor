@@ -72,7 +72,7 @@ module rs (
                 id_rs.PC,
                 rs_entries[0].rs_entry_info[0].V,
                 rs_entries[0].rs_entry_info[1].V,
-                rs_entries[0].rs_entry_info[0].V_ready && rs_entries[i].rs_entry_info[1].V_ready,
+                rs_entries[0].rs_entry_info[0].V_ready && rs_entries[0].rs_entry_info[1].V_ready,
                 id_rs.opa_select,
                 id_rs.opb_select,
                 id_rs.inst,
@@ -109,7 +109,7 @@ module rs (
 
     assign rs_cdb.tag           = rs_entries[fu_num].T_dest;
     assign rs_cdb.value         = fu_select.alu_result;
-    assign rs_cdb.valid         = fu_select.valid;
+    assign rs_cdb.valid         = fu_result_valid[fu_num];
     assign rs_cdb.take_branch   = fu_select.take_branch;
 
     assign rs_rob.entry_idx[0] = mt_rs.rs_infos[0].tag;
@@ -120,17 +120,21 @@ module rs (
     // assign fu_type = id_rs.wr_mem ? FU_STORE : id_rs.rd_mem ? FU_LOAD : FU_ALU;
     // assign rs_entry_full = rs_entries[fu_type].busy;
 
-    logic   [5:0]       fu_type;
-    logic   [5:0]       fu_end;
+    logic   [4:0]       fu_type;
+    logic   [4:0]       fu_end;
 
-    assign fu_type =    (id_rs.rd_mem || id_rs.wr_mem)              ?   FU_LS   :
-                        (id_rs.cond_branch || id_rs.uncond_branch)  ?   FU_BEQ  :
-                        FU_ALU;     // TODO: FU_MULT
-    assign fu_end  =    (id_rs.rd_mem || id_rs.wr_mem)              ?   FU_END_LS   :
-                        (id_rs.cond_branch || id_rs.uncond_branch)  ?   FU_END_BEQ  :
-                        FU_END_ALU;     // TODO: FU_END_MULT
+    // assign fu_type =    (id_rs.rd_mem || id_rs.wr_mem)              ?   `FU_LS   :
+    //                     (id_rs.cond_branch || id_rs.uncond_branch)  ?   `FU_BEQ  :
+    //                     `FU_ALU;     // TODO: FU_MULT
+    // assign fu_end  =    (id_rs.rd_mem || id_rs.wr_mem)              ?   `FU_END_LS   :
+    //                     (id_rs.cond_branch || id_rs.uncond_branch)  ?   `FU_END_BEQ  :
+    //                     `FU_END_ALU;     // TODO: FU_END_MULT
 
-    assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
+    assign fu_type =   `FU_ALU;     // TODO: FU_MULT
+    assign fu_end  =   `FU_END_ALU;     // TODO: FU_END_MULT
+
+    // assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
+    assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
 
     logic               temp_logic;
 
@@ -139,19 +143,19 @@ module rs (
         next_busy                   =   busy;
         
         // excute the selected line
-        if (fu_select.valid && busy[fu_num]) begin
+        if (fu_result_valid[fu_num] && busy[fu_num]) begin
             next_rs_entries[fu_num] = 0;
             next_busy[fu_num]       = 1'b0;
         end
 
         // check the correctness of the coming instruction
-        temp_logic                          =   1'b1;
+        temp_logic                  =   1'b1;
         if (id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) begin
             for (int fu = fu_type; fu < fu_end; fu += 1) begin
                 if (~busy[fu] && temp_logic) begin
-                    temp_logic              =   1'b0;
-                    next_busy[fu]           =   1'b1;
-                    rs_entries[fu].T_dest   =   rob_rs.rob_tail;
+                    temp_logic                  =   1'b0;
+                    next_busy[fu]               =   1'b1;
+                    next_rs_entries[fu].T_dest  =   rob_rs.rob_tail;
                     for (int i = 0; i < 2; i += 1) begin
                         if (mt_rs.rs_infos[i].tag == `ZERO_TAG) begin
                             next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
@@ -159,7 +163,7 @@ module rs (
                                                                         1'b1    };
                         end else begin
                             next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
-                                                                        rob_rs.values[i],
+                                                                        rob_rs.value[i],
                                                                         mt_rs.rs_infos[i].ready | !id_rs.req_reg[i] };
                         end
                     end
@@ -241,8 +245,9 @@ module rs (
             cycle_count = 0;
         end else begin
             for(int i = 0; i < `FU_SIZE; i += 1) begin
-                $display("DEBUG %4d: rs_entries[%d]: busy = %d, T_dest = %d, Tag0 = %d, V0 = %d, V0_ready = %d, Tag1 = %d, V1 = %d, V1_ready = %d", cycle_count, i, rs_entries[i].busy, rs_entries[i].T_dest, rs_entries[i].rs_entry_info[0].tag, rs_entries[i].rs_entry_info[0].V, rs_entries[i].rs_entry_info[0].V_ready, rs_entries[i].rs_entry_info[1].tag, rs_entries[i].rs_entry_info[1].V, rs_entries[i].rs_entry_info[1].V_ready);
+                $display("DEBUG %4d: rs_entries[%d]: busy = %d, T_dest = %d, Tag0 = %d, V0 = %d, V0_ready = %d, Tag1 = %d, V1 = %d, V1_ready = %d", cycle_count, i, busy[i], rs_entries[i].T_dest, rs_entries[i].rs_entry_info[0].tag, rs_entries[i].rs_entry_info[0].V, rs_entries[i].rs_entry_info[0].V_ready, rs_entries[i].rs_entry_info[1].tag, rs_entries[i].rs_entry_info[1].V, rs_entries[i].rs_entry_info[1].V_ready);
             end
+            $display("DEBUG %4d: rs_full = %d", cycle_count, rs_entry_full);
             cycle_count = cycle_count + 1;
         end
     end

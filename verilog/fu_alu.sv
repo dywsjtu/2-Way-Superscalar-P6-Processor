@@ -248,7 +248,7 @@ module fu_alu(
 									 ~working_rs_fu.rs_value_valid || 
 									 ~working_rs_fu.valid)) begin
 			working_rs_fu		<=	`SD rs_fu;
-		end else if (
+		end
 	end
 
 endmodule // module fu_alu
