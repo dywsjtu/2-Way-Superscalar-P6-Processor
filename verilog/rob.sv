@@ -21,12 +21,13 @@ module rob(
     input   CDB_ENTRY           cdb_rob,
 
     output  logic               rob_full,
+    output  logic               halt,
 
     output  ROB_ID_PACKET       rob_id,
     output  ROB_RS_PACKET       rob_rs,
     output  ROB_MT_PACKET       rob_mt,
     output  ROB_REG_PACKET      rob_reg
-
+    
     // `ifdef DEBUG
     //     , output logic      [`ROB_IDX_LEN-1:0]  rob_head
     //     , output logic      [`ROB_IDX_LEN-1:0]  rob_tail
@@ -43,6 +44,8 @@ module rob(
     logic       retire_valid;
     logic       squash;
     logic       valid;
+
+    assign halt                 = rob_entries[rob_head].halt;
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full             = (rob_counter == `ROB_SIZE) & (rob_head == rob_tail);
@@ -76,6 +79,7 @@ module rob(
     assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
     assign rob_reg.dest_reg_idx = rob_entries[rob_head].dest_reg_idx;
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
+    
 
     `ifdef DEBUG
     logic [31:0] cycle_count;
@@ -119,6 +123,7 @@ module rob(
                 rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
                 rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
                 rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
+                rob_entries[rob_rail].halt              <=  `SD id_rob.halt;
                 // rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
                 //                                                                             : rob_tail + 1;
                 rob_tail                                <=  `SD rob_tail + 1;

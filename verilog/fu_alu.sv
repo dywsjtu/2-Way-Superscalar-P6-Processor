@@ -147,7 +147,8 @@ module fu_alu(
     input   RS_FU_PACKET            rs_fu,
 	// input   ID_EX_PACKET   id_ex_packet_in,
 
-    output  FU_RS_PACKET            fu_rs
+    output  FU_RS_PACKET            fu_rs,
+	output							fu_result_valid
 	// output  EX_MEM_PACKET           ex_packet_out
 );
 	logic 	[`XLEN-1:0] 			opa_mux_out, opb_mux_out;
@@ -168,7 +169,7 @@ module fu_alu(
 	assign fu_rs.csr_op         = working_rs_fu.csr_op;
 	assign fu_rs.mem_size       = working_rs_fu.inst.r.funct3;
 	// assign fu_rs.valid			= rs_fu.valid && brcond_result_valid && alu_result_valid;
-	assign fu_rs.valid			= brcond_result_valid && alu_result_valid;
+	assign fu_result_valid		= working_rs_fu.valid && brcond_result_valid && alu_result_valid;
 	
 	//
 	// ALU opA mux
@@ -243,9 +244,11 @@ module fu_alu(
 	always_ff @(posedge clock) begin
 		if (reset) begin
 			working_rs_fu		<=	`SD 0;
-		end else if (rs_fu.valid && (fu_rs.valid || ~working_rs_fu.rs_value_valid)) begin
+		end else if (rs_fu.valid && (fu_rs.valid || 
+									 ~working_rs_fu.rs_value_valid || 
+									 ~working_rs_fu.valid)) begin
 			working_rs_fu		<=	`SD rs_fu;
-		end
+		end else if (
 	end
 
 endmodule // module fu_alu

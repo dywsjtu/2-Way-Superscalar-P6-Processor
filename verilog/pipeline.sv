@@ -90,6 +90,8 @@ module pipeline (
 	logic  [4:0] wb_reg_wr_idx_out;
 	logic        wb_reg_wr_en_out;
 	logic [`XLEN-1:0] mem_wb_NPC;
+
+	logic halt;
 	
 	// assign pipeline_completed_insts = {3'b0, mem_wb_valid_inst};
 	// assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
@@ -102,8 +104,9 @@ module pipeline (
 	// assign pipeline_commit_NPC = mem_wb_NPC;
 
 	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
-	assign pipeline_error_status 	= (mem2proc_response==4'h0) ? 	LOAD_ACCESS_FAULT :
-	                                								NO_ERROR;
+	assign pipeline_error_status 	= 	halt						?	HALTED_ON_WFI		:
+										(mem2proc_response==4'h0) 	? 	LOAD_ACCESS_FAULT 	:
+	                                									NO_ERROR;
 	
 	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
 	assign pipeline_commit_wr_data 	= rob_reg.dest_value;
@@ -250,7 +253,8 @@ module pipeline (
 						id_packet_out.PC,
 						dispatch_enable,
 						id_packet_out.dest_reg_idx,
-						id_packet_out.take_branch	
+						id_packet_out.take_branch,
+						id_packet_out.halt
 					};
 	//ID TO RS
 	assign id_rs = {
@@ -362,7 +366,8 @@ module pipeline (
 		.cdb_rob(cdb_out),
 		// output
 		.rob_full(rob_full),
-
+		.halt(halt),
+		
 		.rob_id(rob_id),
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),

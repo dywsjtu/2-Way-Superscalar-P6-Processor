@@ -108,6 +108,22 @@ typedef enum logic [3:0] {
 // `define MULT_OFFSET		16
 // `define BEQ_OFFSET		20
 
+typedef enum logic [5:0] { 
+	FU_ALU		=	5'b0, 
+	FU_LS		= 	ALU_OFFSET, 
+	FU_MULT		=	LS_OFFSET, 
+	FU_BEQ		=	MULT_OFFSET, 
+	FU_COUNT	=	BEQ_OFFSET
+} FU_TAG;
+
+typedef enum logic [5:0] { 
+	FU_END_ALU		=	ALU_OFFSET, 
+	FU_END_LS		= 	LS_OFFSET, 
+	FU_END_MULT		=	MULT_OFFSET, 
+	FU_END_BEQ		=	BEQ_OFFSET
+} FU_END;
+
+
 //////////////////////////////////////////////
 //
 // Datapath control signals
@@ -359,6 +375,7 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			value;			// value
 	logic						mis_pred;  		// is mispredicted 
 	logic						take_branch;	// whether is predicted to take branch
+	logic						halt;			// whether it's a halt
 } ROB_ENTRY;
 
 typedef struct packed {
@@ -434,7 +451,7 @@ typedef struct packed {
 
 // FU_COUNT is the number of FUs
 
-typedef enum logic [2:0] { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
+// typedef enum logic [2:0] { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
 
 typedef struct packed {
 	logic [`ROB_IDX_LEN:0] 					tag;
@@ -443,7 +460,7 @@ typedef struct packed {
 } RS_ENTRY_INFO;
 
 typedef struct packed {
-	logic 									busy;
+	// logic 									busy;
 	logic 			[`ROB_IDX_LEN:0]		T_dest;
 	RS_ENTRY_INFO 	[1:0] 					rs_entry_info;
 	// logic ready_execute;
@@ -452,9 +469,10 @@ typedef struct packed {
 typedef struct packed {
 	logic 						valid;
 	logic	[`XLEN-1:0]			PC;
-	logic						dispatch_enable; // whether is enable to dispatch
-	logic	[4:0]				dest_reg_idx;	 // destination register
-	logic						take_branch;
+	logic						dispatch_enable;// whether is enable to dispatch
+	logic	[4:0]				dest_reg_idx;	// destination register
+	logic						take_branch;	// whether dispatch stage will take branch or not
+	logic						halt;			// whether is a halt instruction
 } ID_ROB_PACKET;
 
 typedef struct packed {
