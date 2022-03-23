@@ -215,7 +215,7 @@ module pipeline (
 	assign id_ex_enable 	= 1'b1; // always enabled
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
-		if (reset) begin
+		if (reset || rob_id.squash) begin
 			id_packet_out 	<= `SD '{	{`XLEN{1'b0}},
 										{`XLEN{1'b0}}, 
  

@@ -48,24 +48,24 @@ module rs (
         .reset(reset),
         .rs_fu({rob_rs.squash,
                 ((fu_num == 0) && fu_result_valid[0]),
-                id_rs.NPC,
-                id_rs.PC,
+                rs_entries[0].id_rs.NPC,
+                rs_entries[0].id_rs.PC,
                 rs_entries[0].rs_entry_info[0].V,
                 rs_entries[0].rs_entry_info[1].V,
                 (rs_entries[0].rs_entry_info[0].V_ready && rs_entries[0].rs_entry_info[1].V_ready),
-                id_rs.opa_select,
-                id_rs.opb_select,
-                id_rs.inst,
-                id_rs.dest_reg_idx,
-                id_rs.alu_func,
-                id_rs.rd_mem,
-                id_rs.wr_mem,
-                id_rs.cond_branch,
-                id_rs.uncond_branch,
-                id_rs.halt,
-                id_rs.illegal,
-                id_rs.csr_op,
-                id_rs.valid }),
+                rs_entries[0].id_rs.opa_select,
+                rs_entries[0].id_rs.opb_select,
+                rs_entries[0].id_rs.inst,
+                rs_entries[0].id_rs.dest_reg_idx,
+                rs_entries[0].id_rs.alu_func,
+                rs_entries[0].id_rs.rd_mem,
+                rs_entries[0].id_rs.wr_mem,
+                rs_entries[0].id_rs.cond_branch,
+                rs_entries[0].id_rs.uncond_branch,
+                rs_entries[0].id_rs.halt,
+                rs_entries[0].id_rs.illegal,
+                rs_entries[0].id_rs.csr_op,
+                rs_entries[0].id_rs.valid }),
         // output
         .fu_rs(fu_rs[0]),
         .fu_result_valid(fu_result_valid[0])
@@ -108,7 +108,9 @@ module rs (
     assign fu_end  =   `FU_END_ALU;
 
     // assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
-    assign rs_entry_full = (busy[0] + 1'b1) == 1'b0 | (fu_result_valid[fu_num] && busy[fu_num] && (~(fu_num < fu_type) && (fu_num < fu_end)));
+    // assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0)   ? ~(fu_result_valid[fu_num] && busy[fu_num] && ~(fu_num < fu_type) && (fu_num < fu_end))
+    //                                                     : 1'b0;
+    assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
 
     logic               temp_logic;
 
@@ -126,10 +128,11 @@ module rs (
         temp_logic                  =   1'b1;
         if (id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) begin
             for (int fu = fu_type; fu < fu_end; fu += 1) begin
-                if (~next_busy[fu] && temp_logic) begin
+                if (~busy[fu] && temp_logic) begin
                     temp_logic                  =   1'b0;
                     next_busy[fu]               =   1'b1;
                     next_rs_entries[fu].T_dest  =   rob_rs.rob_tail;
+                    next_rs_entries[fu].id_rs   =   id_rs;
                     for (int i = 0; i < 2; i += 1) begin
                         if (mt_rs.rs_infos[i].tag == `ZERO_TAG) begin
                             next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
@@ -138,7 +141,7 @@ module rs (
                         end else begin
                             next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
                                                                         rob_rs.value[i],
-                                                                        mt_rs.rs_infos[i].ready | !id_rs.req_reg[i] };
+                                                                        mt_rs.rs_infos[i].ready || !id_rs.req_reg[i]    };
                         end
                     end
                 end

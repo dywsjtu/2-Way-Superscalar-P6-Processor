@@ -26,12 +26,14 @@ module alu (
 	logic           [`XLEN-1:0]     in_opa;
 	logic           [`XLEN-1:0]     in_opb;
 	ALU_FUNC                        in_func;
+	logic							in_val_valid;
 	logic							out_valid;
 	logic			[`XLEN-1:0]		out_result;
 
-	wire signed [`XLEN-1:0]     signed_opa, signed_opb;
-	wire signed [2*`XLEN-1:0]   signed_mul, mixed_mul;
-	wire        [2*`XLEN-1:0]   unsigned_mul;
+	wire signed 	[`XLEN-1:0]     signed_opa, signed_opb;
+	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
+	wire        	[2*`XLEN-1:0]   unsigned_mul;
+
 	assign signed_opa   = in_opa;
 	assign signed_opb   = in_opb;
 	assign signed_mul   = signed_opa * signed_opb;
@@ -57,7 +59,7 @@ module alu (
 
 			default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
 		endcase
-        out_valid = 1'b1;
+        out_valid = in_val_valid;
 	end
 
 	// synopsys sync_set_reset "reset"
@@ -65,6 +67,7 @@ module alu (
 		in_opa			<=	`SD	opa;
 		in_opb			<=	`SD	opb;
 		in_func			<=	`SD	func;
+		in_val_valid	<=	`SD val_valid;
 	end
 
 	// synopsys sync_set_reset "reset"
@@ -100,18 +103,20 @@ module brcond (// Inputs
 	output	logic			valid,
 	output	logic			cond    // 0/1 condition result (False/True)
 );
-	logic	[`XLEN-1:0]		in_rs1;
-	logic	[`XLEN-1:0]		in_rs2;
-	logic	[2:0]			in_func;
-	logic					out_valid;
-	logic					out_cond;
+	logic	[`XLEN-1:0]			in_rs1;
+	logic	[`XLEN-1:0]			in_rs2;
+	logic	[2:0]				in_func;
+	logic						in_val_valid;
+	logic						out_valid;
+	logic						out_cond;
+	logic signed [`XLEN-1:0] 	signed_rs1, signed_rs2;
 
-	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
 	assign signed_rs1 = in_rs1;
 	assign signed_rs2 = in_rs2;
+
 	always_comb begin
 		out_cond = 0;
-		case (func)
+		case (in_func)
 			3'b000: out_cond = signed_rs1 == signed_rs2;  // BEQ
 			3'b001: out_cond = signed_rs1 != signed_rs2;  // BNE
 			3'b100: out_cond = signed_rs1 < signed_rs2;   // BLT
@@ -119,7 +124,7 @@ module brcond (// Inputs
 			3'b110: out_cond = in_rs1 < in_rs2;           // BLTU
 			3'b111: out_cond = in_rs1 >= in_rs2;          // BGEU
 		endcase
-		out_valid = 1'b1;
+		out_valid = in_val_valid;
 	end
 
 	// synopsys sync_set_reset "reset"
@@ -127,6 +132,7 @@ module brcond (// Inputs
 		in_rs1			<=	`SD	rs1;
 		in_rs2			<=	`SD	rs2;
 		in_func			<=	`SD	func;
+		in_val_valid	<=	`SD val_valid;
 	end
 	
 	// synopsys sync_set_reset "reset"
@@ -218,7 +224,7 @@ module fu_alu(
 
 		// Output
 		.valid(alu_result_valid),
-		.result(fu_rs.alu_result)
+		.result(alu_result)
 	);
 
 	// 
@@ -242,6 +248,7 @@ module fu_alu(
 	 //	unconditional, or conditional and the condition is true
 	assign fu_rs.take_branch = working_rs_fu.uncond_branch
 		                        | (working_rs_fu.cond_branch & brcond_result);
+	assign fu_rs.alu_result	 = alu_result;
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin

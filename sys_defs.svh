@@ -36,7 +36,8 @@
 `define VERILOG_CLOCK_PERIOD   50.0
 `define SYNTH_CLOCK_PERIOD     50.0 // Clock period for synth and memory latency
 
-`define MEM_LATENCY_IN_CYCLES (100.0/`SYNTH_CLOCK_PERIOD+0.49999)
+`define MEM_LATENCY_IN_CYCLES 0.4
+//`define MEM_LATENCY_IN_CYCLES (100.0/`SYNTH_CLOCK_PERIOD+0.49999)
 // the 0.49999 is to force ceiling(100/period).  The default behavior for
 // float to integer conversion is rounding to nearest
 
@@ -466,33 +467,6 @@ typedef struct packed {
 // typedef enum logic [2:0] { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
 
 typedef struct packed {
-	logic [`ROB_IDX_LEN:0] 					tag;
-	logic [`XLEN-1:0]						V;
-	logic 									V_ready;
-} RS_ENTRY_INFO;
-
-typedef struct packed {
-	// logic 									busy;
-	logic 			[`ROB_IDX_LEN:0]		T_dest;
-	RS_ENTRY_INFO 	[1:0] 					rs_entry_info;
-	// logic ready_execute;
-} RS_ENTRY;
-
-typedef struct packed {
-	logic 						valid;
-	logic	[`XLEN-1:0]			PC;
-	logic						dispatch_enable;// whether is enable to dispatch
-	logic	[4:0]				dest_reg_idx;	// destination register
-	logic						take_branch;	// whether dispatch stage will take branch or not
-	logic						halt;			// whether is a halt instruction
-} ID_ROB_PACKET;
-
-typedef struct packed {
-	logic dispatch_enable; 
-	logic [4:0] dest_reg_idx;
-} ID_MT_PACKET;
-
-typedef struct packed {
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC                               
 	logic						dispatch_enable;// whether is enable to dispatch                             
@@ -514,6 +488,34 @@ typedef struct packed {
 	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
 	logic	[1:0]				req_reg; 		// whether the register value is actually needed. (i.e. whether need T and V)
 } ID_RS_PACKET;
+
+typedef struct packed {
+	logic [`ROB_IDX_LEN:0] 					tag;
+	logic [`XLEN-1:0]						V;
+	logic 									V_ready;
+} RS_ENTRY_INFO;
+
+typedef struct packed {
+	// logic 									busy;
+	logic 			[`ROB_IDX_LEN:0]		T_dest;
+	RS_ENTRY_INFO 	[1:0] 					rs_entry_info;
+	ID_RS_PACKET							id_rs;
+	// logic ready_execute;
+} RS_ENTRY;
+
+typedef struct packed {
+	logic 						valid;
+	logic	[`XLEN-1:0]			PC;
+	logic						dispatch_enable;// whether is enable to dispatch
+	logic	[4:0]				dest_reg_idx;	// destination register
+	logic						take_branch;	// whether dispatch stage will take branch or not
+	logic						halt;			// whether is a halt instruction
+} ID_ROB_PACKET;
+
+typedef struct packed {
+	logic dispatch_enable; 
+	logic [4:0] dest_reg_idx;
+} ID_MT_PACKET;
 
 typedef struct packed {
 	logic [`ROB_IDX_LEN:0] tag;
