@@ -111,8 +111,7 @@ module pipeline (
 	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
 	assign pipeline_commit_wr_data 	= rob_reg.dest_value;
 	assign pipeline_commit_wr_en 	= rob_reg.dest_valid;
-	assign pipeline_commit_NPC 		= rob_id.squash	? rob_id.target_pc
-													: rob_id.other_pc;
+	assign pipeline_commit_NPC 		= rob_reg.OLD_PC_p_4;
 	
 	logic [`XLEN-1:0] mem_result_out;
 	logic [`XLEN-1:0] proc2Dmem_addr;

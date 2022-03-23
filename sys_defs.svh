@@ -427,14 +427,12 @@ typedef struct packed {
 	logic						dest_valid;   // whether is ready and valid to write to regfile
 	logic	[4:0]				dest_reg_idx; // the destination register to write to regfile
 	logic	[`XLEN-1:0]			dest_value;	  // the value to write to destination register in regfile
+	logic	[`XLEN-1:0]			OLD_PC_p_4;
 } ROB_REG_PACKET;
 
 typedef struct packed {
 	logic						squash;
 	logic	[`XLEN-1:0]			target_pc;
-	`ifdef DEBUG
-		logic	[`XLEN-1:0]		other_pc;
-	`endif
 } ROB_ID_PACKET;
 
 typedef struct packed {

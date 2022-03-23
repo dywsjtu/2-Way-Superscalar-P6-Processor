@@ -49,7 +49,7 @@ module rob(
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full             = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
-    assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty));
+    assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty)) || rob_entries[rob_head].halt;
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
 
@@ -58,29 +58,25 @@ module rob(
     // i.e. when take_branch is true, dispatch didn't use PC+4
     // rob_id.target_pc store the correct PC if the branch prediction is wrong
     assign rob_id.target_pc     = rob_entries[rob_head].take_branch ? (rob_entries[rob_head].PC + 4)
-                                                                    : rob_entries[rob_head].value;
-    `ifdef DEBUG
-        assign rob_id.other_pc  = rob_entries[rob_head].take_branch ? rob_entries[rob_head].value
-                                                                    : (rob_entries[rob_head].PC + 4);
-    `endif
+                                                                    : rob_entries[rob_head].value;    
 
     assign rob_rs.rob_tail      = rob_tail;
     assign rob_rs.value[0]      = rs_rob.entry_idx[0] == `ZERO_TAG  ? `XLEN'b0 
                                                                     : rob_entries[rs_rob.entry_idx[0]].value;
     assign rob_rs.value[1]      = rs_rob.entry_idx[1] == `ZERO_TAG  ? `XLEN'b0 
                                                                     : rob_entries[rs_rob.entry_idx[1]].value;
-
     assign rob_rs.squash        = squash;
 
     assign rob_mt.rob_tail      = rob_tail;
     assign rob_mt.squash        = squash;
+    assign rob_mt.dest_valid    = rob_reg.dest_valid;
+    assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
     
     assign rob_reg.valid        = retire_valid;
     assign rob_reg.dest_valid   = (retire_valid && (rob_entries[rob_head].dest_reg_idx != `ZERO_REG));
-    assign rob_mt.dest_valid    = rob_reg.dest_valid;
-    assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
     assign rob_reg.dest_reg_idx = rob_entries[rob_head].dest_reg_idx;
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
+    assign rob_reg.OLD_PC_p_4   = rob_entries[rob_head].PC + 4;
     
 
     `ifdef DEBUG
