@@ -94,6 +94,7 @@ module rob(
             $display("DEBUG %4d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
             $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
+            $display("DEBUG %4d: rob_full = %d", cycle_count, rob_full);
             // TODO print only 8 for now
             for(int i = 0; i < 8; i += 1) begin
                 // For some reason pretty printing doesn't work if I index directly

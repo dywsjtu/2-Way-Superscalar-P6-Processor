@@ -108,7 +108,7 @@ module rs (
     assign fu_end  =   `FU_END_ALU;
 
     // assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
-    assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
+    assign rs_entry_full = (busy[0] + 1'b1) == 1'b0 | (fu_result_valid[fu_num] && busy[fu_num] && (~(fu_num < fu_type) && (fu_num < fu_end)));
 
     logic               temp_logic;
 
@@ -126,7 +126,7 @@ module rs (
         temp_logic                  =   1'b1;
         if (id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) begin
             for (int fu = fu_type; fu < fu_end; fu += 1) begin
-                if (~busy[fu] && temp_logic) begin
+                if (~next_busy[fu] && temp_logic) begin
                     temp_logic                  =   1'b0;
                     next_busy[fu]               =   1'b1;
                     next_rs_entries[fu].T_dest  =   rob_rs.rob_tail;
@@ -148,7 +148,7 @@ module rs (
         if (cdb_rs.valid) begin
             for (int fu = 0; fu < `FU_SIZE; fu += 1) begin
                 for (int i = 0; i < 2; i += 1) begin
-                    if (rs_entries[fu].rs_entry_info[i].tag == cdb_rs.tag && next_busy[fu]) begin
+                    if (next_rs_entries[fu].rs_entry_info[i].tag == cdb_rs.tag && next_busy[fu]) begin
                         next_rs_entries[fu].rs_entry_info[i]     =  {   cdb_rs.tag, 
                                                                         cdb_rs.value, 
                                                                         1'b1    };
@@ -181,6 +181,7 @@ module rs (
                 $display("DEBUG %4d: rs_entries[%2d]: busy = %d, T_dest = %d, Tag0 = %d, V0 = %d, V0_ready = %d, Tag1 = %d, V1 = %d, V1_ready = %d", cycle_count, i, busy[i], rs_entries[i].T_dest, rs_entries[i].rs_entry_info[0].tag, rs_entries[i].rs_entry_info[0].V, rs_entries[i].rs_entry_info[0].V_ready, rs_entries[i].rs_entry_info[1].tag, rs_entries[i].rs_entry_info[1].V, rs_entries[i].rs_entry_info[1].V_ready);
             end
             $display("DEBUG %4d: rs_full = %d", cycle_count, rs_entry_full);
+            $display("DEBUG %4d: dispatch_enable = %d", cycle_count, id_rs.dispatch_enable);
             cycle_count = cycle_count + 1;
         end
     end
