@@ -72,7 +72,7 @@ module map_table (
             ready_in_ROB_next = ready_in_ROB;
 
             //clear Tag in retire stage
-            if (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head) begin
+            if (rob_mt.dest_valid) begin
                 Tag_next[rob_mt.dest_reg_idx] = `ZERO_TAG;
                 ready_in_ROB_next[rob_mt.dest_reg_idx] = 0;
             end
