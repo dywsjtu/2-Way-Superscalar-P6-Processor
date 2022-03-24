@@ -95,7 +95,8 @@ module fu_selector (
     logic                   [`FU_CAT-1:0]       cat_valid;
     logic                   [`FU_SIZE-1:0]      selection;
 
-    assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection);
+    //assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection);
+    assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(1);
 
     assign  cat_valid[0]    = (fu_result_valid[`ALU_OFFSET-1    :0]             != `NUM_ALU'b0);
     assign  cat_valid[1]    = (fu_result_valid[`LS_OFFSET-1     :`ALU_OFFSET]   != `NUM_LS'b0);
