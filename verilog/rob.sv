@@ -67,6 +67,7 @@ module rob(
                                                                     : rob_entries[rs_rob.entry_idx[1]].value;
     assign rob_rs.squash        = squash;
 
+    assign rob_mt.rob_head      = rob_head;
     assign rob_mt.rob_tail      = rob_tail;
     assign rob_mt.squash        = squash;
     assign rob_mt.dest_valid    = rob_reg.dest_valid;

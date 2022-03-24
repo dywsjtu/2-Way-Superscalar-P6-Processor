@@ -72,7 +72,7 @@ module map_table (
             ready_in_ROB_next = ready_in_ROB;
 
             //clear Tag in retire stage
-            if (rob_mt.dest_valid) begin
+            if (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head) begin
                 Tag_next[rob_mt.dest_reg_idx] = `ZERO_TAG;
                 ready_in_ROB_next[rob_mt.dest_reg_idx] = 0;
             end
@@ -88,10 +88,8 @@ module map_table (
             end
             //set rd tag in dispatch stage
             if (dispatch_enable & rd_dispatch != `ZERO_REG) begin
-                begin
-                    Tag_next[rd_dispatch] = rob_mt.rob_tail;
-                    ready_in_ROB_next[rd_dispatch] = 1'b0;
-                end
+                Tag_next[rd_dispatch] = rob_mt.rob_tail;
+                ready_in_ROB_next[rd_dispatch] = 1'b0;
             end
         end
     end

@@ -29,19 +29,21 @@ module rs (
     output  logic               rs_entry_full
 );  
     // TODO add debug outputs for below data
-    RS_ENTRY        [`FU_SIZE-1:0]      rs_entries;
-    RS_ENTRY        [`FU_SIZE-1:0]      next_rs_entries;
+    RS_ENTRY        [`FU_SIZE-1:0]          rs_entries;
+    RS_ENTRY        [`FU_SIZE-1:0]          next_rs_entries;
 
-    logic           [`FU_SIZE-1:0]      busy;
-    logic           [`FU_SIZE-1:0]      next_busy;
+    logic           [`FU_SIZE-1:0]          busy;
+    logic           [`FU_SIZE-1:0]          next_busy;
+    logic           [`FU_SIZE-1:0]          selected;
 
     // RS_FU_PACKET    [`FU_SIZE-1:0]      rs_fu;
-    FU_RS_PACKET    [`FU_SIZE-1:0]      fu_rs;
-    logic           [`FU_SIZE-1:0]      fu_result_valid;
+    FU_RS_PACKET    [`FU_SIZE-1:0]          fu_rs;
+    logic           [`FU_SIZE-1:0]          fu_result_valid;
 
     logic           [$clog2(`FU_SIZE):0]    fu_num;
     logic           [`FU_CAT-1:0]           cat_select;
 
+    assign selected[0]                      = (fu_num == 0) && fu_result_valid[0];
     fu_alu fu0 (
         // input
         .clock(clock),
@@ -54,10 +56,25 @@ module rs (
         // load_value
 
         .rs_fu( {   rob_rs.squash,
-                    ((fu_num == 0) && fu_result_valid[0]),
-                    {rs_entries[0].rs_entry_info[1].V, rs_entries[0].rs_entry_info[0].V},
-                    (rs_entries[0].rs_entry_info[0].V_ready && rs_entries[0].rs_entry_info[1].V_ready)} ),
-        
+                    selected[0],
+                    {   busy[0] && ~selected[0]                 ?   rs_entries[0].rs_entry_info[1].V    :
+                        ~id_rs.req_reg[1]                       ?   `XLEN'b0                            :
+                        mt_rs.rs_infos[1].tag == `ZERO_TAG      ?   reg_rs.rs_values[1]                 :
+                        (cdb_rs.valid && 
+                         mt_rs.rs_infos[1].tag == cdb_rs.tag)   ?   cdb_rs.value                        :
+                                                                    rob_rs.value[1],
+                        busy[0] && ~selected[0]                 ?   rs_entries[0].rs_entry_info[0].V    :
+                        ~id_rs.req_reg[0]                       ?   `XLEN'b0                            :
+                        mt_rs.rs_infos[0].tag == `ZERO_TAG      ?   reg_rs.rs_values[0]                 :
+                        (cdb_rs.valid && 
+                         mt_rs.rs_infos[0].tag == cdb_rs.tag)   ?   cdb_rs.value                        :
+                                                                    rob_rs.value[0] },
+                    busy[0] && ~selected[0]                     ?   (rs_entries[0].rs_entry_info[0].V_ready && rs_entries[0].rs_entry_info[1].V_ready)
+                                                                :   ((~id_rs.req_reg[1] || mt_rs.rs_infos[1].tag == `ZERO_TAG || 
+                                                                      mt_rs.rs_infos[1].ready || (cdb_rs.valid && mt_rs.rs_infos[1].tag == cdb_rs.tag)) &&
+                                                                     (~id_rs.req_reg[0] || mt_rs.rs_infos[0].tag == `ZERO_TAG || 
+                                                                      mt_rs.rs_infos[0].ready || (cdb_rs.valid && mt_rs.rs_infos[0].tag == cdb_rs.tag)))    } ),
+
         // output
         .fu_rs(fu_rs[0]),
         .fu_result_valid(fu_result_valid[0])
@@ -100,9 +117,9 @@ module rs (
     assign fu_end  =   `FU_END_ALU;
 
     // assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
-    // assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0)   ? ~(fu_result_valid[fu_num] && busy[fu_num] && ~(fu_num < fu_type) && (fu_num < fu_end))
-    //                                                     : 1'b0;
-    assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
+    assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0)   ? ~(fu_result_valid[fu_num] && busy[fu_num] && ~(fu_num < fu_type) && (fu_num < fu_end))
+                                                        : 1'b0;
+    // assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
 
     logic               temp_logic;
 
@@ -120,20 +137,25 @@ module rs (
         temp_logic                  =   1'b1;
         if (id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) begin
             for (int fu = fu_type; fu < fu_end; fu += 1) begin
-                if (~busy[fu] && temp_logic) begin
+                if (~next_busy[fu] && temp_logic) begin
                     temp_logic                  =   1'b0;
                     next_busy[fu]               =   1'b1;
                     next_rs_entries[fu].T_dest  =   rob_rs.rob_tail;
-                    next_rs_entries[fu].id_rs   =   id_rs;
                     for (int i = 0; i < 2; i += 1) begin
-                        if (mt_rs.rs_infos[i].tag == `ZERO_TAG) begin
-                            next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
-                                                                        reg_rs.rs_values[i],
-                                                                        1'b1    };
+                        if (id_rs.req_reg[i]) begin
+                            if (mt_rs.rs_infos[i].tag == `ZERO_TAG) begin
+                                next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
+                                                                            reg_rs.rs_values[i],
+                                                                            1'b1    };
+                            end else begin
+                                next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
+                                                                            rob_rs.value[i],
+                                                                            mt_rs.rs_infos[i].ready };
+                            end
                         end else begin
-                            next_rs_entries[fu].rs_entry_info[i] =  {   mt_rs.rs_infos[i].tag,
-                                                                        rob_rs.value[i],
-                                                                        mt_rs.rs_infos[i].ready || !id_rs.req_reg[i]    };
+                            next_rs_entries[fu].rs_entry_info[i]     = {    5'b0,
+                                                                            `XLEN'b0,
+                                                                            1'b1    };
                         end
                     end
                 end

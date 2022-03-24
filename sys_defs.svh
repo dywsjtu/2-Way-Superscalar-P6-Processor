@@ -416,6 +416,7 @@ typedef struct packed {
 } ROB_RS_PACKET;
 
 typedef struct packed {
+	logic	[`ROB_IDX_LEN-1:0]	rob_head;
 	logic	[`ROB_IDX_LEN-1:0]	rob_tail;	// the tail of ROB
 	logic						squash;		// signal of flushing
 	logic 						dest_valid;
@@ -497,7 +498,6 @@ typedef struct packed {
 	// logic 									busy;
 	logic 			[`ROB_IDX_LEN:0]		T_dest;
 	RS_ENTRY_INFO 	[1:0] 					rs_entry_info;
-	ID_RS_PACKET							id_rs;
 	// logic ready_execute;
 } RS_ENTRY;
 
@@ -520,32 +520,39 @@ typedef struct packed {
 	logic ready;
 } RS_INFO;
 
+// typedef struct packed {
+// 	logic						squash;
+// 	logic						selected;
+// 	logic	[`XLEN-1:0]			NPC;			// PC + 4
+// 	logic	[`XLEN-1:0]			PC;				// PC
+
+// 	logic	[1:0][`XLEN-1:0]	rs_value;		// reg A & B value
+// 	logic						rs_value_valid;                                  
+
+// 	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
+// 	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
+// 	INST						inst;			// instruction
+	
+// 	logic	[4:0]				dest_reg_idx;	// destination (writeback) register index      
+	
+// 	ALU_FUNC					alu_func;		// ALU function select (ALU_xxx *)
+// 	logic						rd_mem;			// does inst read memory?
+// 	logic						wr_mem;			// does inst write memory?
+// 	logic						cond_branch;	// is inst a conditional branch?
+// 	logic						uncond_branch;	// is inst an unconditional branch?
+// 	logic						halt;			// is this a halt?
+// 	logic						illegal;		// is this instruction illegal?
+// 	logic						csr_op;			// is this a CSR operation? (we only used this as a cheap way to get return code)
+// 	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
+// } RS_FU_PACKET;
+
 typedef struct packed {
 	logic						squash;
 	logic						selected;
-	logic	[`XLEN-1:0]			NPC;			// PC + 4
-	logic	[`XLEN-1:0]			PC;				// PC
 
 	logic	[1:0][`XLEN-1:0]	rs_value;		// reg A & B value
 	logic						rs_value_valid;                                  
-
-	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
-	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)
-	INST						inst;			// instruction
-	
-	logic	[4:0]				dest_reg_idx;	// destination (writeback) register index      
-	
-	ALU_FUNC					alu_func;		// ALU function select (ALU_xxx *)
-	logic						rd_mem;			// does inst read memory?
-	logic						wr_mem;			// does inst write memory?
-	logic						cond_branch;	// is inst a conditional branch?
-	logic						uncond_branch;	// is inst an unconditional branch?
-	logic						halt;			// is this a halt?
-	logic						illegal;		// is this instruction illegal?
-	logic						csr_op;			// is this a CSR operation? (we only used this as a cheap way to get return code)
-	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
 } RS_FU_PACKET;
-
 
 
 //typedef struct packed {
