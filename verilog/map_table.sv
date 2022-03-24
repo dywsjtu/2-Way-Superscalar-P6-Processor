@@ -53,8 +53,8 @@ module map_table (
         if(reset) begin
             cycle_count = 0;
         end else begin
-            for(int i = 0; i < `REG_SIZE; i += 4) begin
-                $display("DEBUG %4d: mt_tag[%2d] = %d, mt_tag[%2d] = %d, mt_tag[%2d] = %d, mt_tag[%2d] = %d, ", cycle_count, i,  Tag[i], i+1,  Tag[i+1], i+2,  Tag[i+2], i+3,  Tag[i+3]);
+            for(int i = 0; i < `REG_SIZE; i += 2) begin
+                $display("DEBUG %4d: mt_tag[%2d] = %d, tag_ready[%2d] = %d, mt_tag[%2d] = %d, tag_ready[%2d] = %d, ", cycle_count, i,  Tag[i], i, ready_in_ROB[i], i+1,  Tag[i+1], i+1, ready_in_ROB[i+1]);
             end
             cycle_count = cycle_count + 1;
         end
@@ -72,7 +72,7 @@ module map_table (
             ready_in_ROB_next = ready_in_ROB;
 
             //clear Tag in retire stage
-            if (rob_mt.dest_valid) begin
+            if (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head) begin
                 Tag_next[rob_mt.dest_reg_idx] = `ZERO_TAG;
                 ready_in_ROB_next[rob_mt.dest_reg_idx] = 0;
             end
@@ -80,7 +80,7 @@ module map_table (
             //set ready bit in complete stage
             if (cdb_in.valid) begin
                 for (int i = 0; i < `REG_SIZE; i++)  begin
-                    if (Tag[i] == cdb_in.tag) begin
+                    if (Tag[i] == cdb_in.tag ) begin
                         ready_in_ROB_next[i] = 1'b1;
                         //break; 
                     end
@@ -90,6 +90,7 @@ module map_table (
             if (dispatch_enable & rd_dispatch != `ZERO_REG) begin
                 begin
                     Tag_next[rd_dispatch] = rob_mt.rob_tail;
+                    ready_in_ROB_next[rd_dispatch] = 1'b0;
                 end
             end
         end
