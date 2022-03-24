@@ -293,7 +293,10 @@ module pipeline (
 		.wr_clk(clock),
 		.wr_en(rob_reg.dest_valid),
 		.wr_idx(rob_reg.dest_reg_idx),
-		.wr_data(rob_reg.dest_value)
+		.wr_data(rob_reg.dest_value),
+		`ifdef DEBUG
+		.reset(reset)
+		`endif
 	);
 
 

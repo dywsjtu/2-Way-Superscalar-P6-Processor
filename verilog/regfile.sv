@@ -17,7 +17,10 @@ module regfile(
         input  [`XLEN-1:0] wr_data,            // write data
         input         wr_en, wr_clk,
 
-        output logic [`XLEN-1:0] rda_out, rdb_out    // read data
+        output logic [`XLEN-1:0] rda_out, rdb_out,    // read data
+        `ifdef DEBUG
+        input logic reset
+        `endif
           
       );
   
@@ -55,6 +58,21 @@ module regfile(
     if (wr_en) begin
       registers[wr_idx] <= `SD wr_data;
     end
+
+  `ifdef DEBUG
+  logic [31:0] cycle_count;
+  always_ff @(negedge wr_clk) begin
+    if(reset) begin
+            cycle_count = 0;
+      end else begin
+          for(int i = 0; i < 32; i += 4) begin
+              $display("DEBUG %4d: registers[%2d] = %x, registers[%2d] = %x, registers[%2d] = %x, registers[%2d] = %x, ", cycle_count, i,  registers[i], i+1,  registers[i+1], i+2,  registers[i+2], i+3,  registers[i+3]);
+              //$display("@@@@ registers[%2d] = %x, registers[%2d] = %x, registers[%2d] = %x, registers[%2d] = %x, ", i,  registers[i], i+1,  registers[i+1], i+2,  registers[i+2], i+3,  registers[i+3]);
+          end
+          cycle_count = cycle_count + 1;
+      end
+  end
+  `endif
 
 endmodule // regfile
 `endif //__REGFILE_V__

@@ -416,6 +416,7 @@ typedef struct packed {
 } ROB_RS_PACKET;
 
 typedef struct packed {
+	logic   [`ROB_IDX_LEN-1:0]	rob_head;	// the head of rob
 	logic	[`ROB_IDX_LEN-1:0]	rob_tail;	// the tail of ROB
 	logic						squash;		// signal of flushing
 	logic 						dest_valid;
@@ -534,6 +535,7 @@ typedef struct packed {
 	INST						inst;			// instruction
 	
 	logic	[4:0]				dest_reg_idx;	// destination (writeback) register index      
+	logic   [`ROB_IDX_LEN:0]    dest_tag;       // added to save the tag
 	
 	ALU_FUNC					alu_func;		// ALU function select (ALU_xxx *)
 	logic						rd_mem;			// does inst read memory?
@@ -558,6 +560,7 @@ typedef struct packed {
 // } CDB_MT_PACKET;
 
 typedef struct packed {
+	logic   [`ROB_IDX_LEN:0] T_dest; //added to save the dest tag
 	logic	[`XLEN-1:0]		alu_result; // alu_result
 	logic	[`XLEN-1:0]		NPC; //pc + 4
 	logic					take_branch; // is this a taken branch?

@@ -68,6 +68,7 @@ module rob(
     assign rob_rs.squash        = squash;
 
     assign rob_mt.rob_tail      = rob_tail;
+    assign rob_mt.rob_head      = rob_head;
     assign rob_mt.squash        = squash;
     assign rob_mt.dest_valid    = rob_reg.dest_valid;
     assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
