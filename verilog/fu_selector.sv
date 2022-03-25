@@ -107,7 +107,7 @@ module fu_selector (
     logic                   [`FU_SIZE-1:0]      selection;
 
     //assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection);
-    assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection);
+    assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection); //NOT work for sythesis, should be $clog2(constant value)
 
     assign  cat_valid[0]    = (fu_result_valid[`ALU_OFFSET-1    :0]             != `NUM_ALU'b0);
     `ifdef SMALL_FU_OUT_TEST
