@@ -70,6 +70,46 @@ module pipeline (
 
 );
 
+//////////////////////////////////////////////////
+//                                              //
+//       ROB RS MT balabala packet def          //
+//                                              //
+//////////////////////////////////////////////////
+
+
+	// ID
+	ID_ROB_PACKET       id_rob;   
+	ID_RS_PACKET        id_rs;
+
+	// CDB
+	CDB_ENTRY           cdb_out;
+	CDB_ENTRY			rs_cdb;
+	
+	// Map table
+	MT_RS_PACKET        mt_rs;
+
+	// RS
+	logic 				rs_entry_full;
+	RS_ROB_PACKET       rs_rob;
+	RS_MT_PACKET        rs_mt;
+    RS_FU_PACKET        rs_fu;
+	RS_REG_PACKET    	rs_reg;
+
+	// ROB
+	logic 				rob_full;
+    ROB_RS_PACKET       rob_rs;
+    ROB_MT_PACKET       rob_mt;
+    ROB_REG_PACKET      rob_reg;
+	ROB_ID_PACKET       rob_id;
+
+	REG_RS_PACKET       reg_rs;
+
+//////////////////////////////////////////////////
+//                                              //
+//     ROB RS MT balabala packet def end        //
+//                                              //
+//////////////////////////////////////////////////
+
 	// Pipeline register enables
 	logic   if_id_enable, dispatch_enable;//id_ex_enable, ex_mem_enable, mem_wb_enable;
 	
@@ -133,40 +173,6 @@ module pipeline (
 	// always @* begin
 	// 	$monitor("proc2mem_data", proc2mem_data);
 	// end
-
-//////////////////////////////////////////////////
-//                                              //
-//       ROB RS MT balabala start here          //
-//                                              //
-//////////////////////////////////////////////////
-
-
-	// ID
-	ID_ROB_PACKET       id_rob;   
-	ID_RS_PACKET        id_rs;
-
-	// CDB
-	CDB_ENTRY           cdb_out;
-	CDB_ENTRY			rs_cdb;
-	
-	// Map table
-	MT_RS_PACKET        mt_rs;
-
-	// RS
-	logic 				rs_entry_full;
-	RS_ROB_PACKET       rs_rob;
-	RS_MT_PACKET        rs_mt;
-    RS_FU_PACKET        rs_fu;
-	RS_REG_PACKET    	rs_reg;
-
-	// ROB
-	logic 				rob_full;
-    ROB_RS_PACKET       rob_rs;
-    ROB_MT_PACKET       rob_mt;
-    ROB_REG_PACKET      rob_reg;
-	ROB_ID_PACKET       rob_id;
-
-	REG_RS_PACKET       reg_rs;
 
 
 //////////////////////////////////////////////////
@@ -233,6 +239,7 @@ module pipeline (
 										1'b0, //halt
 										1'b0, //illegal
 										1'b0, //csr_op
+										1'b0,
 										1'b0, //valid
 										2'b0,
 										1'b0
@@ -272,7 +279,8 @@ module pipeline (
 						id_packet_out.uncond_branch,	
 						id_packet_out.halt,			
 						id_packet_out.illegal,		
-						id_packet_out.csr_op,		
+						id_packet_out.csr_op,	
+						id_packet_out.mult_op,	
 						id_packet_out.valid,		
 						id_packet_out.req_reg 	
 					};                           

@@ -98,29 +98,30 @@ typedef enum logic [3:0] {
 // `define MULT_OFFSET		3
 // `define BEQ_OFFSET		4
 
-`define MEDIUM_FU_OUT_TEST
-`define FU_SIZE			4
-`define FU_CAT			4
-`define NUM_ALU			4
-`define NUM_LS			0
-`define NUM_MULT		0
-`define NUM_BEQ			0
-`define ALU_OFFSET		4
-`define LS_OFFSET		4
-`define MULT_OFFSET		4
-`define BEQ_OFFSET		4
+// `define MEDIUM_FU_OUT_TEST
+// `define FU_SIZE			4
+// `define FU_CAT			4
+// `define NUM_ALU			4
+// `define NUM_LS			0
+// `define NUM_MULT		0
+// `define NUM_BEQ			0
+// `define ALU_OFFSET		4
+// `define LS_OFFSET		4
+// `define MULT_OFFSET		4
+// `define BEQ_OFFSET		4
 
-// `define FULL_FU_OUT_TEST
-// `define FU_SIZE			20
-// `define CAT_FU			4
-// `define NUM_ALU			8
-// `define NUM_LS			4
-// `define NUM_MULT			4
-// `define NUM_BEQ			4
-// `define ALU_OFFSET		8
-// `define LS_OFFSET		12
-// `define MULT_OFFSET		16
-// `define BEQ_OFFSET		20
+`define FULL_FU_OUT_TEST
+`define FU_SIZE			20
+`define FU_CAT			4
+`define CAT_FU			4
+`define NUM_ALU			8
+`define NUM_LS			4
+`define NUM_MULT		4
+`define NUM_BEQ			4
+`define ALU_OFFSET		8
+`define LS_OFFSET		12
+`define MULT_OFFSET		16
+`define BEQ_OFFSET		20
 
 `define		FU_ALU			5'b0
 `define 	FU_LS			`ALU_OFFSET
@@ -332,19 +333,19 @@ typedef union packed {
 //
 `define NOP 32'h00000013
 
-//////////////////////////////////////////////
-//
-// IF Packets:
-// Data that is exchanged between the IF and the ID stages  
-//
-//////////////////////////////////////////////
-
-typedef struct packed {
-	logic valid; // If low, the data in this struct is garbage
-    INST  inst;  // fetched instruction out
-	logic [`XLEN-1:0] NPC; // PC + 4
-	logic [`XLEN-1:0] PC;  // PC 
-} IF_ID_PACKET;
+// //////////////////////////////////////////////
+// //
+// // IF Packets:
+// // Data that is exchanged between the IF and the ID stages  
+// //
+// //////////////////////////////////////////////
+// 
+// typedef struct packed {
+// 	logic valid; // If low, the data in this struct is garbage
+//     INST  inst;  // fetched instruction out
+// 	logic [`XLEN-1:0] NPC; // PC + 4
+// 	logic [`XLEN-1:0] PC;  // PC 
+// } IF_ID_PACKET;
 
 //////////////////////////////////////////////
 //
@@ -375,6 +376,7 @@ typedef struct packed {
 	logic       					halt;          	// is this a halt?
 	logic       					illegal;       	// is this instruction illegal?
 	logic       					csr_op;        	// is this a CSR operation? (we only used this as a cheap way to get return code)
+	logic							mult_op;		// is this a mult operation?
 	logic       					valid;         	// is inst a valid instruction to be counted for CPI calculations?
 	logic			[1:0]			req_reg; 		// whether the register value is actually needed.
 	logic							take_branch;
@@ -504,6 +506,7 @@ typedef struct packed {
 	logic						halt;			// is this a halt?
 	logic						illegal;		// is this instruction illegal?
 	logic						csr_op;			// is this a CSR operation? (we only used this as a cheap way to get return code)
+	logic						mult_op;		// is this a mult operation?
 	logic						valid;			// is inst a valid instruction to be counted for CPI calculations?
 	logic	[1:0]				req_reg; 		// whether the register value is actually needed. (i.e. whether need T and V)
 } ID_RS_PACKET;

@@ -35,6 +35,7 @@ module decoder(
 	output	logic 							rd_mem, wr_mem, cond_branch, uncond_branch,
 	output	logic 							csr_op,		// used for CSR operations, we only used this as 
 	                        							// a cheap way to get the return code out
+	output	logic							mult_op,	// whether it is a mult operation
 	output	logic 							halt,		// non-zero on a halt
 	output	logic 							illegal,    // non-zero on an illegal instruction
 	output	logic 							valid_inst  // for counting valid instructions executed
@@ -58,6 +59,7 @@ module decoder(
 		alu_func 		= ALU_ADD;
 		dest_reg 		= DEST_NONE;
 		csr_op 			= `FALSE;
+		mult_op			= `FALSE;
 		rd_mem 			= `FALSE;
 		wr_mem 			= `FALSE;
 		cond_branch 	= `FALSE;
@@ -190,18 +192,22 @@ module decoder(
 				`RV32_MUL: begin
 					dest_reg   		= DEST_RD;
 					alu_func   		= ALU_MUL;
+					mult_op			= `TRUE;
 				end
 				`RV32_MULH: begin
 					dest_reg   		= DEST_RD;
 					alu_func   		= ALU_MULH;
+					mult_op			= `TRUE;
 				end
 				`RV32_MULHSU: begin
 					dest_reg   		= DEST_RD;
 					alu_func   		= ALU_MULHSU;
+					mult_op			= `TRUE;
 				end
 				`RV32_MULHU: begin
 					dest_reg   		= DEST_RD;
 					alu_func   		= ALU_MULHU;
+					mult_op			= `TRUE;
 				end
 				`RV32_CSRRW, `RV32_CSRRS, `RV32_CSRRC: begin
 					csr_op 			= `TRUE;
@@ -315,6 +321,7 @@ module dispatch_stage(
 		.cond_branch(id_packet_out.cond_branch),
 		.uncond_branch(id_packet_out.uncond_branch),
 		.csr_op(id_packet_out.csr_op),
+		.mult_op(id_packet_out.mult_op),
 		.halt(id_packet_out.halt),
 		.illegal(id_packet_out.illegal),
 		.valid_inst(id_packet_out.valid)
