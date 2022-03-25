@@ -136,8 +136,7 @@ module rs (
         // check the correctness of the coming instruction
         temp_logic                  =   1'b1;
         if (id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) begin
-            for (int fu = `FU_ALU; fu < fu_end; fu += 1) begin
-            //for (int fu = fu_type; fu < fu_end; fu += 1) begin 
+            for (int fu = fu_type; fu < fu_end; fu += 1) begin 
                 if (~next_busy[fu] && temp_logic) begin
                     temp_logic                  =   1'b0;
                     next_busy[fu]               =   1'b1;
