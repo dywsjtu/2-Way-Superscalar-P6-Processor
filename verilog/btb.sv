@@ -34,6 +34,7 @@ module btb (
     //Inside BTB 2-way associative
     BTB_ENTRY [1:0][`BTB_SIZE-1:0] btb_entries;
     BTB_ENTRY [1:0][`BTB_SIZE-1:0] btb_entries_next;
+    logic [`BTB_SIZE-1:0] current_idx; //would update the less frequent block
     
     logic [`BTB_IDX_LEN-1:0] read_idx;
     logic [`BTB_IDX_LEN-1:0] write_idx;
@@ -61,15 +62,19 @@ module btb (
             ~(PC_in[31:`BTB_IDX_LEN+3]== btb_entries[0][write_idx].tag && data_in == btb_entries[0][write_idx].data) &&
             ~(PC_in[31:`BTB_IDX_LEN+3]== btb_entries[1][write_idx].tag && data_in == btb_entries[1][write_idx].data))
             begin
-            if (~btb_entries[0][write_idx].valid) begin //block 0 is empty;
-                btb_entries_next[0][write_idx].valid = 1'b1;
-                btb_entries_next[0][write_idx].tag = PC_in[31:`BTB_IDX_LEN+3];
-                btb_entries_next[0][write_idx].data = data_in;
-            end else begin //block 1 is empty or overwrite block 1
-                btb_entries_next[1][write_idx].valid = 1'b1;
-                btb_entries_next[1][write_idx].tag = PC_in[31:`BTB_IDX_LEN+3];
-                btb_entries_next[1][write_idx].data = data_in;
+            //$display("Write with data 0x%x",data_in);
+            if (~btb_entries[0][write_idx].valid || PC_in[31:`BTB_IDX_LEN+3]== btb_entries[0][write_idx].tag) begin //block 0 is empty;
+                //$display("[0] = 0x%x",data_in);
+                current_idx[write_idx] = 1'b0;
+            end else if  (~btb_entries[1][write_idx].valid || PC_in[31:`BTB_IDX_LEN+3]== btb_entries[1][write_idx].tag) begin //block 1 is empty
+                //$display("[1] = 0x%x",data_in);
+                current_idx[write_idx] = 1'b1;
+            end else begin
+                current_idx[write_idx] += 1;
             end
+            btb_entries_next[current_idx[write_idx]][write_idx].valid = 1'b1;
+            btb_entries_next[current_idx[write_idx]][write_idx].tag = PC_in[31:`BTB_IDX_LEN+3];
+            btb_entries_next[current_idx[write_idx]][write_idx].data = data_in;
         end
     end
 
@@ -96,8 +101,8 @@ module btb (
                                                                                                 i, btb_entries[1][i].tag, i, btb_entries[1][i].data);
             end
             $display("DEBUG %4d: hit = %d, hit_b0 = %d, hit_b1 = %d", cycle_count,hit,hit_b0,hit_b1);
-            //$display("DEBUG %4d: read_idx = %d", cycle_count, read_idx);
-            //$display("DEBUG %4d: branchPC = 0x%x", cycle_count, branchPC);
+            $display("DEBUG %4d: read_idx = %d", cycle_count, read_idx);
+            $display("DEBUG %4d: branchPC = 0x%x", cycle_count, branchPC);
             cycle_count += 1;
         end
     end

@@ -53,27 +53,69 @@ module testbench;
         @(negedge clock);
         reset = 0;
 
-        //check for read
+        /*CHECK READ FOR NOT HIT*/
         read_en = 1;
         branchPC = 32'h0acb_0040;
         check(targetPC,hit,32'b0,0);
         @(negedge clock);
 
-        //check for write
+        /*CHECK WRITE*/
+        //input datat is not in BTB
         read_en = 0;    
         write_en = 1;  
         PC_in = 32'h0806_002C;
         data_in = 32'h1122_1320;
         @(negedge clock);
+        //input data is already in BTB
         @(negedge clock);
+        //check the BTB output here 
         
-        //check(targetPC,hit,{branchPC[31:13],313,2'b0},1);
+        /*CHECK READ FOR HIT*/
         read_en = 1;
         write_en = 0;
         branchPC = 32'h0806_002C;
         @(negedge clock);
         check(targetPC,hit,32'h1122_1320,1);
-        write_en = 1; 
+        @(negedge clock);
+
+        //Same index, but save in the other block
+        read_en = 0;    
+        write_en = 1;  
+        PC_in = 32'h1027_00E8;
+        data_in = 32'h0313_0575;
+        @(negedge clock);
+        
+        read_en = 1;
+        write_en = 0;
+        branchPC = 32'h0806_002C;
+        @(negedge clock);
+        check(targetPC,hit,32'h1122_1320,1);
+       
+        read_en = 1;
+        write_en = 0;
+        branchPC = 32'h1027_00E8;
+        @(negedge clock);
+        check(targetPC,hit,32'h0313_0575,1);
+
+        /*CHECK FOR OVERWRITE*/
+        read_en = 0;    
+        write_en = 1;  
+        PC_in = 32'h0750_002C;
+        data_in = 32'hAC2D_7569;
+        @(negedge clock);
+
+        read_en = 1;
+        write_en = 0;
+        branchPC = 32'h1027_00E8;
+        @(negedge clock);
+        check(targetPC,hit,32'h0313_0575,1);
+
+        read_en = 1;
+        write_en = 0;
+        branchPC = 32'h0806_002C;
+        @(negedge clock);
+        check(targetPC,hit,32'b0,0);
+
         
         
         $display("@@@Passed");
