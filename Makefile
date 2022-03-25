@@ -98,6 +98,9 @@ sim:	simv
 #Test only
 simv_mt:	$(HEADERS) verilog/map_table.sv testbench/test_map.sv
 	$(VCS) $^ -o simv_mt
+	
+simv_btb:	$(HEADERS) verilog/btb.sv testbench/test_btb.sv 
+	$(VCS) $^ -o simv_btb
 
 simv_cdb:	$(HEADERS) verilog/cdb.sv testbench/test_cdb.sv
 	$(VCS) $^ -o simv_cdb

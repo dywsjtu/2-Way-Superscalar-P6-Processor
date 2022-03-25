@@ -391,7 +391,14 @@ typedef struct packed {
 // 	logic             halt, illegal, csr_op, valid;
 // 	logic [2:0]       mem_size; // byte, half-word or word
 // } EX_MEM_PACKET;
+`define BTB_IDX_LEN 3
+`define BTB_SIZE 8 //BTB_SIZE = 2^BTB_IDX_LEN
 
+typedef struct packed {
+    logic valid;
+    logic [29-`BTB_IDX_LEN-1:0] tag;
+    logic [31:0] data;
+} BTB_ENTRY;    
 
 typedef struct packed {
 	logic						valid;
