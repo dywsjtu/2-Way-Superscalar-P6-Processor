@@ -69,7 +69,7 @@ module fu_mult(
 	//
 	// instantiate the ALU
 	//
-	alu alu_0 (// Inputs
+	mlu mlu_0 (// Inputs
 		.clock(clock),
 		.reset(reset),
 

@@ -14,8 +14,6 @@ module fu_ls(
 	output							fu_result_valid
 );
 	logic 	[`XLEN-1:0] 			opa_mux_out, opb_mux_out;
-	logic 							brcond_result;
-	logic							brcond_result_valid;
 	logic	[`XLEN-1:0]				alu_result;
     logic                           alu_result_valid;
 	ID_RS_PACKET					working_id_fu;
@@ -33,7 +31,7 @@ module fu_ls(
 	assign fu_rs.mem_size       = working_id_fu.inst.r.funct3;
 	assign fu_result_valid		= ~working_rs_fu.selected &&
 								  working_id_fu.valid && working_rs_fu.rs_value_valid && 
-								  brcond_result_valid && alu_result_valid;
+								  alu_result_valid;
 	
 	//
 	// ALU opA mux
@@ -83,29 +81,11 @@ module fu_ls(
 		.valid(alu_result_valid),
 		.result(alu_result)
 	);
-
-	// 
-	 // instantiate the branch condition tester
-	 //
-	brcond brcond (// Inputs
-		.clock(clock),
-		.reset(reset),
-
-		.refresh(working_rs_fu.squash || working_rs_fu.selected),
-		.val_valid(working_rs_fu.rs_value_valid),
-		.rs1(working_rs_fu.rs_value[0]), 
-		.rs2(working_rs_fu.rs_value[1]),
-		.func(working_id_fu.inst.b.funct3), // inst bits to determine check
-
-		// Output
-		.valid(brcond_result_valid),
-		.cond(brcond_result)
-	);
+	
 
 	 // ultimate "take branch" signal:
 	 //	unconditional, or conditional and the condition is true
-	assign fu_rs.take_branch = working_id_fu.uncond_branch || 
-							   (working_id_fu.cond_branch & brcond_result);
+	assign fu_rs.take_branch = 1'b0;
 	assign fu_rs.alu_result	 = alu_result;
 
 	// synopsys sync_set_reset "reset"

@@ -26,16 +26,9 @@ module alu (
 	logic			[`XLEN-1:0]		out_result;
 
 	wire signed 	[`XLEN-1:0]     signed_opa, signed_opb;
-	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
-	wire        	[2*`XLEN-1:0]   unsigned_mul;
-
-	// logic [4:0]						cnt;
 
 	assign signed_opa   = opa;
 	assign signed_opb   = opb;
-	assign signed_mul   = signed_opa * signed_opb;
-	assign unsigned_mul = opa * opb;
-	assign mixed_mul    = signed_opa * opb;
 
 	always_comb begin
 		case (func)
@@ -49,14 +42,9 @@ module alu (
 			ALU_SRL:      out_result = opa >> opb[4:0];
 			ALU_SLL:      out_result = opa << opb[4:0];
 			ALU_SRA:      out_result = signed_opa >>> opb[4:0]; // arithmetic from logical shift
-			ALU_MUL:      out_result = signed_mul[`XLEN-1:0];
-			ALU_MULH:     out_result = signed_mul[2*`XLEN-1:`XLEN];
-			ALU_MULHSU:   out_result = mixed_mul[2*`XLEN-1:`XLEN];
-			ALU_MULHU:    out_result = unsigned_mul[2*`XLEN-1:`XLEN];
 
 			default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
 		endcase
-        // out_valid = val_valid && cnt[5];
 		out_valid = val_valid;
 	end
 
@@ -65,26 +53,13 @@ module alu (
 		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;
 			result		<=	`SD	`XLEN'b0;
-			// cnt			<=	`SD 5'b001;
-		end else if (refresh) begin
-			valid		<=	`SD	out_valid;
-			result		<=	`SD out_result;
-			// cnt			<=	`SD 5'b001;
-		// 	// clear intermediate values
+		// end else if (refresh) begin
+		// 	valid		<=	`SD	out_valid;
+		// 	result		<=	`SD out_result;
+		// // 	// clear intermediate values
 		end else begin
 			valid		<=	`SD	out_valid;
 			result		<=	`SD out_result;
-			// if (cnt == 5'b00001) begin
-			// 	cnt		<=	`SD 5'b00010;
-			// end else if (cnt == 5'b00010) begin
-			// 	cnt		<=	`SD 5'b00100;
-			// end else if (cnt == 5'b00100) begin
-			// 	cnt		<=	`SD 5'b01000;
-			// end else if (cnt == 5'b01000) begin
-			// 	cnt		<=	`SD 5'b10000;
-			// end else begin
-			// 	cnt		<=	`SD 3'b10000;
-			// end
 		end
 	end
 endmodule // alu
@@ -146,3 +121,64 @@ module brcond (// Inputs
 	end
 endmodule // brcond
 `endif // __FU_BASE_BLOCK__
+
+//
+// The MLU
+//
+// alu for mult
+//
+// This module is purely combinational
+//
+module mlu (
+	input							clock,
+	input							reset,
+
+	input							refresh,
+	input							val_valid,
+	input           [`XLEN-1:0]     opa,
+	input           [`XLEN-1:0]     opb,
+	ALU_FUNC                        func,
+
+    output logic                    valid,
+	output logic    [`XLEN-1:0]     result
+);
+	logic							out_valid;
+	logic			[`XLEN-1:0]		out_result;
+
+	wire signed 	[`XLEN-1:0]     signed_opa, signed_opb;
+	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
+	wire        	[2*`XLEN-1:0]   unsigned_mul;
+
+	assign signed_opa   = opa;
+	assign signed_opb   = opb;
+	assign signed_mul   = signed_opa * signed_opb;
+	assign unsigned_mul = opa * opb;
+	assign mixed_mul    = signed_opa * opb;
+
+	always_comb begin
+		case (func)
+			ALU_MUL:      out_result = signed_mul[`XLEN-1:0];
+			ALU_MULH:     out_result = signed_mul[2*`XLEN-1:`XLEN];
+			ALU_MULHSU:   out_result = mixed_mul[2*`XLEN-1:`XLEN];
+			ALU_MULHU:    out_result = unsigned_mul[2*`XLEN-1:`XLEN];
+
+			default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
+		endcase
+		out_valid = val_valid;
+	end
+
+	// synopsys sync_set_reset "reset"
+	always_ff @(posedge clock) begin
+		if (reset || ~val_valid) begin
+			valid		<=	`SD	1'b0;
+			result		<=	`SD	`XLEN'b0;
+		// end else if (refresh) begin
+		// 	valid		<=	`SD	out_valid;
+		// 	result		<=	`SD out_result;
+		// // 	// clear intermediate values
+		end else begin
+			valid		<=	`SD	out_valid;
+			result		<=	`SD out_result;
+		end
+	end
+endmodule // mlu
