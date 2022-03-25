@@ -31,7 +31,7 @@ module alu (
 	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
 	wire        	[2*`XLEN-1:0]   unsigned_mul;
 
-	logic [2:0]						cnt;
+	// logic [4:0]						cnt;
 
 	assign signed_opa   = opa;
 	assign signed_opb   = opb;
@@ -58,7 +58,8 @@ module alu (
 
 			default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
 		endcase
-        out_valid = val_valid && cnt[2];
+        // out_valid = val_valid && cnt[5];
+		out_valid = val_valid;
 	end
 
 	// synopsys sync_set_reset "reset"
@@ -66,22 +67,26 @@ module alu (
 		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;
 			result		<=	`SD	`XLEN'b0;
-			cnt			<=	`SD 3'b001;
+			// cnt			<=	`SD 5'b001;
 		end else if (refresh) begin
 			valid		<=	`SD	out_valid;
 			result		<=	`SD out_result;
-			cnt			<=	`SD 3'b001;
+			// cnt			<=	`SD 5'b001;
 		// 	// clear intermediate values
 		end else begin
 			valid		<=	`SD	out_valid;
 			result		<=	`SD out_result;
-			if (cnt == 3'b001) begin
-				cnt		<=	`SD 3'b010;
-			end else if (cnt == 3'b010) begin
-				cnt		<=	`SD 3'b100;
-			end else begin
-				cnt		<=	`SD 3'b100;
-			end
+			// if (cnt == 5'b00001) begin
+			// 	cnt		<=	`SD 5'b00010;
+			// end else if (cnt == 5'b00010) begin
+			// 	cnt		<=	`SD 5'b00100;
+			// end else if (cnt == 5'b00100) begin
+			// 	cnt		<=	`SD 5'b01000;
+			// end else if (cnt == 5'b01000) begin
+			// 	cnt		<=	`SD 5'b10000;
+			// end else begin
+			// 	cnt		<=	`SD 3'b10000;
+			// end
 		end
 	end
 endmodule // alu
@@ -147,6 +152,7 @@ endmodule // brcond
 module fu_alu(
 	input                           clock,               // system clock
 	input                           reset,               // system reset
+	input							valid,
     input	ID_RS_PACKET			id_fu,
 	input   RS_FU_PACKET            rs_fu,
 
@@ -254,28 +260,36 @@ module fu_alu(
 			working_id_fu				<=	`SD	0;
 			working_rs_fu				<=	`SD	0;
 		end else if (rs_fu.selected) begin
-			if (id_fu.valid && id_fu.dispatch_enable) begin
+			if (valid && id_fu.valid && id_fu.dispatch_enable) begin
 				working_id_fu			<=	`SD	id_fu;
+				working_rs_fu.squash		<=	`SD	rs_fu.squash;
+				working_rs_fu.selected		<=	`SD	1'b1;
+				working_rs_fu.rs_value		<=	`SD rs_fu.rs_value;
+				working_rs_fu.rs_value_valid<=	`SD rs_fu.rs_value_valid;
 			end else begin
 				working_id_fu			<=	`SD	0;
-			end
-			if (id_fu.valid && id_fu.dispatch_enable && rs_fu.rs_value_valid) begin
-				working_rs_fu			<=	`SD	rs_fu;
-			end else begin
 				working_rs_fu			<=	`SD	{	1'b0,
 													1'b1,
 													{`XLEN'b0, `XLEN'b0},
 													1'b0	};
 			end
 		end else begin
-			if (id_fu.valid && id_fu.dispatch_enable && ~working_id_fu.valid) begin
-				working_id_fu			<=	`SD	id_fu;
-			end
-			if (((id_fu.valid && id_fu.dispatch_enable) || working_id_fu.valid) &&
-				rs_fu.rs_value_valid && ~working_rs_fu.rs_value_valid) begin
-				working_rs_fu			<=	`SD	rs_fu;
-			end else if (working_rs_fu.selected) begin
-				working_rs_fu.selected	<=	`SD	1'b0;
+			if (valid && id_fu.valid && id_fu.dispatch_enable && ~working_id_fu.valid) begin
+				working_id_fu				<=	`SD	id_fu;
+				working_rs_fu.squash		<=	`SD	rs_fu.squash;
+				working_rs_fu.selected		<=	`SD	1'b1;
+				working_rs_fu.rs_value		<=	`SD rs_fu.rs_value;
+				working_rs_fu.rs_value_valid<=	`SD rs_fu.rs_value_valid;
+			end else begin 
+				if (working_id_fu.valid && rs_fu.rs_value_valid && ~working_rs_fu.rs_value_valid) begin
+					// working_rs_fu			<=	`SD	rs_fu;
+					working_rs_fu.squash		<=	`SD	rs_fu.squash;
+					working_rs_fu.selected		<=	`SD	1'b1;
+					working_rs_fu.rs_value		<=	`SD rs_fu.rs_value;
+					working_rs_fu.rs_value_valid<=	`SD rs_fu.rs_value_valid;
+				end else if (working_rs_fu.selected) begin
+					working_rs_fu.selected	<=	`SD	1'b0;
+				end
 			end
 		end
 	end

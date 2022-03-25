@@ -107,13 +107,13 @@ module map_table (
     // assign mt_rs.rs_infos[1].ready = ready_in_ROB_next[rs_mt.register_idxes[1]];
     // assign mt_rs.rs_infos[0].ready = ready_in_ROB_next[rs_mt.register_idxes[0]];
 
-    assign mt_rs.rs_infos[1].tag    =   (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? `ZERO_TAG : 
+    assign mt_rs.rs_infos[1].tag    =   (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head && rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? `ZERO_TAG : 
                                         Tag[rs_mt.register_idxes[1]];
-    assign mt_rs.rs_infos[0].tag    =   (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[0]) ? `ZERO_TAG : 
+    assign mt_rs.rs_infos[0].tag    =   (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head && rob_mt.dest_reg_idx == rs_mt.register_idxes[0]) ? `ZERO_TAG : 
                                         Tag[rs_mt.register_idxes[0]];
-    assign mt_rs.rs_infos[1].ready  =   (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? 1'b0 :
+    assign mt_rs.rs_infos[1].ready  =   (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head && rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? 1'b0 :
                                         ((Tag[rs_mt.register_idxes[1]] == cdb_in.tag && cdb_in.valid) | ready_in_ROB[rs_mt.register_idxes[1]]);
-    assign mt_rs.rs_infos[0].ready  =   (rob_mt.dest_valid & rob_mt.dest_reg_idx == rs_mt.register_idxes[0]) ? 1'b0 :
+    assign mt_rs.rs_infos[0].ready  =   (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head && rob_mt.dest_reg_idx == rs_mt.register_idxes[0]) ? 1'b0 :
                                         ((Tag[rs_mt.register_idxes[0]] == cdb_in.tag && cdb_in.valid) | ready_in_ROB[rs_mt.register_idxes[0]]);                              
     
 

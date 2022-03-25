@@ -7,6 +7,17 @@
 // NUM_MULT = 16
 // NUM_BEQ = 20
 
+module ps2 (
+    input        [1:0] req,
+    input              en,
+    input              cnt,
+
+    output logic [1:0] gnt
+);
+    assign gnt[1] =  req[1];
+    assign gnt[0] = ~req[1] && req[0];
+endmodule
+
 module ps4(
     input        [3:0] req,
     output logic [3:0] gnt
@@ -132,8 +143,8 @@ module fu_selector (
                 .count(cnt)
             );
 
-            rps2 alu_select (
-                .cnt(cnt[0]),
+            rps4 alu_select (
+                .cnt(cnt),
                 .req(fu_result_valid[`ALU_OFFSET-1  :0]),
                 .en(cat_select[0]),
                 .gnt(selection[`ALU_OFFSET-1  :0])
