@@ -86,18 +86,31 @@ typedef enum logic [3:0] {
 `define ZERO_TAG 		6'b100000
 `define CDB_BUFFER_SIZE	2
 
-`define SMALL_FU_OUT_TEST
-`define FU_SIZE			4
-`define FU_CAT			4
-`define NUM_ALU			1
-`define NUM_LS			1
-`define NUM_MULT		1
-`define NUM_BEQ			1
-`define ALU_OFFSET		1
-`define LS_OFFSET		2
-`define MULT_OFFSET		3
-`define BEQ_OFFSET		4
+// `define SMALL_FU_OUT_TEST
+// `define FU_SIZE			4
+// `define FU_CAT			4
+// `define NUM_ALU			1
+// `define NUM_LS			1
+// `define NUM_MULT			1
+// `define NUM_BEQ			1
+// `define ALU_OFFSET		1
+// `define LS_OFFSET		2
+// `define MULT_OFFSET		3
+// `define BEQ_OFFSET		4
 
+`define MEDIUM_FU_OUT_TEST
+`define FU_SIZE			2
+`define FU_CAT			4
+`define NUM_ALU			4
+`define NUM_LS			0
+`define NUM_MULT		0
+`define NUM_BEQ			0
+`define ALU_OFFSET		2 
+`define LS_OFFSET		2
+`define MULT_OFFSET		2
+`define BEQ_OFFSET		2
+
+// `define FULL_FU_OUT_TEST
 // `define FU_SIZE			20
 // `define CAT_FU			4
 // `define NUM_ALU			8

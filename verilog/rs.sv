@@ -34,51 +34,95 @@ module rs (
 
     logic           [`FU_SIZE-1:0]          busy;
     logic           [`FU_SIZE-1:0]          next_busy;
-    logic           [`FU_SIZE-1:0]          selected;
 
-    // RS_FU_PACKET    [`FU_SIZE-1:0]      rs_fu;
+    RS_FU_PACKET    [`FU_SIZE-1:0]          rs_fu;
     FU_RS_PACKET    [`FU_SIZE-1:0]          fu_rs;
     logic           [`FU_SIZE-1:0]          fu_result_valid;
 
     logic           [$clog2(`FU_SIZE):0]    fu_num;
     logic           [`FU_CAT-1:0]           cat_select;
 
-    assign selected[0]                      = (fu_num == 0) && fu_result_valid[0];
+    always_comb begin
+        for (int i = 0; i < `FU_SIZE; i += 1) begin
+            rs_fu[i].squash         =   rob_rs.squash;
+            rs_fu[i].selected       =   (fu_num == i) && fu_result_valid[i];
+            rs_fu[i].rs_value[1]    =   busy[i] && ~rs_fu[i].selected           ? ( (~rs_entries[i].rs_entry_info[1].V_ready && cdb_rs.valid &&
+                                                                                    rs_entries[i].rs_entry_info[1].tag == cdb_rs.tag) 
+                                                                                    ? cdb_rs.value 
+                                                                                    : rs_entries[i].rs_entry_info[1].V) :
+                                        ~id_rs.req_reg[1]                       ? `XLEN'b0                              :
+                                        mt_rs.rs_infos[1].tag == `ZERO_TAG      ? reg_rs.rs_values[1]                   :
+                                        (cdb_rs.valid && 
+                                         mt_rs.rs_infos[1].tag == cdb_rs.tag)   ? cdb_rs.value                          :
+                                                                                  rob_rs.value[1];
+            rs_fu[i].rs_value[0]    =   busy[i] && ~rs_fu[i].selected           ? ( (~rs_entries[i].rs_entry_info[0].V_ready && cdb_rs.valid &&
+                                                                                    rs_entries[i].rs_entry_info[0].tag == cdb_rs.tag) 
+                                                                                    ? cdb_rs.value 
+                                                                                    : rs_entries[i].rs_entry_info[0].V) :
+                                        ~id_rs.req_reg[0]                       ? `XLEN'b0                              :
+                                        mt_rs.rs_infos[0].tag == `ZERO_TAG      ? reg_rs.rs_values[0]                   :
+                                        (cdb_rs.valid && 
+                                        mt_rs.rs_infos[0].tag == cdb_rs.tag)    ? cdb_rs.value                          :
+                                                                                  rob_rs.value[0];
+            rs_fu[i].rs_value_valid =   busy[i] && ~rs_fu[i].selected           ? (rs_entries[i].rs_entry_info[1].V_ready && rs_entries[i].rs_entry_info[0].V_ready)
+                                                                                : ((~id_rs.req_reg[1]       || mt_rs.rs_infos[1].tag == `ZERO_TAG || 
+                                                                                    mt_rs.rs_infos[1].ready || (cdb_rs.valid && mt_rs.rs_infos[1].tag == cdb_rs.tag)) &&
+                                                                                   (~id_rs.req_reg[0]       || mt_rs.rs_infos[0].tag == `ZERO_TAG || 
+                                                                                    mt_rs.rs_infos[0].ready || (cdb_rs.valid && mt_rs.rs_infos[0].tag == cdb_rs.tag)));
+        end
+    end
+
     fu_alu fu0 (
         // input
         .clock(clock),
         .reset(reset),
 
-        // load_id_rs
-
         .id_fu(id_rs),
-
-        // load_value
-
-        .rs_fu( {   rob_rs.squash,
-                    selected[0],
-                    {   busy[0] && ~selected[0]                 ?   rs_entries[0].rs_entry_info[1].V    :
-                        ~id_rs.req_reg[1]                       ?   `XLEN'b0                            :
-                        mt_rs.rs_infos[1].tag == `ZERO_TAG      ?   reg_rs.rs_values[1]                 :
-                        (cdb_rs.valid && 
-                         mt_rs.rs_infos[1].tag == cdb_rs.tag)   ?   cdb_rs.value                        :
-                                                                    rob_rs.value[1],
-                        busy[0] && ~selected[0]                 ?   rs_entries[0].rs_entry_info[0].V    :
-                        ~id_rs.req_reg[0]                       ?   `XLEN'b0                            :
-                        mt_rs.rs_infos[0].tag == `ZERO_TAG      ?   reg_rs.rs_values[0]                 :
-                        (cdb_rs.valid && 
-                         mt_rs.rs_infos[0].tag == cdb_rs.tag)   ?   cdb_rs.value                        :
-                                                                    rob_rs.value[0] },
-                    busy[0] && ~selected[0]                     ?   (rs_entries[0].rs_entry_info[0].V_ready && rs_entries[0].rs_entry_info[1].V_ready)
-                                                                :   ((~id_rs.req_reg[1] || mt_rs.rs_infos[1].tag == `ZERO_TAG || 
-                                                                      mt_rs.rs_infos[1].ready || (cdb_rs.valid && mt_rs.rs_infos[1].tag == cdb_rs.tag)) &&
-                                                                     (~id_rs.req_reg[0] || mt_rs.rs_infos[0].tag == `ZERO_TAG || 
-                                                                      mt_rs.rs_infos[0].ready || (cdb_rs.valid && mt_rs.rs_infos[0].tag == cdb_rs.tag)))    } ),
+        .rs_fu(rs_fu[0]),
 
         // output
         .fu_rs(fu_rs[0]),
         .fu_result_valid(fu_result_valid[0])
     );
+
+    fu_alu fu1 (
+        // input
+        .clock(clock),
+        .reset(reset),
+
+        .id_fu(id_rs),
+        .rs_fu(rs_fu[1]),
+
+        // output
+        .fu_rs(fu_rs[1]),
+        .fu_result_valid(fu_result_valid[1])
+    );
+
+    // fu_alu fu2 (
+    //     // input
+    //     .clock(clock),
+    //     .reset(reset),
+
+    //     .id_fu(id_rs),
+    //     .rs_fu(rs_fu[2]),
+
+    //     // output
+    //     .fu_rs(fu_rs[2]),
+    //     .fu_result_valid(fu_result_valid[2])
+    // );
+
+    // fu_alu fu3 (
+    //     // input
+    //     .clock(clock),
+    //     .reset(reset),
+
+    //     .id_fu(id_rs),
+    //     .rs_fu(rs_fu[3]),
+
+    //     // output
+    //     .fu_rs(fu_rs[3]),
+    //     .fu_result_valid(fu_result_valid[3])
+    // );
     
     fu_selector fu_selector_0 (
         // input
@@ -90,15 +134,15 @@ module rs (
         .cat_select(cat_select)
     );
 
-    assign rs_cdb.tag           = rs_entries[fu_num].T_dest;
-    assign rs_cdb.value         = fu_rs[fu_num].alu_result;
-    assign rs_cdb.valid         = fu_result_valid[fu_num];
-    assign rs_cdb.take_branch   = fu_rs[fu_num].take_branch;
+    assign rs_cdb.tag               = rs_entries[fu_num].T_dest;
+    assign rs_cdb.value             = fu_rs[fu_num].alu_result;
+    assign rs_cdb.valid             = fu_result_valid[fu_num];
+    assign rs_cdb.take_branch       = fu_rs[fu_num].take_branch;
 
-    assign rs_rob.entry_idx[0] = mt_rs.rs_infos[0].tag;
-    assign rs_rob.entry_idx[1] = mt_rs.rs_infos[1].tag;
-    assign rs_mt.register_idxes = id_rs.input_reg_idx;
-    assign rs_reg.register_idxes = id_rs.input_reg_idx;
+    assign rs_rob.entry_idx[0]      = mt_rs.rs_infos[0].tag;
+    assign rs_rob.entry_idx[1]      = mt_rs.rs_infos[1].tag;
+    assign rs_mt.register_idxes     = id_rs.input_reg_idx;
+    assign rs_reg.register_idxes    = id_rs.input_reg_idx;
     
     // assign fu_type = id_rs.wr_mem ? FU_STORE : id_rs.rd_mem ? FU_LOAD : FU_ALU;
     // assign rs_entry_full = rs_entries[fu_type].busy;
@@ -115,10 +159,11 @@ module rs (
 
     assign fu_type =   `FU_ALU;
     assign fu_end  =   `FU_END_ALU;
+    assign fu_size =   `NUM_ALU;
 
     // assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
-    assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0)   ? ~(fu_result_valid[fu_num] && busy[fu_num] && ~(fu_num < fu_type) && (fu_num < fu_end))
-                                                        : 1'b0;
+    assign rs_entry_full = ((busy[2:0] + {{(1){1'b0}},1'b1}) == {(2){1'b0}})   ? ~(fu_result_valid[fu_num] && busy[fu_num] && ~(fu_num < fu_type) && (fu_num < fu_end))
+                                                            : 1'b0;
     // assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
 
     logic               temp_logic;

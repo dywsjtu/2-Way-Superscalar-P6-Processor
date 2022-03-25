@@ -31,6 +31,8 @@ module alu (
 	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
 	wire        	[2*`XLEN-1:0]   unsigned_mul;
 
+	logic [2:0]						cnt;
+
 	assign signed_opa   = opa;
 	assign signed_opb   = opb;
 	assign signed_mul   = signed_opa * signed_opb;
@@ -56,7 +58,7 @@ module alu (
 
 			default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
 		endcase
-        out_valid = val_valid;
+        out_valid = val_valid && cnt[2];
 	end
 
 	// synopsys sync_set_reset "reset"
@@ -64,11 +66,22 @@ module alu (
 		if (reset || ~val_valid) begin
 			valid		<=	`SD	1'b0;
 			result		<=	`SD	`XLEN'b0;
-		// end else if (refresh) begin
+			cnt			<=	`SD 3'b001;
+		end else if (refresh) begin
+			valid		<=	`SD	out_valid;
+			result		<=	`SD out_result;
+			cnt			<=	`SD 3'b001;
 		// 	// clear intermediate values
 		end else begin
 			valid		<=	`SD	out_valid;
 			result		<=	`SD out_result;
+			if (cnt == 3'b001) begin
+				cnt		<=	`SD 3'b010;
+			end else if (cnt == 3'b010) begin
+				cnt		<=	`SD 3'b100;
+			end else begin
+				cnt		<=	`SD 3'b100;
+			end
 		end
 	end
 endmodule // alu

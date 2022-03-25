@@ -40,13 +40,13 @@ endmodule
 module rps2 (
     input        [1:0] req,
     input              en,
-    input              sel,
+    input              cnt,
 
     output logic [1:0] gnt,
     output logic       req_up
 );
-    assign gnt[1] = en && (( sel && req[1]) || (~sel && ~req[0] &&  req[1]));
-    assign gnt[0] = en && ((~sel && req[0]) || ( sel && ~req[1] &&  req[0]));
+    assign gnt[1] = en && (( cnt && req[1]) || (~cnt && ~req[0] &&  req[1]));
+    assign gnt[0] = en && ((~cnt && req[0]) || ( cnt && ~req[1] &&  req[0]));
     assign req_up = req[1] || req[0];
 endmodule
 
@@ -96,12 +96,24 @@ module fu_selector (
     logic                   [`FU_SIZE-1:0]      selection;
 
     //assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection);
-    assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(1);
+    assign fu_num           = (selection == `FU_SIZE'b0) ? 0 : $clog2(selection);
 
     assign  cat_valid[0]    = (fu_result_valid[`ALU_OFFSET-1    :0]             != `NUM_ALU'b0);
-    assign  cat_valid[1]    = (fu_result_valid[`LS_OFFSET-1     :`ALU_OFFSET]   != `NUM_LS'b0);
-    assign  cat_valid[2]    = (fu_result_valid[`MULT_OFFSET-1   :`LS_OFFSET]    != `NUM_MULT'b0);
-    assign  cat_valid[3]    = (fu_result_valid[`BEQ_OFFSET-1    :`MULT_OFFSET]  != `NUM_BEQ'b0);
+    `ifdef SMALL_FU_OUT_TEST
+        assign  cat_valid[1]    = 1'b0;
+        assign  cat_valid[2]    = 1'b0;
+        assign  cat_valid[3]    = 1'b0;
+    `else 
+        `ifdef MEDIUM_FU_OUT_TEST
+            assign  cat_valid[1]    = 1'b0;
+            assign  cat_valid[2]    = 1'b0;
+            assign  cat_valid[3]    = 1'b0;
+        `else 
+            assign  cat_valid[1]    = (fu_result_valid[`LS_OFFSET-1     :`ALU_OFFSET]   != `NUM_LS'b0);
+            assign  cat_valid[2]    = (fu_result_valid[`MULT_OFFSET-1   :`LS_OFFSET]    != `NUM_MULT'b0);
+            assign  cat_valid[3]    = (fu_result_valid[`BEQ_OFFSET-1    :`MULT_OFFSET]  != `NUM_BEQ'b0);
+        `endif
+    `endif
 
     ps4 cat_selector (
         .req(cat_valid),
@@ -110,43 +122,59 @@ module fu_selector (
 
     `ifdef SMALL_FU_OUT_TEST
         assign selection    = 1'b1;
-    `elsif
-        logic [2:0]     cnt
+    `else 
+        `ifdef MEDIUM_FU_OUT_TEST
+            logic [2:0]     cnt;
 
-        counter cnt (
-            .clock(clock),
-            .reset(reset),
-            .count(cnt)
-        );
+            counter counter (
+                .clock(clock),
+                .reset(reset),
+                .count(cnt)
+            );
 
-        rps8 alu_select (
-            .cnt(cnt),
-            .req(fu_result_valid[`ALU_OFFSET-1  :0]),
-            .en(cat_select[0]),
-            .gnt(selection[`ALU_OFFSET-1   :0])
-        );
+            rps2 alu_select (
+                .cnt(cnt[0]),
+                .req(fu_result_valid[`ALU_OFFSET-1  :0]),
+                .en(cat_select[0]),
+                .gnt(selection[`ALU_OFFSET-1  :0])
+            );
+        `elsif
+            logic [2:0]     cnt
 
-        rps4 ls_select (
-            .cnt(cnt[1:0]),
-            .req(fu_result_valid[`LS_OFFSET-1   :`ALU_OFFSET]),
-            .en(cat_select[1]),
-            .gnt(selection[`LS_OFFSET-1    :`ALU_OFFSET])
-        );
+            counter counter (
+                .clock(clock),
+                .reset(reset),
+                .count(cnt)
+            );
 
-        rps4 mult_select (
-            .cnt(cnt[1:0]),
-            .req(fu_result_valid[`MULT_OFFSET-1 :`LS_OFFSET]),
-            .en(cat_select[2]),
-            .gnt(selection[`MULT_OFFSET-1  :`LS_OFFSET_OFFSET])
-        );
+            rps8 alu_select (
+                .cnt(cnt),
+                .req(fu_result_valid[`ALU_OFFSET-1  :0]),
+                .en(cat_select[0]),
+                .gnt(selection[`ALU_OFFSET-1   :0])
+            );
 
-        rps4 beq_select (
-            .cnt(cnt[1:0]),
-            .req(fu_result_valid[`BEQ_OFFSET-1  :`MULT_OFFSET]),
-            .en(cat_select[3]),
-            .gnt(selection[`BEQ_OFFSET-1   :`MULT_OFFSET])
-        );
+            rps4 ls_select (
+                .cnt(cnt[1:0]),
+                .req(fu_result_valid[`LS_OFFSET-1   :`ALU_OFFSET]),
+                .en(cat_select[1]),
+                .gnt(selection[`LS_OFFSET-1    :`ALU_OFFSET])
+            );
 
+            rps4 mult_select (
+                .cnt(cnt[1:0]),
+                .req(fu_result_valid[`MULT_OFFSET-1 :`LS_OFFSET]),
+                .en(cat_select[2]),
+                .gnt(selection[`MULT_OFFSET-1  :`LS_OFFSET_OFFSET])
+            );
+
+            rps4 beq_select (
+                .cnt(cnt[1:0]),
+                .req(fu_result_valid[`BEQ_OFFSET-1  :`MULT_OFFSET]),
+                .en(cat_select[3]),
+                .gnt(selection[`BEQ_OFFSET-1   :`MULT_OFFSET])
+            );
+        `endif
     `endif
 
 endmodule
