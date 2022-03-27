@@ -17,20 +17,12 @@ module map_table (
     //INPUT
     input logic                             clock,
     input logic                             reset,
+
     input logic                             dispatch_enable, //from ID
     input logic [$clog2(`REG_SIZE)-1:0]     rd_dispatch, // dest reg idx (from ID)
-    //input ID_MT_PACKET                      id_mt, 
     input ROB_MT_PACKET                     rob_mt,
-    
-
-    //input logic [`ROB_IDX_LEN:0]            CDB_tag, //rd tag from CDB in complete stage
     input CDB_ENTRY                         cdb_in,
     input RS_MT_PACKET                      rs_mt,
-
-    //input logic [$clog2(`REG_SIZE)-1:0]     rd_retire, // rd idx to clear in retire stage
-    //input logic                             clear, //tag-clear signal in retire stage (should sent from ROB?)
-
-        
 
     //OUTPUT
     output MT_RS_PACKET                     mt_rs
@@ -94,18 +86,6 @@ module map_table (
         end
     end
 
-    
-    //MapTable output in dispatch
-    // assign mt_rs.rs1_tag = Tag_next[rs_mt.rs1_dispatch]; 
-    // assign mt_rs.rs2_tag = Tag_next[rs_mt.rs2_dispatch];
-    // assign mt_rs.rs1_ready = ready_in_ROB_next[rs_mt.rs1_dispatch];
-    // assign mt_rs.rs2_ready = ready_in_ROB_next[rs_mt.rs2_dispatch];
-
-    
-    // assign mt_rs.rs_infos[1].tag = Tag_next[rs_mt.register_idxes[1]]; 
-    // assign mt_rs.rs_infos[0].tag = Tag_next[rs_mt.register_idxes[0]]; 
-    // assign mt_rs.rs_infos[1].ready = ready_in_ROB_next[rs_mt.register_idxes[1]];
-    // assign mt_rs.rs_infos[0].ready = ready_in_ROB_next[rs_mt.register_idxes[0]];
 
     assign mt_rs.rs_infos[1].tag    =   (rob_mt.dest_valid && Tag[rob_mt.dest_reg_idx] == rob_mt.rob_head && rob_mt.dest_reg_idx == rs_mt.register_idxes[1]) ? `ZERO_TAG : 
                                         Tag[rs_mt.register_idxes[1]];
