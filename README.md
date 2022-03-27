@@ -1,14 +1,13 @@
-## milestone 1 submission
+## milestone 2 submission
 
-We have finished the ROB module and test it, the files are verilog/rob.sv and testbench/test_rob.sv
-
-```
-make syn #to make synthesis
-```
+Run mult_no_lsq
 
 ```
-make sim #to make simulation
+make assembly   # to generate instructions
+make            # to run the code
 ```
-
-We use line, condition and branch converage metric the details are contained in urgReport folder 
-
+Or
+```
+make assembly   # to generate instructions
+make syn        # to make synthesis
+```
