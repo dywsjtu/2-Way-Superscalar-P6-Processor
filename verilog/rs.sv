@@ -79,7 +79,7 @@ module rs (
                                                                                     (cdb_rs.valid && rs_entries[i].rs_entry_info[0].tag == cdb_rs.tag)))
                                                                                 : ((~id_rs.req_reg[1]       || mt_rs.rs_infos[1].tag == `ZERO_TAG || 
                                                                                     mt_rs.rs_infos[1].ready || (cdb_rs.valid && mt_rs.rs_infos[1].tag == cdb_rs.tag)) &&
-                                                                                (~id_rs.req_reg[0]       || mt_rs.rs_infos[0].tag == `ZERO_TAG || 
+                                                                                   (~id_rs.req_reg[0]       || mt_rs.rs_infos[0].tag == `ZERO_TAG || 
                                                                                     mt_rs.rs_infos[0].ready || (cdb_rs.valid && mt_rs.rs_infos[0].tag == cdb_rs.tag)));
         end
     end
@@ -361,10 +361,6 @@ module rs (
     assign rs_entry_full = rs_entry_full_indicator  ? ~busy[fu_num] || ~fu_result_valid[fu_num] || 
                                                       (fu_num < fu_type) || ~(fu_num < fu_end)
                                                     : 1'b0;
-    // assign rs_entry_full =  (busy[fu_end-1:fu_type]+1 == 0);
-    // assign rs_entry_full = ((busy[3:0] + {{(3){1'b0}},1'b1}) == {(4){1'b0}}) ? ~(fu_result_valid[fu_num] && busy[fu_num] && ~(fu_num < fu_type) && (fu_num < fu_end))
-    //                                                                          : 1'b0;
-    // assign rs_entry_full = ((busy[0] + 1'b1) == 1'b0);
 
     logic               temp_logic;
 
@@ -450,5 +446,4 @@ module rs (
     `endif
 
 endmodule
-
 `endif // `__RS_V__

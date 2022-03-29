@@ -27,13 +27,6 @@ module rob(
     output  ROB_RS_PACKET       rob_rs,
     output  ROB_MT_PACKET       rob_mt,
     output  ROB_REG_PACKET      rob_reg
-    
-    // `ifdef DEBUG
-    //     , output logic      [`ROB_IDX_LEN-1:0]  rob_head
-    //     , output logic      [`ROB_IDX_LEN-1:0]  rob_tail
-    //     , output logic      [`ROB_IDX_LEN:0]    rob_counter
-    //     , output ROB_ENTRY  [`ROB_SIZE-1:0]     rob_entries
-    // `endif
 );  
     logic               [`ROB_IDX_LEN-1:0]  rob_head;
     logic               [`ROB_IDX_LEN-1:0]  rob_tail;
@@ -79,6 +72,44 @@ module rob(
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
     assign rob_reg.OLD_PC_p_4   = rob_entries[rob_head].PC + 4;
     
+    `endif
+    // synopsys sync_set_reset "reset"
+    always_ff @(posedge clock) begin
+        if (reset || squash) begin
+            rob_head    <=  `SD `ROB_IDX_LEN'b0;
+            rob_tail    <=  `SD `ROB_IDX_LEN'b0;
+            rob_counter <=  `SD `ROB_IDX_LEN'b0;
+            rob_entries <=  `SD 0;
+        end else begin
+            if (valid) begin
+                // initalize rob entry
+                rob_entries[rob_tail].valid             <=  `SD 1'b1;
+                rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
+                rob_entries[rob_tail].ready             <=  `SD 1'b0;
+                rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
+                rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
+                rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
+                rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
+                rob_entries[rob_tail].halt              <=  `SD id_rob.halt;
+                rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                                                                                            : rob_tail + 1;
+            end
+            if (retire_valid) begin
+                rob_entries[rob_head]                   <=  `SD 0;
+                rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
+                                                                                            : rob_head + 1;
+            end 
+            if (cdb_rob.valid && rob_entries[cdb_rob.tag].valid) begin
+                rob_entries[cdb_rob.tag].ready          <=  `SD 1'b1;
+                rob_entries[cdb_rob.tag].value          <=  `SD cdb_rob.value;
+                rob_entries[cdb_rob.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob.tag].take_branch == cdb_rob.take_branch);
+            end
+            rob_counter <=  `SD valid   ? (retire_valid ?  rob_counter
+                                                        : (rob_counter + 1))
+                                        : (retire_valid ? (rob_counter - 1)
+                                                        :  rob_counter);
+        end
+    end
 
     `ifdef DEBUG
     logic [31:0] cycle_count;
@@ -102,55 +133,6 @@ module rob(
             cycle_count += 1;
         end
     end
-    `endif
-    // synopsys sync_set_reset "reset"
-    always_ff @(posedge clock) begin
-        if (reset || squash) begin
-            rob_head    <=  `SD `ROB_IDX_LEN'b0;
-            rob_tail    <=  `SD `ROB_IDX_LEN'b0;
-            rob_counter <=  `SD `ROB_IDX_LEN'b0;
-            rob_entries <=  `SD 0;
-        // end else if (squash) begin
-        //     rob_head    <=  `SD rob_tail;
-        //     rob_counter <=  `SD `ROB_IDX_LEN'b0;
-        end else begin
-            if (valid) begin
-                // initalize rob entry
-                rob_entries[rob_tail].valid             <=  `SD 1'b1;
-                rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
-                rob_entries[rob_tail].ready             <=  `SD 1'b0;
-                rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
-                rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
-                rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
-                rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
-                rob_entries[rob_tail].halt              <=  `SD id_rob.halt;
-                rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-                                                                                            : rob_tail + 1;
-                // rob_tail                                <=  `SD rob_tail + 1;
-            end
-            if (retire_valid) begin
-                rob_entries[rob_head]                   <=  `SD 0;
-                rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
-                                                                                            : rob_head + 1;
-                // rob_head                                <=  `SD rob_head + 1;
-            end 
-            // if (fu_rob.completed && rob_entries[fu_rob.entry_idx].valid) begin
-            //     rob_entries[fu_rob.entry_idx].ready     <=  `SD 1'b1;
-            //     rob_entries[fu_rob.entry_idx].value     <=  `SD fu_rob.value;
-            //     rob_entries[fu_rob.entry_idx].mis_pred  <=  `SD fu_rob.mis_pred;
-            // end
-            if (cdb_rob.valid && rob_entries[cdb_rob.tag].valid) begin
-                rob_entries[cdb_rob.tag].ready          <=  `SD 1'b1;
-                rob_entries[cdb_rob.tag].value          <=  `SD cdb_rob.value;
-                rob_entries[cdb_rob.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob.tag].take_branch == cdb_rob.take_branch);
-            end
-            rob_counter <=  `SD valid   ? (retire_valid ?  rob_counter
-                                                        : (rob_counter + 1))
-                                        : (retire_valid ? (rob_counter - 1)
-                                                        :  rob_counter);
-        end
-    end
-
 endmodule
 
 `endif // `__ROB_V__
