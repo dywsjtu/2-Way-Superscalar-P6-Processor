@@ -111,6 +111,7 @@ typedef enum logic [3:0] {
 // `define BEQ_OFFSET		4
 
 `define FULL_FU_OUT_TEST
+`define HALF_FU_SIZE	10
 `define FU_SIZE			20
 `define FU_CAT			4
 `define CAT_FU			4
