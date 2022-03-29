@@ -11,7 +11,7 @@
 
 `timescale 1ns/100ps
 
-module map_table_2 (
+module map_table (
     //INPUT
     input logic                             clock,
     input logic                             reset,
