@@ -66,11 +66,11 @@ module icache(
             if(update_mem_tag)
                 current_mem_tag     <= `SD Imem2proc_response;
 
-				    if(data_write_enable) begin
-				        data[current_index]     <= `SD Imem2proc_data;
-						    tags[current_index]     <= `SD current_tag;
-					      valids[current_index]   <= `SD 1;
-				    end
+                if(data_write_enable) begin
+                    data[current_index]     <= `SD Imem2proc_data;
+                    tags[current_index]     <= `SD current_tag;
+                    valids[current_index]   <= `SD 1;
+                end
         end
     end
 

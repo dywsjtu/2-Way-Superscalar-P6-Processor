@@ -131,7 +131,7 @@ module pipeline (
 	icache icache_0 (
 		.clock(clock),
 		.reset(reset),
-	 	.Imem2proc_response(mem2proc_response),
+	 	.Imem2proc_response(do_Ifetch ? mem2proc_response : 0),
 	    .Imem2proc_data(mem2proc_data),
 	    .Imem2proc_tag(mem2proc_tag),
 
@@ -154,13 +154,15 @@ module pipeline (
 
 	assign proc2Dmem_command = BUS_NONE;
 	
+	assign do_Ifetch = (proc2Dmem_command == BUS_NONE);
+
 	assign proc2mem_command =
-	     (proc2Dmem_command == BUS_NONE) ? proc2Imem_command : proc2Dmem_command;
+	     do_Ifetch ? proc2Imem_command : proc2Dmem_command;
 	assign proc2mem_addr =
-	     (proc2Dmem_command == BUS_NONE) ? proc2Imem_addr : proc2Dmem_addr;
+	     do_Ifetch ? proc2Imem_addr : proc2Dmem_addr;
 	//if it's an instruction, then load a double word (64 bits)
 	assign proc2mem_size =
-	     (proc2Dmem_command == BUS_NONE) ? DOUBLE : proc2Dmem_size;
+	     do_Ifetch ? DOUBLE : proc2Dmem_size;
 	assign proc2mem_data = {32'b0, proc2Dmem_data};
 
 	// always @* begin

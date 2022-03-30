@@ -38,7 +38,7 @@ module dcache(
     output logic Dcache_valid_out,      // when this is high
 
     //Store output
-    //output logic write_done, //if data is written into dcache
+    output logic write_done, //if data is written into dcache
 
     //Output to Dmem
     output logic [63:0]             proc2Dmem_data,
@@ -60,6 +60,7 @@ module dcache(
     //Load from mem
     logic data_write_enable; 
     logic write2mem;
+    assign {current_tag, current_idx} = proc2Dcache_addr[15:3];
 
     assign data_write_enable = (current_mem_tag == Dmem2proc_tag) && (current_mem_tag != 0);
     assign proc2Dmem_addr    = {proc2Dcache_addr[31:3],3'b0};
@@ -67,7 +68,7 @@ module dcache(
                                (write2mem) ? BUS_STORE : BUS_NONE; 
     assign proc2Dmem_data    = (write2mem && dirty[LRU_idx[current_idx]]) ? data[LRU_idx[current_idx]] : 64'b0;
     
-    assign {current_tag, current_idx} = proc2Dcache_addr[15:3];
+    
     
     //Read from Dcache
     assign Dcache_data_out = (read_en && tags[0][current_index] == current_tag && valids[0][current_index]) ? data[0][current_index] :
@@ -94,12 +95,18 @@ module dcache(
             valids[1]       <= `SD 0;
             LRU_idx         <= `SD 0;
             current_mem_tag <= `SD 0;
+            write2mem       <= `SD 0;
         end else begin
             current_mem_tag <= `SD Dmem2proc_response;
             if (data_write_enable || write_en) begin
                 valids[LRU_idx[current_idx]] <= `SD 1'b1;
                 tags[LRU_idx[current_idx]]   <= `SD current_tag;
                 data[LRU_idx[current_idx]]   <= `SD (data_write_enable) ? Dmem2proc_data : proc2Dcache_data;
+                if (tags[LRU_idx[current_idx]] == current_tag) begin
+                    dirty[LRU_idx[current_idx]] <= `SD 1'b1;
+                end else begin
+                    write2mem <= `SD dirty[LRU_idx[current_idx]];
+                end
             end
             LRU_idx   <= `SD LRU_next;
         end
