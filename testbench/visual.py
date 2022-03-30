@@ -3,12 +3,7 @@ import curses
 import collections
 import tabulate
 import functools
-import colorama
 import numpy
-import colorama
-from colorama import Fore, Style
-
-colorama.init()
 
 with open("program.out") as file:
     out = file.readlines()
@@ -156,7 +151,6 @@ def main(screen):
             old_text = text
         diff(screen, old_text, text)
         old_text = text
-        screen.refresh()
         next_cycle = {
             "KEY_RIGHT": cycle + 1,
             "KEY_LEFT": cycle - 1,
@@ -166,13 +160,10 @@ def main(screen):
             "KEY_END": len(data) - 1,
         }
         key = screen.getkey()
-        # print(key)
         if key == "q":
             break
         cycle = numpy.clip(next_cycle[key], 0, len(data) - 1)
-
-
-print(data[0].mt_entries)
+        screen.refresh()
 
 
 curses.wrapper(main)
