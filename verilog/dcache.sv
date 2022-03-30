@@ -38,18 +38,20 @@ module dcache(
     output logic Dcache_valid_out,      // when this is high
 
     //Store output
-    output logic write_done, //if data is written into dcache
+    //output logic write_done, //if data is written into dcache
 
     //Output to Dmem
-    output logic [1:0] proc2Dmem_command,
-    output logic [`XLEN-1:0] proc2Dmem_addr
+    output logic [63:0]             proc2Dmem_data,
+    output logic [1:0]              proc2Dmem_command,
+    output logic [`XLEN-1:0]        proc2Dmem_addr
     );
 
     //Cache memory (2-way associative + LRU)
     logic [1:0][`CACHE_LINES-1:0] [63:0]                     data;
     logic [1:0][`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
     logic [1:0][`CACHE_LINES-1:0]                            valids;
-    logic [`CACHE_LINES-1:0]                                 LRU_idx;
+    logic [1:0][`CACHE_LINES-1:0]                            dirty;
+    logic [`CACHE_LINES-1:0]                                 LRU_idx, LRU_next;
 
     logic [`CACHE_LINE_BITS - 1:0]  current_index;
     logic [12 - `CACHE_LINE_BITS:0] current_tag;
@@ -57,12 +59,15 @@ module dcache(
 
     //Load from mem
     logic data_write_enable; 
+    logic write2mem;
+
     assign data_write_enable = (current_mem_tag == Dmem2proc_tag) && (current_mem_tag != 0);
     assign proc2Dmem_addr    = {proc2Dcache_addr[31:3],3'b0};
     assign proc2Dmem_command = (read_en && ~Dcache_valid_out) ? BUS_LOAD :  
-                               (write_en) ? BUS_STORE : BUS_NONE; 
+                               (write2mem) ? BUS_STORE : BUS_NONE; 
+    assign proc2Dmem_data    = (write2mem && dirty[LRU_idx[current_idx]]) ? data[LRU_idx[current_idx]] : 64'b0;
     
-    assign {current_tag, current_index} = proc2Dcache_addr[15:3];
+    assign {current_tag, current_idx} = proc2Dcache_addr[15:3];
     
     //Read from Dcache
     assign Dcache_data_out = (read_en && tags[0][current_index] == current_tag && valids[0][current_index]) ? data[0][current_index] :

@@ -103,7 +103,7 @@ simv_mt:	$(HEADERS) verilog/map_table.sv testbench/test_map.sv
 simv_btb:	$(HEADERS) verilog/btb.sv testbench/test_btb.sv 
 	$(VCS) $^ -o simv_btb
 
-simv_dcache:	$(HEADERS) verilog/dcache.sv testbench/test_dcache.sv
+simv_dcache:	$(HEADERS) verilog/dcache.sv testbench/test_dcache.sv testbench/mem.sv
 	$(VCS) $^ -o simv_dcache
 	
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)

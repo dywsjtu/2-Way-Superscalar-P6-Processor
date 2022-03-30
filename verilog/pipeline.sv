@@ -33,40 +33,10 @@ module pipeline (
 	output logic [`XLEN-1:0] 	pipeline_commit_wr_data,
 	output logic        		pipeline_commit_wr_en,
 	output logic [`XLEN-1:0] 	pipeline_commit_NPC,
-	
-	
-	// testing hooks (these must be exported so we can test
-	// the synthesized version) data is tested by looking at
-	// the final values in memory
-
-
-	// // Outputs from IF-Stage 
-	// output logic [`XLEN-1:0] if_NPC_out,
-	// output logic [31:0] if_IR_out,
-	// output logic        if_valid_inst_out,
-	
-	// // Outputs from IF/ID Pipeline Register
-	// output logic [`XLEN-1:0] if_id_NPC,
-	// output logic [31:0] if_id_IR,
-	// output logic        if_id_valid_inst,
-	
-	
-	// Outputs from ID/EX Pipeline Register
 	output logic [`XLEN-1:0] id_ex_NPC,
 	output logic [31:0] id_ex_IR,
 	output logic        id_ex_valid_inst
 	
-	
-	// // Outputs from EX/MEM Pipeline Register
-	// output logic [`XLEN-1:0] ex_mem_NPC,
-	// output logic [31:0] ex_mem_IR,
-	// output logic        ex_mem_valid_inst,
-	
-	
-	// // Outputs from MEM/WB Pipeline Register
-	// output logic [`XLEN-1:0] mem_wb_NPC,
-	// output logic [31:0] mem_wb_IR,
-	// output logic        mem_wb_valid_inst
 
 );
 
@@ -134,22 +104,13 @@ module pipeline (
 	logic [`XLEN-1:0] mem_wb_NPC;
 
 	logic halt;
-	
-	// assign pipeline_completed_insts = {3'b0, mem_wb_valid_inst};
-	// assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
-	//                                 mem_wb_halt                ? HALTED_ON_WFI :
-	//                                 (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
-	//                                 NO_ERROR;
-	// assign pipeline_commit_wr_idx = wb_reg_wr_idx_out;
-	// assign pipeline_commit_wr_data = wb_reg_wr_data_out;
-	// assign pipeline_commit_wr_en = wb_reg_wr_en_out;
-	// assign pipeline_commit_NPC = mem_wb_NPC;
+
 
 	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
-	assign pipeline_error_status 	= 	halt						?	HALTED_ON_WFI		:
-										//(mem2proc_response==4'h0) 	? 	LOAD_ACCESS_FAULT 	:
-										(mem2proc_response==4'h0) 	? 	NO_ERROR 	: // TODO figure out when load access fault
-	                                									NO_ERROR;
+	assign memory_error = (proc2mem_command != BUS_NONE && mem2proc_response==4'h0);
+	assign pipeline_error_status 	= 	halt			?	HALTED_ON_WFI :
+										memory_error 	? 	LOAD_ACCESS_FAULT :
+	                                						NO_ERROR;
 	
 	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
 	assign pipeline_commit_wr_data 	= rob_reg.dest_value;
