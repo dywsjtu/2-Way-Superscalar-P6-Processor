@@ -12,75 +12,83 @@
 
 `timescale 1ns/100ps
 
-`define CACHE_LINES 32
+`define CACHE_LINES 16
 `define CACHE_LINE_BITS $clog2(`CACHE_LINES)
 
 module dcache(
     input clock,
     input reset,
-    input [3:0]  Imem2proc_response,
-    input [63:0] Imem2proc_data,
-    input [3:0]  Imem2proc_tag,
 
-    input [`XLEN-1:0] proc2Dcache_addr,
+    //Feedback from Dmem
+    input [3:0]  Dmem2proc_response,
+    input [63:0] Dmem2proc_data,
+    input [3:0]  Dmem2proc_tag,
 
-    output logic [1:0] proc2Imem_command,
-    output logic [`XLEN-1:0] proc2Imem_addr,
+    //Control signals
+    input read_en,
+    input write_en,
 
+    //Read from Dcache
+    input [`XLEN-1:0] proc2Dcache_addr_r,
+
+    //Write to Dcache
+    input [`XLEN-1:0] proc2Dcache_addr_w,
+    input [`XLEN-1:0] proc2Dcache_data, //TODO: change to allow different sizes
+
+    //Read from Dcache
     output logic [63:0] Dcache_data_out, // value is memory[proc2Dcache_addr]
     output logic Dcache_valid_out      // when this is high
+
+    //Write to Dcache
+    output logic [1:0] proc2Dmem_command,
+    output logic [`XLEN-1:0] proc2Dmem_addr,
     );
+
+    //Cache memory (2-way associative)
+    logic [1:0][`CACHE_LINES-1:0] [63:0]                     data;
+    logic [1:0][`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
+    logic [1:0][`CACHE_LINES-1:0]                            valids;
+    logic [`CACHE_LINES-1:0]                                 LRU_idx;
 
     logic [`CACHE_LINE_BITS - 1:0] current_index, last_index;
     logic [12 - `CACHE_LINE_BITS:0] current_tag, last_tag;
 
-    assign {current_tag, current_index} = proc2Dcache_addr[15:3];
+    logic data_write_enable; //load from mem
+    assign data_write_enable = (current_mem_tag == Dmem2proc_tag) && (current_mem_tag != 0);
 
-    logic [3:0] current_mem_tag;
-    logic miss_outstanding;
+    //for now defer WRITE for READ
+    assign {current_tag, current_index} = (read_en)  ? proc2Dcache_addr_r[15:3] :
+                                          (write_en) ? proc2Dcache_addr_w[15:3] : 13'b0;
+    
 
-    logic data_write_enable = (current_mem_tag == Imem2proc_tag) && (current_mem_tag != 0);
-
-    logic changed_addr      = (current_index != last_index) || (current_tag != last_tag);
-
-    logic update_mem_tag    = changed_addr || miss_outstanding || data_write_enable;
-
-    logic unanswered_miss   = changed_addr ? !Dcache_valid_out :
-                                        miss_outstanding && (Imem2proc_response == 0);
-
-    assign proc2Imem_addr    = {proc2Dcache_addr[31:3],3'b0};
-    assign proc2Imem_command = (miss_outstanding && !changed_addr) ?  BUS_LOAD : BUS_NONE;
-
-    //Cache memory
-    logic [`CACHE_LINES-1:0] [63:0]                     data;
-    logic [`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
-    logic [`CACHE_LINES-1:0]                            valids;
-
-    assign Dcache_data_out = data[current_index];
-    assign Dcache_valid_out = valids[current_index] && (tags[current_index] == current_tag);
-
+    //Read from Dcache
+    assign Dcache_data_out = (~read_en) ? 64'b0:
+                      (tags[0][current_index] == current_tag && valids[0][current_index]) ? data[0][current_index] :
+                      (tags[1][current_index] == current_tag && valids[1][current_index]) ? data[1][current_index] :
+                      64'b0; 
+    assign Dcache_valid_out = read_en && 
+                              ((tags[0][current_index] == current_tag && valids[0][current_index]) ||
+                              (tags[1][current_index] == current_tag && valids[1][current_index]));
+                    
+    always_comb begin
+        LRU_next = LRU_idx;
+        if (data_write_enable || write_en) begin
+            LRU_next[current_idx] += 1;
+        end
+    end
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
-        if(reset) begin
-            last_index       <= `SD -1;   // These are -1 to get ball rolling when
-            last_tag         <= `SD -1;   // reset goes low because addr "changes"
-            current_mem_tag  <= `SD 0;
-            miss_outstanding <= `SD 0;
-
-            valids <= `SD b0;  
+        if (reset) begin
+            valids[0] <= `SD 0;
+            valids[0] <= `SD 0;
+            LRU_idx   <= `SD 0;
         end else begin
-            last_index              <= `SD current_index;
-            last_tag                <= `SD current_tag;
-            miss_outstanding        <= `SD unanswered_miss;
-
-            if(update_mem_tag)
-                current_mem_tag     <= `SD Imem2proc_response;
-
-				    if(data_write_enable) begin
-				        data[current_index]     <= `SD Imem2proc_data;
-						    tags[current_index]     <= `SD current_tag;
-					      valids[current_index]   <= `SD 1;
-				    end
+            if (data_write_enable || write_en) begin
+                valids[LRU_idx[current_idx]] <= `SD 1'b1;
+                tags[LRU_idx[current_idx]]   <= `SD current_tag;
+                data[LRU_idx[current_idx]]   <= `SD (data_write_enable) ? Dmem2proc_data : proc2Dcache_data;
+            end
+            LRU_idx   <= `SD LRU_next;
         end
     end
 
