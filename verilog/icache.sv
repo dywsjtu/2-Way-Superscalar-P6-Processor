@@ -25,16 +25,20 @@ module icache(
     logic [3:0] current_mem_tag;
     logic miss_outstanding;
 
-    logic data_write_enable = (current_mem_tag == Imem2proc_tag) && (current_mem_tag != 0);
+    assign data_write_enable = (current_mem_tag == Imem2proc_tag) && (current_mem_tag != 0);
 
-    logic changed_addr      = (current_index != last_index) || (current_tag != last_tag);
+    assign changed_addr      = (current_index != last_index) || (current_tag != last_tag);
 
-    logic update_mem_tag    = changed_addr || miss_outstanding || data_write_enable;
+    assign update_mem_tag    = changed_addr || miss_outstanding || data_write_enable;
 
-    logic unanswered_miss   = changed_addr ? !Icache_valid_out :
+    assign unanswered_miss   = changed_addr ? !Icache_valid_out :
                                         miss_outstanding && (Imem2proc_response == 0);
 
-    assign proc2Imem_addr    = {proc2Icache_addr[31:3],3'b0};
+    assign proc2Imem_addr    = {proc2Icache_addr[31:3], 3'b0};
+    always @(negedge clock) begin
+        $display("icache debug: %h %h %h %h %h", proc2Icache_addr, current_index, last_index, current_tag, last_tag);
+        $display("icache debug outstanding, changed_addr: %h %h", miss_outstanding, changed_addr);
+    end
     assign proc2Imem_command = (miss_outstanding && !changed_addr) ?  BUS_LOAD : BUS_NONE;
 
     //Cache memory
@@ -53,7 +57,7 @@ module icache(
             current_mem_tag  <= `SD 0;
             miss_outstanding <= `SD 0;
 
-            valids <= `SD b0;  
+            valids <= `SD `CACHE_LINES'b0;  
         end else begin
             last_index              <= `SD current_index;
             last_tag                <= `SD current_tag;

@@ -147,7 +147,8 @@ module pipeline (
 
 	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
 	assign pipeline_error_status 	= 	halt						?	HALTED_ON_WFI		:
-										(mem2proc_response==4'h0) 	? 	LOAD_ACCESS_FAULT 	:
+										//(mem2proc_response==4'h0) 	? 	LOAD_ACCESS_FAULT 	:
+										(mem2proc_response==4'h0) 	? 	NO_ERROR 	: // TODO figure out when load access fault
 	                                									NO_ERROR;
 	
 	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
@@ -155,6 +156,35 @@ module pipeline (
 	assign pipeline_commit_wr_en 	= rob_reg.dest_valid;
 	assign pipeline_commit_NPC 		= rob_reg.OLD_PC_p_4;
 	
+		//////////////////////////////////////////////////
+	//                                              //
+	//              ICache                          //
+	//                                              //
+	//////////////////////////////////////////////////
+
+	logic [`XLEN-1:0] proc2Icache_addr;
+	logic [1:0] proc2Imem_command;
+    logic [63:0] Icache_data_out; // value is memory[proc2Icache_addr]
+    logic Icache_valid_out;      // when this is high
+
+	icache icache_0 (
+		.clock(clock),
+		.reset(reset),
+	 	.Imem2proc_response(mem2proc_response),
+	    .Imem2proc_data(mem2proc_data),
+	    .Imem2proc_tag(mem2proc_tag),
+
+	    .proc2Icache_addr(proc2Icache_addr),
+
+    	.proc2Imem_command(proc2Imem_command),
+    	.proc2Imem_addr(proc2Imem_addr),
+
+	    .Icache_data_out(Icache_data_out),
+	    .Icache_valid_out(Icache_valid_out)
+	);
+
+	// Memory
+
 	logic [`XLEN-1:0] mem_result_out;
 	logic [`XLEN-1:0] proc2Dmem_addr;
 	logic [`XLEN-1:0] proc2Dmem_data;
@@ -164,7 +194,7 @@ module pipeline (
 	assign proc2Dmem_command = BUS_NONE;
 	
 	assign proc2mem_command =
-	     (proc2Dmem_command == BUS_NONE) ? BUS_LOAD : proc2Dmem_command;
+	     (proc2Dmem_command == BUS_NONE) ? proc2Imem_command : proc2Dmem_command;
 	assign proc2mem_addr =
 	     (proc2Dmem_command == BUS_NONE) ? proc2Imem_addr : proc2Dmem_addr;
 	//if it's an instruction, then load a double word (64 bits)
@@ -188,6 +218,16 @@ module pipeline (
 	// assign ex_mem_take_branch				= 1'b0;
 	// assign ex_mem_target_pc					= `XLEN'b0;
 
+	logic [31:0] cycle_count;
+	always_ff @(negedge clock) begin
+        if(reset) begin
+            cycle_count = 0;
+        end else begin
+            $display("DEBUG %4d: Icache_valid_out = %d, proc2mem_command = %d, proc2Imem_command = %d, proc2mem_addr = %d", cycle_count, Icache_valid_out, proc2mem_command, proc2Imem_command, proc2mem_addr);
+            cycle_count = cycle_count + 1;
+        end
+    end
+
 	dispatch_stage dispatch_stage_0 (
 		// Inputs
 		.clock(clock),
@@ -196,11 +236,11 @@ module pipeline (
 		.stall(~dispatch_enable),
 		// .ex_mem_take_branch(ex_mem_take_branch),
 		// .ex_mem_target_pc(ex_mem_target_pc),
-		.Imem2proc_data(mem2proc_data),
+		.Imem2proc_data(Icache_data_out),
 		.rob_id(rob_id),
 		
 		// Outputs
-		.proc2Imem_addr(proc2Imem_addr),
+		.proc2Imem_addr(proc2Icache_addr),
 		.id_packet_out(id_packet)
 	);
 
@@ -254,7 +294,7 @@ module pipeline (
 	end // always
 
 		
-	assign dispatch_enable = (!rob_full) && (!rs_entry_full); // TO DO check lsq not full
+	assign dispatch_enable = (!rob_full) && (!rs_entry_full) && Icache_valid_out; // TO DO check lsq not full
 	//ID TO ROB
 	assign id_rob = {	
 						id_packet_out.valid && ~id_packet_out.illegal,

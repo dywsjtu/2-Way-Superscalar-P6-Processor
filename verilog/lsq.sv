@@ -5,7 +5,6 @@
 //  Description :  load store queue;                                   // 
 /////////////////////////////////////////////////////////////////////////
 
-
 `define DEBUG
 `ifndef __LSQ_V__
 `define __LSQ_V__
@@ -29,7 +28,7 @@ module load_queue (
     logic               [`LSQ_IDX_LEN-1:0]          lq_tail;
     logic               [`LSQ_IDX_LEN-1:0]          lq_counter;
 
-    LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]      next_lq_entries
+    LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]      next_lq_entries;
     logic               [`LSQ_IDX_LEN-1:0]          next_lq_head;
     logic               [`LSQ_IDX_LEN-1:0]          next_lq_tail;
     logic               [`LSQ_IDX_LEN-1:0]          next_lq_counter;

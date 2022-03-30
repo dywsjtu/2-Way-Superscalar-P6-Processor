@@ -83,7 +83,7 @@ for line in out:
 
 tabulate.PRESERVE_WHITESPACE = True
 
-OPTS = dict(tablefmt="fancy_grid", disable_numparse=True, stralign="right")
+OPTS = dict(tablefmt="simple", disable_numparse=True, stralign="right")
 
 tabulate = functools.partial(tabulate.tabulate, **OPTS)
 

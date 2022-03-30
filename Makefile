@@ -51,7 +51,8 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 HEADERS     = $(wildcard *.svh)
 TESTBENCH   = testbench/testbench.sv testbench/mem.sv #$(wildcard testbench/*.sv)
 TESTBENCH  += $(wildcard testbench/*.c)
-PIPEFILES   = $(wildcard verilog/*.sv)
+PIPEFILES   := $(wildcard verilog/*.sv)
+PIPEFILES   := $(filter-out verilog/dcache.sv verilog/lsq.sv, $(PIPEFILES))
 
 SIMFILES    = $(PIPEFILES)
 
@@ -102,8 +103,8 @@ simv_mt:	$(HEADERS) verilog/map_table.sv testbench/test_map.sv
 simv_btb:	$(HEADERS) verilog/btb.sv testbench/test_btb.sv 
 	$(VCS) $^ -o simv_btb
 
-simv_cdb:	$(HEADERS) verilog/cdb.sv testbench/test_cdb.sv
-	$(VCS) $^ -o simv_cdb
+simv_dcache:	$(HEADERS) verilog/dcache.sv testbench/test_dcache.sv
+	$(VCS) $^ -o simv_dcache
 	
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
 	$(VCS) $^ -o simv
