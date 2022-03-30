@@ -79,12 +79,14 @@ typedef enum logic [3:0] {
 // MapTable parameters
 //
 //////////////////////////////////////////////
-`define ROB_SIZE 		8
-`define REG_SIZE 		32
-//`define ROB_IDX_LEN 	clog2(`ROB_SIZE+1)
-`define ROB_IDX_LEN 	6
-`define ZERO_TAG 		6'b100000
-`define CDB_BUFFER_SIZE	2
+`define ROB_SIZE 			8
+`define REG_SIZE 			32
+`define ROB_IDX_LEN 		6
+`define ZERO_TAG 			6'b100000
+`define CDB_BUFFER_SIZE		2
+`define LOAD_QUEUE_SIZE		4
+`define STORE_QUEUE_SIZE	8
+`define LSQ_IDX_LEN			4
 
 // `define SMALL_FU_OUT_TEST
 // `define FU_SIZE			4
@@ -111,29 +113,29 @@ typedef enum logic [3:0] {
 // `define BEQ_OFFSET		4
 
 `define FULL_FU_OUT_TEST
-`define HALF_FU_SIZE	10
-`define FU_SIZE			20
-`define FU_CAT			4
-`define CAT_FU			4
-`define NUM_ALU			8
-`define NUM_LS			4
-`define NUM_MULT		4
-`define NUM_BEQ			4
-`define ALU_OFFSET		8
-`define LS_OFFSET		12
-`define MULT_OFFSET		16
-`define BEQ_OFFSET		20
+`define HALF_FU_SIZE		10
+`define FU_SIZE				20
+`define FU_CAT				4
+`define CAT_FU				4
+`define NUM_ALU				8
+`define NUM_LS				4
+`define NUM_MULT			4
+`define NUM_BEQ				4
+`define ALU_OFFSET			8
+`define LS_OFFSET			12
+`define MULT_OFFSET			16
+`define BEQ_OFFSET			20
 
-`define		FU_ALU			5'b0
-`define 	FU_LS			`ALU_OFFSET
-`define		FU_MULT			`LS_OFFSET
-`define		FU_BEQ			`MULT_OFFSET
-`define 	FU_COUNT		`BEQ_OFFSET
+`define FU_ALU				5'b0
+`define FU_LS				`ALU_OFFSET
+`define	FU_MULT				`LS_OFFSET
+`define	FU_BEQ				`MULT_OFFSET
+`define FU_COUNT			`BEQ_OFFSET
 
-`define		FU_END_ALU		`ALU_OFFSET 
-`define 	FU_END_LS		`LS_OFFSET
-`define		FU_END_MULT		`MULT_OFFSET
-`define		FU_END_BEQ		`BEQ_OFFSET
+`define	FU_END_ALU			`ALU_OFFSET 
+`define FU_END_LS			`LS_OFFSET
+`define	FU_END_MULT			`MULT_OFFSET
+`define	FU_END_BEQ			`BEQ_OFFSET
 
 
 // typedef enum logic [4:0] { 
@@ -409,6 +411,7 @@ typedef struct packed {
 	logic						ready;			// is value ready
 	logic	[4:0]				dest_reg_idx;	// dest reg index
 	logic	[`XLEN-1:0]			value;			// value
+	logic						store;
 	logic						mis_pred;  		// is mispredicted 
 	logic						take_branch;	// whether is predicted to take branch
 	logic						halt;			// whether it's a halt
@@ -530,6 +533,7 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			PC;
 	logic						dispatch_enable;// whether is enable to dispatch
 	logic	[4:0]				dest_reg_idx;	// destination register
+	logic						store;
 	logic						take_branch;	// whether dispatch stage will take branch or not
 	logic						halt;			// whether is a halt instruction
 } ID_ROB_PACKET;
@@ -599,5 +603,53 @@ typedef struct packed {
 	logic					halt, illegal, csr_op;
 	logic	[2:0]			mem_size; // byte, half-word or word
 } FU_RS_PACKET;
+
+// load store queue related structure
+typedef struct packed {
+	logic	[`XLEN-1:0]		addr;
+	logic					valid;
+} LOAD_QUEUE_ENTRY;
+
+typedef struct packed {
+	logic	[`XLEN-1:0]		addr;
+	logic					valid;
+	logic	[`XLEN-1:0]		value;
+} STORE_QUEUE_ENTRY;
+
+typedef struct packed {
+	logic					valid;
+} RS_LOADQ;
+
+typedef struct packed {
+	logic					valid;
+} RS_STOREQ;
+
+typedef struct packed {
+	//	ADDR
+	//	ADDR_VALID
+	logic	[`XLEN-1:0]		addr;
+	logic					addr_valid;
+} FU_LOADQ;
+
+typedef struct packed {
+	//	VALUE
+	//	VALUE_VALID
+	logic	[`XLEN-1:0]		value;
+	logic					value_valid;
+} LOADQ_FU;
+
+typedef struct packed {
+	//	ADDR
+	//	VALUE
+	//	VALID
+	logic	[`XLEN-1:0]		addr;
+	logic	[`XLEN-1:0]		value;
+	logic					valid;
+} FU_STOREQ;
+
+typedef struct packed {
+	//	VALID
+	logic					valid;
+} STOREQ_FU;
 
 `endif // __SYS_DEFS_VH__

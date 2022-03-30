@@ -19,14 +19,17 @@ module rob(
     input   ID_ROB_PACKET       id_rob,
     input   RS_ROB_PACKET       rs_rob,
     input   CDB_ENTRY           cdb_rob,
+    input   logic               sq_rob_valid,
 
     output  logic               rob_full,
     output  logic               halt,
+    output  logic               squash,
 
     output  ROB_ID_PACKET       rob_id,
     output  ROB_RS_PACKET       rob_rs,
     output  ROB_MT_PACKET       rob_mt,
-    output  ROB_REG_PACKET      rob_reg
+    output  ROB_REG_PACKET      rob_reg,
+    output  logic               sq_retire
 );  
     logic               [`ROB_IDX_LEN-1:0]  rob_head;
     logic               [`ROB_IDX_LEN-1:0]  rob_tail;
@@ -35,14 +38,16 @@ module rob(
 
     logic       rob_empty;
     logic       retire_valid;
-    logic       squash;
     logic       valid;
 
     assign halt                 = rob_entries[rob_head].halt;
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full             = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
-    assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty)) || rob_entries[rob_head].halt;
+    assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty) 
+                                     && (~rob_entries[rob_head].store || sq_rob_valid)) 
+                                  || rob_entries[rob_head].halt;
+    assign sq_retire            = retire_valid && rob_entries[rob_head].store
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
 
@@ -88,6 +93,7 @@ module rob(
                 rob_entries[rob_tail].ready             <=  `SD 1'b0;
                 rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
                 rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
+                rob_entries[rob_tail].store             <=  `SD id_rob.store;
                 rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
                 rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
                 rob_entries[rob_tail].halt              <=  `SD id_rob.halt;

@@ -80,6 +80,8 @@ module pipeline (
 	// ID
 	ID_ROB_PACKET       id_rob;   
 	ID_RS_PACKET        id_rs;
+	logic				sq_rob_valid;
+	logic				sq_retire;
 
 	// CDB
 	CDB_ENTRY           cdb_out;
@@ -259,6 +261,7 @@ module pipeline (
 						id_packet_out.PC,
 						dispatch_enable,
 						id_packet_out.dest_reg_idx,
+						id_packet_out.wr_mem,
 						id_packet_out.take_branch,
 						id_packet_out.halt
 					};
@@ -374,14 +377,15 @@ module pipeline (
 		.id_rob(id_rob),
 		.rs_rob(rs_rob),
 		.cdb_rob(cdb_out),
+		.sq_rob_valid(sq_rob_valid),
 		// output
 		.rob_full(rob_full),
 		.halt(halt),
-		
 		.rob_id(rob_id),
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),
-		.rob_reg(rob_reg)
+		.rob_reg(rob_reg),
+		.sq_retire(sq_retire)
 	);
 
 endmodule  // module verisimple
