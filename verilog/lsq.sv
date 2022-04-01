@@ -26,39 +26,47 @@ module lsq (
     output  LSQ_RS_PACKET                   lsq_rs,
 
     // connet to memory (dcache)    
-    input                                   store_finish, // from d-cache indicate whether the store finished write
-    input	logic   [`XLEN-1:0] 		    Dmem2proc_data,
-    output	logic   [`XLEN-1:0] 	        Dmem2proc_addr,
-    output	logic   [`XLEN-1:0] 		    proc2Dmem_data,
-    output	logic   [`XLEN-1:0] 	        proc2Dmem_addr
+    // input                                   store_finish, // from d-cache indicate whether the store finished write
+    // input	logic   [`XLEN-1:0] 		    Dmem2proc_data,
+    // output	logic   [`XLEN-1:0] 	        Dmem2proc_addr,
+    // output	logic   [`XLEN-1:0] 		    proc2Dmem_data,
+    // output	logic   [`XLEN-1:0] 	        proc2Dmem_addr
+    input   DCACHE_LOAD_LSQ_PACKET          dc_load_lsq,
+    input   DCACHE_STORE_LSQ_PACKET         dc_store_lsq
+    output  LSQ_LOAD_DCACHE_PACKET          lsq_load_dc,
+    output  LSQ_STORE_DCACHE_PACKET         lsq_store_dc
+
 );  
     // load queue
      
     LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]              lq_entries;
     logic               [`LOAD_QUEUE_SIZE-1:0]              lq_retire_valid;
     logic               [`LOAD_QUEUE_SIZE-1:0][`XLEN-1:0]   lq_value;
-    logic               [`LSQ_IDX_LEN-1:0]                  lq_head;
-    logic               [`LSQ_IDX_LEN-1:0]                  lq_tail;
-    logic               [`LSQ_IDX_LEN-1:0]                  lq_counter;
+    // logic               [`LSQ_IDX_LEN-1:0]                  lq_head;
+    // logic               [`LSQ_IDX_LEN-1:0]                  lq_tail;
+    // logic               [`LSQ_IDX_LEN-1:0]                  lq_counter;
 
     LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]              next_lq_entries;
     logic               [`LOAD_QUEUE_SIZE-1:0]              next_lq_retire_valid;
     logic               [`LOAD_QUEUE_SIZE-1:0][`XLEN-1:0]   next_lq_value;
-    logic               [`LSQ_IDX_LEN-1:0]                  next_lq_head;
-    logic               [`LSQ_IDX_LEN-1:0]                  next_lq_tail;
-    logic               [`LSQ_IDX_LEN-1:0]                  next_lq_counter;
+    // logic               [`LSQ_IDX_LEN-1:0]                  next_lq_head;
+    // logic               [`LSQ_IDX_LEN-1:0]                  next_lq_tail;
+    // logic               [`LSQ_IDX_LEN-1:0]                  next_lq_counter;
 
+    LSQ_LOAD_DCACHE_PACKET                                  next_lsq_load_dc;
+    LSQ_STORE_DCACHE_PACKET                                 next_lsq_store_dc;
+    LSQ_RS_PACKET       [`NUM_LS-1:0]                       next_lsq_fu;
+    logic                                                   next_sq_rob_valid;
 
-    logic [`LOAD_QUEUE_SIZE-1:0]    lq_selection;
+    logic [1:0]    lq_selection;
 
-    ps4 lq_selector (
-        .req({  lq_entries[3].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[3]
-                lq_entries[2].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[2]
-                lq_entries[1].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[1]
-                lq_entries[0].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[0]   }),
-        .gnt(lq_selection)
+    ps4_num lq_selector (
+        .req({  lq_entries[3].addr[`LSQ_IDX_LEN-1] && lq_entries[3].valid && ~lq_retire_valid[3]
+                lq_entries[2].addr[`LSQ_IDX_LEN-1] && lq_entries[2].valid && ~lq_retire_valid[2]
+                lq_entries[1].addr[`LSQ_IDX_LEN-1] && lq_entries[1].valid && ~lq_retire_valid[1]
+                lq_entries[0].addr[`LSQ_IDX_LEN-1] && lq_entries[0].valid && ~lq_retire_valid[0]   }),
+        .num(lq_selection)
     );
-
 
     logic   temp_flag;
     
@@ -66,18 +74,15 @@ module lsq (
         next_lq_entries         = lq_entries;
         next_lq_retire_valid    = lq_retire_valid;
         next_lq_value           = lq_value;
-        next_lq_head            = lq_head;
-        next_lq_tail            = lq_tail;
-        next_lq_counter         = lq_counter;
-
-        if (rs_lsq.valid && rs_lsq.load) begin
-            next_lq_tail    = (lq_tail == `LOAD_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : lq_tail + 1;
-            next_lq_counter += 1;
-        end
+        // next_lq_head            = lq_head;
+        // next_lq_tail            = lq_tail;
+        // next_lq_counter         = lq_counter;
+        next_lsq_fu             = 0;
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
-            if (fu_lsq[i].valid && fu_lsq[i].load && ~lq_entries[fu_lsq[i].lq_pos].filled) begin
-                next_lq_entries[fu_lsq[i].lq_pos] = {fu_lsq[i].addr, 1'b0, 1'b1, fu_lsq[i].sq_pos};
+            if (fu_lsq[i].valid && fu_lsq[i].load && ~lq_entries[i].filled) begin
+                next_lq_entries[i]              = {fu_lsq[i].addr, 1'b0, 1'b1, fu_lsq[i].sq_pos};
+                next_lq_retire_valid[i]         = 1'b0;
             end
         end
 
@@ -140,30 +145,41 @@ module lsq (
             end
         end
 
+        if (dc_load_lsq.valid) begin
+            next_lq_valid[lq_selection]      = 1'b1;
+            next_lq_value[lq_selection]      = dc_load_lsq.value;
+        end
 
+        if (rs_lsq.valid && rs_lsq.load) begin
+            next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 1'b0, 1'b0, 0};
+            next_lq_retire_valid[rs_lsq.idx]    = 1'b0;
+        end
 
-
-
+        for (int i = 0; i < `LOAD_QUEUE_SIZE; i += 1) begin
+            next_lsq_fu[i]  = { next_lq_retire_valid[i],
+                                next_lq_value[i]    };
+        end
     end
 
     always_ff @(posedge clock) begin
         if (reset || squash) begin
-            lq_head             <= `SD `LSQ_IDX_LEN'b0;
-            lq_tail             <= `SD `LSQ_IDX_LEN'b0;
+            // lq_head             <= `SD `LSQ_IDX_LEN'b0;
+            // lq_tail             <= `SD `LSQ_IDX_LEN'b0;
             lq_retire_valid     <= `SD `LOAD_QUEUE_SIZE'b0;
             lq_value            <= `SD 0;
-            lq_counter          <= `SD 0;
+            // lq_counter          <= `SD 0;
             lq_entries          <= `SD 0;
+            lsq_fu              <= `SD 0;
         end else begin
-            lq_head             <= `SD next_lq_head;
-            lq_tail             <= `SD next_lq_tail;
+            // lq_head             <= `SD next_lq_head;
+            // lq_tail             <= `SD next_lq_tail;
             lq_retire_valid     <= `SD next_lq_retire_valid;
             lq_value            <= `SD next_lq_value;
-            lq_counter          <= `SD next_lq_counter;
+            // lq_counter          <= `SD next_lq_counter;
             lq_entries          <= `SD next_lq_entries;
+            lsq_fu              <= `SD next_lsq_fu;
         end
     end
-
 
 
     // store queue
@@ -181,9 +197,6 @@ module lsq (
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_tail;
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_counter;
 
-    assign storeq_fu.valid  = fu_storeq.valid && ~storeq_full;
-    assign sq_rob_valid     = sq_retire; // mem_delay_counter; // tell rob sq finish write header to memory
-
     always_comb begin
         next_sq_entries         = sq_entries;
         next_sq_valid           = sq_valid;
@@ -191,20 +204,20 @@ module lsq (
         next_sq_head            = sq_head;
         next_sq_tail            = sq_tail;
         next_sq_counter         = sq_counter;
+        next_sq_rob_valid       = 1'b0;
         
         if (rs_lsq.valid && rs_lsq.store) begin
-            next_sq_tail    = (sq_tail == `STORE_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : sq_tail + 1;
-            next_sq_counter += 1;
+            next_sq_tail        = (sq_tail == `STORE_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : sq_tail + 1;
+            next_sq_counter     += 1;
         end
 
-        if (sq_retire) begin
-            proc2Dmem_data              = sq_value[sq_head];
-            proc2Dmem_addr              = sq_entries[sq_head].addr;
+        if (dc_store_lsq.valid) begin
             next_sq_entries[sq_head]    = 0;
             next_sq_head                = (sq_head == `STORE_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : sq_head + 1;
             next_sq_counter             -= 1;
             next_sq_valid[sq_head]      = 1'b0;
             next_sq_value[sq_head]      = `XLEN'b0;
+            next_sq_rob_valid           = 1'b1;
         end
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
@@ -214,8 +227,6 @@ module lsq (
                 next_sq_value[fu_lsq[i].sq_pos]     = fu_lsq[i].value;
             end
         end
-        
-
     end
 
     always_ff @(posedge clock) begin
@@ -226,6 +237,7 @@ module lsq (
             sq_valid            <=  `SD `STORE_QUEUE_SIZE'b0;
             sq_value            <=  `SD 0;
             sq_entries          <=  `SD 0;
+            sq_rob_valid        <=  `SD 1'b0;
         end else begin
             sq_head             <=  `SD next_sq_head;
             sq_tail             <=  `SD next_sq_tail;
@@ -233,14 +245,29 @@ module lsq (
             sq_valid            <=  `SD next_sq_valid;
             sq_value            <=  `SD next_sq_value;
             sq_entries          <=  `SD next_sq_entries;
+            sq_rob_valid        <=  `SD next_sq_rob_valid;
         end
     end
 
-    assign lsq_rs.loadq_tail    =   lq_tail;
-    assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
+    // assign lsq_rs.loadq_tail    =   lq_tail;
+    // assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
     assign lsq_rs.storeq_tail   =   sq_tail;
     assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
+    assign next_lsq_load_dc     = { lq_entries[lq_selection].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
+                                    lq_entries[lq_selection].addr}
+    assign next_lsq_store_dc    = { sq_valid[sq_head] && sq_retire,
+                                    sq_entries[sq_head].addr,
+                                    sq_value[sq_head]   };
+    always_ff @(posedge clock) begin
+        if (reset || squash) begin
+            lsq_load_dc         <=  `SD 0;
+            lsq_store_dc        <=  `SD 0;
+        end else begin
+            lsq_load_dc         <=  `SD next_lsq_load_dc;
+            lsq_store_dc        <=  `SD next_lsq_store_dc;
+        end
+    end
 
 endmodule
 

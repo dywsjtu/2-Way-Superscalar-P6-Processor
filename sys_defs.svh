@@ -611,7 +611,7 @@ typedef struct packed {
 	logic							filled;
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } LOAD_QUEUE_ENTRY;
-
+lq_entries[3].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[3]
 `define NO_SQ_POS	`LSQ_IDX_LEN'b1111;
 
 typedef struct packed {
@@ -620,14 +620,15 @@ typedef struct packed {
 } STORE_QUEUE_ENTRY;
 
 typedef struct packed {
-	logic 					load;
-	logic					store;
-	logic					valid;
+	logic 						load;
+	logic						store;
+	logic						valid;
+	logic	[`LSQ_IDX_LEN-1:0]	idx;
 } RS_LSQ_PACKET;
 
 typedef struct packed {
-	logic   [`LSQ_IDX_LEN-1:0]		loadq_tail;
-	logic							loadq_full;
+//	logic   [`LSQ_IDX_LEN-1:0]		loadq_tail;
+//	logic							loadq_full;
 	logic   [`LSQ_IDX_LEN-1:0]		storeq_tail;
 	logic							storeq_full;
 } LSQ_RS_PACKET;
@@ -638,23 +639,35 @@ typedef struct packed {
 	logic							valid;
 	logic	[`XLEN-1:0]				addr;
 	logic	[`XLEN-1:0]				value;
-	logic	[`LSQ_IDX_LEN-1:0]		lq_pos;
+//	logic	[`LSQ_IDX_LEN-1:0]		lq_pos;
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } FU_LSQ_PACKET;
 
 typedef struct packed {
-	logic 					load;
-	logic					store;
-	logic					valid;
-	logic	[`XLEN-1:0]		value;				
+//	logic	[`LSQ_IDX_LEN-1:0]		lq_pos;
+	logic							valid;
+	logic	[`XLEN-1:0]				value;				
 } LSQ_FU_PACKET;
 
 typedef struct packed {
+	logic					valid;
+	logic	[`XLEN-1:0]		addr;
+} LSQ_LOAD_DCACHE_PACKET;
 
+typedef struct packed {
+	logic					valid;
+	logic	[`XLEN-1:0]		addr;
+	logic	[`XLEN-1:0]		value;
+} LSQ_STORE_DCACHE_PACKET;
 
-} LSQ_DCACHE_PACKET;
+typedef struct packed {
+	logic					valid;
+	logic	[`XLEN-1:0]		value;
+} DCACHE_LOAD_LSQ_PACKET;
 
-
+typedef struct packed {
+	logic					valid;
+} DCACHE_STORE_LSQ_PACKET;
 
 
 `endif // __SYS_DEFS_VH__

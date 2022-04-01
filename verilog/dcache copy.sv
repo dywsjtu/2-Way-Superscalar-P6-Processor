@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  dcache.sv  (write back)                             //
+//   Modulename :  dcache.sv  (write through)                          //
 //                                                                     //
 //  Description :  data cache;                                         // 
 /////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 module dcache(
     input clock,
     input reset,
-    input stall, //stall if memory bus is busy
+    input stall,
 
     //From Dmem
     input [3:0]  Dmem2proc_response,
@@ -45,7 +45,7 @@ module dcache(
     logic [1:0][`CACHE_LINES-1:0] [31:0]                     data;
     logic [1:0][`CACHE_LINES-1:0] [13 - `CACHE_LINE_BITS:0]  tags;
     logic [1:0][`CACHE_LINES-1:0]                            valids;
-    logic [1:0][`CACHE_LINES-1:0]                            dirty;
+    //logic [1:0][`CACHE_LINES-1:0]                            dirty;
     logic [`CACHE_LINES-1:0]                                 LRU_idx, LRU_next;
 
     logic [`CACHE_LINE_BITS - 1:0]  current_idx_l, current_idx_s, current_idx;
@@ -136,14 +136,7 @@ module dcache(
                 //data[block_idx][current_idx]   <= `SD proc2Dcache_data;
                 data[block_idx][current_idx]   <= `SD (data_write_enable) ? Dmem2proc_data : lsq_store.value;
                 dcache_store.valid <= ~data_write_enable && lsq_store.valid;
-                if (data_write_enable && tags[block_idx][current_idx_l] == current_tag_l && data[block_idx][current_idx_l] != Dmem2proc_data && valids[block_idx][current_idx_l]) begin
-                    dirty[block_idx][current_idx_l] <= `SD 1'b1;
-                end
-                else if (lsq_store.valid && tags[block_idx][current_idx_s] == current_tag_s && data[block_idx][current_idx_s] != lsq_store.value && valids[block_idx][current_idx_s]) begin
-                    dirty[block_idx][current_idx] <= `SD 1'b1;
-                end else begin
-                    write2mem <= `SD (data_write_enable) ? dirty[block_idx][current_idx_l] : dirty[block_idx][current_idx_s];
-                end
+                write2mem <= `SD (data_write_enable) ? 1'b0 : lsq_store.valid;
             end
             LRU_idx   <= `SD LRU_next;
         end

@@ -1,9 +1,15 @@
 module testbench;
-    logic clock, reset,read_en, write_en, Dcache_valid_out, write_done;
+    logic clock, reset, stall;
     logic [3:0] Dmem2proc_response, Dmem2proc_tag;
-    logic [63:0] Dmem2proc_data, proc2Dcache_data, Dcache_data_out, proc2Dmem_data;
-    logic [`XLEN-1:0] proc2Dcache_addr, proc2Dmem_addr, read_addr, write_addr;
+    logic [`XLEN-1:0] Dmem2proc_data, proc2Dcache_addr, proc2Dmem_addr,proc2Dmem_data;
     logic [1:0] proc2Dmem_command;
+    LSQ_LOAD_DCACHE_PACKET lsq_load;
+    LSQ_STORE_DCACHE_PACKET lsq_store;
+    DCACHE_STORE_LSQ_PACKET dcache_store;
+    DCACHE_LOAD_LSQ_PACKET  dcache_load;
+    `ifndef CACHE_MODE
+	    MEM_SIZE proc2Dmem_size; //BYTE, HALF, WORD or DOUBLE
+    `endif
     mem memory (
 		// Inputs
 		.clk               (clock),
@@ -11,51 +17,43 @@ module testbench;
 		.proc2mem_addr     (proc2Dmem_addr),
 		.proc2mem_data     (proc2Dmem_data),
     `ifndef CACHE_MODE
-		.proc2mem_size     (proc2mem_size),
+		  .proc2mem_size     (proc2mem_size),
     `endif
 
 		// Outputs
 
-		.mem2proc_response (mem2proc_response),
-		.mem2proc_data     (mem2proc_data),
-		.mem2proc_tag      (mem2proc_tag)
+		.mem2proc_response (Dmem2proc_response),
+		.mem2proc_data     (Dmem2proc_data),
+		.mem2proc_tag      (Dmem2proc_tag)
 	);
 
    
 
-    assign proc2Dcache_addr = (read_en)  ? read_addr :
-                              (write_en) ? write_addr : 32'b0;
-                            
-
-    dcache dcache_(
+    dcache dcache_0(
     .clock(clock),
     .reset(reset),
+    .stall(stall),
 
-    //Feedback from Dmem
-    .Dmem2proc_response(mem2proc_response),
-    .Dmem2proc_data(mem2proc_data),
-    .Dmem2proc_tag(mem2proc_tag),
+    //From Dmem
+    .Dmem2proc_response(Dmem2proc_response),
+    .Dmem2proc_data(Dmem2proc_data),
+    .Dmem2proc_tag(Dmem2proc_tag)
 
-    //Control signals
-    .read_en(read_en), 
-    .write_en(write_en),
+    //From LSQ
+    .lsq_load(lsq_load),
+    .lsq_store(lsq_store),
 
-    // Address
-    .proc2Dcache_addr(proc2Dcache_addr), //MUX logic outside
+    //To LSQ
+    .dcache_store(dcache_store),
+    .dcache_load(dcache_load),
 
-    // Write data
-    .proc2Dcache_data(proc2Dcache_data), 
-
-    //Load output
-    .Dcache_data_out(Dcache_data_out), // value is memory[proc2Dcache_addr]
-    .Dcache_valid_out(Dcache_valid_out),      // when this is high
-
-    .write_done(write_done),
-
-    //Output to Dmem
+    //To Dmem
+    `ifndef CACHE_MODE
+	    .proc2Dmem_size(proc2Dmem_size), //BYTE, HALF, WORD or DOUBLE
+    `endif
+    .proc2Dmem_data(proc2Dmem_data),
     .proc2Dmem_command(proc2Dmem_command),
-    .proc2Dmem_addr(proc2Dmem_addr),
-    .proc2Dmem_data(proc2Dmem_data)
+    .proc2Dmem_addr(proc2Dmem_addr)
     );
 
     task mem_wait;
@@ -119,101 +117,101 @@ module testbench;
       reset = 0;
 
       //Read from mem
-      // read_en = 1;
-      // write_en = 0;
-      // read_addr = 8;
+      // lsq_load.valid = 1;
+      // lsq_store.valid = 0;
+      // lsq_load.addr = 8;
       // @(negedge clock);
       // #1;
-      // check(Dcache_data_out,64'b0,Dcache_valid_out,0);
-      // read_en = 0;
+      // check(dcache_load.value,64'b0,lsq_load.valid,0);
+      // lsq_load.valid = 0;
       // mem_wait;
-      // read_en = 1;
-      // read_addr = 8;
+      // lsq_load.valid = 1;
+      // lsq_load.addr = 8;
       // @(negedge clock);
       // #1;
-      // check(Dcache_data_out,64'b0,Dcache_valid_out,1);
+      // check(dcache_load.value,64'b0,lsq_load.valid,1);
       // #1;
       
       //Write to dcache
-      read_en = 0;
-      write_en = 1;
-      write_addr = 16;
-      proc2Dcache_data = 107;
+      lsq_load.valid = 0;
+      lsq_store.valid = 1;
+      lsq_store.addr = 16;
+      lsq_store.value = 107;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,64'b0,Dcache_valid_out,0);
+      check(dcache_load.value,64'b0,dcache_load.valid,0);
       mem_wait;
       show_mem_with_decimal(16,16);
       //show_mem_with_decimal(0,`MEM_64BIT_LINES - 1); 
         
       //Check for write
-      read_en = 1;
-      write_en = 0;
-      read_addr = 16;
+      lsq_load.valid = 1;
+      lsq_store.valid = 0;
+      lsq_load.addr = 16;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,107,Dcache_valid_out,1);
+      check(dcache_load.value,107,dcache_load.valid,1);
 
       //Write to dcache
-      write_en = 1;
-      read_en = 0;
-      write_addr = 2832;
-      proc2Dcache_data = 1122;
+      lsq_store.valid = 1;
+      lsq_load.valid = 0;
+      lsq_store.addr = 2832;
+      lsq_store.value = 1122;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,64'b0,Dcache_valid_out,0);
+      check(dcache_load.value,64'b0,dcache_load.valid,0);
       mem_wait;
 
       //Check write
-      read_en = 1;
-      write_en = 0;
-      read_addr = 2832;
+      lsq_load.valid = 1;
+      lsq_store.valid = 0;
+      lsq_load.addr = 2832;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,1122,Dcache_valid_out,1);
+      check(dcache_load.value,1122,dcache_load.valid,1);
 
       //Check for dirty
-      write_en = 1;
-      read_en = 0;
-      write_addr = 16;
-      proc2Dcache_data = 107;
+      lsq_store.valid = 1;
+      lsq_load.valid = 0;
+      lsq_store.addr = 16;
+      lsq_store.value = 107;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,64'b0,Dcache_valid_out,0); //dirty bit = 0
+      check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 0
       mem_wait;
 
-      write_en = 1;
-      read_en = 0;
-      write_addr = 16;
-      proc2Dcache_data = 806;
+      lsq_store.valid = 1;
+      lsq_load.valid = 0;
+      lsq_store.addr = 16;
+      lsq_store.value = 806;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,64'b0,Dcache_valid_out,0); //dirty bit = 1
+      check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 1
       mem_wait;
      
       /*CHECK LRU*/ 
-      write_en = 1;
-      read_en = 0;
-      write_addr = 4112;
-      proc2Dcache_data = 1027;
+      lsq_store.valid = 1;
+      lsq_load.valid = 0;
+      lsq_store.addr = 4112;
+      lsq_store.value = 1027;
       @(negedge clock);
       #1;
       mem_wait;
 
       //Check write
-      read_en = 1;
-      write_en = 0;
-      read_addr = 2832; //replaced
+      lsq_load.valid = 1;
+      lsq_store.valid = 0;
+      lsq_load.addr = 2832; //replaced
       @(negedge clock);
       #1;
-      check(Dcache_data_out,64'b0,Dcache_valid_out,0);
+      check(dcache_load.value,64'b0,dcache_load.valid,0);
 
-      read_en = 1;
-      write_en = 0;
-      read_addr = 4112;
+      lsq_load.valid = 1;
+      lsq_store.valid = 0;
+      lsq_load.addr = 4112;
       @(negedge clock);
       #1;
-      check(Dcache_data_out,1027,Dcache_valid_out,1);
+      check(dcache_load.value,1027,dcache_load.valid,1);
       
 
 

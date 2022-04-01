@@ -52,6 +52,7 @@ module rs (
     logic           [4:0]                   fu_type;
     logic           [4:0]                   fu_end;
     logic                                   rs_entry_full_indicator;
+    logic                                   id_valid;
     
 
     always_comb begin
@@ -93,7 +94,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && fu_valid[0]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[0]),
 
         .fu_rs(fu_rs[0]),
@@ -104,7 +105,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && fu_valid[1]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[1]),
 
         .fu_rs(fu_rs[1]),
@@ -115,7 +116,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && ~fu_valid[1] && fu_valid[2]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[2]),
 
         .fu_rs(fu_rs[2]),
@@ -126,7 +127,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && ~fu_valid[1] && ~fu_valid[2] && fu_valid[3]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[3]),
 
         .fu_rs(fu_rs[3]),
@@ -137,7 +138,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && ~fu_valid[1] && ~fu_valid[2] && ~fu_valid[3] && fu_valid[4]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[4]),
 
         .fu_rs(fu_rs[4]),
@@ -148,7 +149,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && ~fu_valid[1] && ~fu_valid[2] && ~fu_valid[3] && ~fu_valid[4] && fu_valid[5]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[5]),
 
         .fu_rs(fu_rs[5]),
@@ -159,7 +160,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && ~fu_valid[1] && ~fu_valid[2] && ~fu_valid[3] && ~fu_valid[4] && ~fu_valid[5] && fu_valid[6]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[6]),
 
         .fu_rs(fu_rs[6]),
@@ -170,7 +171,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_ALU && ~fu_valid[0] && ~fu_valid[1] && ~fu_valid[2] && ~fu_valid[3] && ~fu_valid[4] && ~fu_valid[5] && ~fu_valid[6] && fu_valid[7]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[7]),
 
         .fu_rs(fu_rs[7]),
@@ -179,14 +180,26 @@ module rs (
 
     FU_LSQ_PACKET   [`NUM_LS-1:0]           fu_lsq;
     LSQ_FU_PACKET   [`NUM_LS-1:0]           lsq_fu;
+    logic fu8_v;
+    logic fu9_v;
+    logic fu10_v;
+    logic fu11_v;
+    assign fu8_v = fu_type == `FU_LS && fu_valid[8];
+    assign fu9_v = fu_type == `FU_LS && ~fu_valid[8] && fu_valid[9];
+    assign fu10_v= fu_type == `FU_LS && ~fu_valid[8] && ~fu_valid[9] && fu_valid[10];
+    assign fu11_v= fu_type == `FU_LS && ~fu_valid[8] && ~fu_valid[9] && ~fu_valid[10] && fu_valid[11];
+    assign rs_lsq.idx = fu8_v  ? 0 :
+                        fu9_v  ? 1 :
+                        fu10_v ? 2 :
+                                 3;
 
     fu_ls fu8 (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_LS && fu_valid[8]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[8]),
-        .loadq_pos(lsq_rs.loadq_tail),
+        // .loadq_pos(lsq_rs.loadq_tail),
         .storeq_pos(lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[0]),
 
@@ -199,9 +212,9 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_LS && ~fu_valid[8] && fu_valid[9]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[9]),
-        .loadq_pos(lsq_rs.loadq_tail),
+        // .loadq_pos(lsq_rs.loadq_tail),
         .storeq_pos(lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[1]),
 
@@ -214,9 +227,9 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_LS && ~fu_valid[8] && ~fu_valid[9] && fu_valid[10]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[10]),
-        .loadq_pos(lsq_rs.loadq_tail),
+        // .loadq_pos(lsq_rs.loadq_tail),
         .storeq_pos(lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[2]),
 
@@ -229,9 +242,9 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_LS && ~fu_valid[8] && ~fu_valid[9] && ~fu_valid[10] && fu_valid[11]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[11]),
-        .loadq_pos(lsq_rs.loadq_tail),
+        // .loadq_pos(lsq_rs.loadq_tail),
         .storeq_pos(lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[3]),
 
@@ -244,7 +257,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_MULT && fu_valid[12]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[12]),
 
         .fu_rs(fu_rs[12]),
@@ -255,7 +268,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_MULT && ~fu_valid[12] && fu_valid[13]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[13]),
 
         .fu_rs(fu_rs[13]),
@@ -266,7 +279,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_MULT && ~fu_valid[12] && ~fu_valid[13] && fu_valid[14]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[14]),
 
         .fu_rs(fu_rs[14]),
@@ -277,7 +290,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_MULT && ~fu_valid[12] && ~fu_valid[13] && ~fu_valid[14] && fu_valid[15]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[15]),
 
         .fu_rs(fu_rs[15]),
@@ -288,7 +301,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_BEQ && fu_valid[16]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[16]),
 
         .fu_rs(fu_rs[16]),
@@ -299,7 +312,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_BEQ && ~fu_valid[16] && fu_valid[17]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[17]),
 
         .fu_rs(fu_rs[17]),
@@ -310,7 +323,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_BEQ && ~fu_valid[16] && ~fu_valid[17] && fu_valid[18]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[18]),
 
         .fu_rs(fu_rs[18]),
@@ -321,7 +334,7 @@ module rs (
         .clock(clock),
         .reset(reset),
         .valid(fu_type == `FU_BEQ && ~fu_valid[16] && ~fu_valid[17] && ~fu_valid[18] && fu_valid[19]),
-        .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
+        .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[19]),
 
         .fu_rs(fu_rs[19]),
@@ -350,7 +363,8 @@ module rs (
 
     assign rs_lsq.load              = id_rs.rd_mem;
     assign rs_lsq.store             = id_rs.wr_mem;
-    assign rs_lsq.valid             = id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal
+    assign id_valid                 = id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal;
+    assign rs_lsq.valid             = id_valid;
 
 
     assign fu_type =    (id_rs.cond_branch || id_rs.uncond_branch)  ?   `FU_BEQ  :
@@ -384,7 +398,7 @@ module rs (
 
     assign rs_entry_full = rs_entry_full_indicator  ? (~busy[fu_num] || ~fu_result_valid[fu_num] || 
                                                       (fu_num < fu_type) || ~(fu_num < fu_end)) ||
-                                                      (id_rs.rd_mem && lsq_rs.loadq_full) || 
+                                                    //   (id_rs.rd_mem && lsq_rs.loadq_full) || 
                                                       (id_rs.wr_mem && lsq_rs.storeq_full)
                                                     : 1'b0;
 
@@ -402,7 +416,7 @@ module rs (
 
         // check the correctness of the coming instruction
         temp_logic                  =   1'b1;
-        if (id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) begin
+        if (id_valid) begin
             for (int fu = 0; fu < `FU_SIZE; fu += 1) begin
                 if (~(fu < fu_type) && (fu < fu_end) && ~next_busy[fu] && temp_logic) begin
                     temp_logic                  =   1'b0;
