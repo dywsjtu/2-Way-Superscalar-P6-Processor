@@ -67,6 +67,9 @@ module pipeline (
     RS_FU_PACKET        rs_fu;
 	RS_REG_PACKET    	rs_reg;
 	RS_LSQ_PACKET		rs_lsq;
+	FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq;
+	LSQ_RS_PACKET                   lsq_rs;
+	LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu;
 
 	// ROB
 	logic 				rob_full;
@@ -105,7 +108,7 @@ module pipeline (
 	logic [`XLEN-1:0] mem_wb_NPC;
 
 	logic halt;
-
+	logic squash;
 
 	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
 	assign memory_error = (proc2mem_command != BUS_NONE && mem2proc_response==4'h0);
@@ -322,20 +325,7 @@ module pipeline (
 
 	cdb cdb_0(
 		//INPUT
-        .clock(clock),
-		.reset(reset),
-		//.squash(rob_rs.squash),
-		.rs_cdb(rs_cdb),
-		// .FU_valid(FU_valid),
-		// .FU_tag(FU_tag),
-		// .FU_value(FU_value),
-
-		//OUTPUT
-		.cdb_out(cdb_out)
-	);
-
-	// TODO fix this
-	map_table map_table_0 (
+        .clock(clock),lsq_rs
         //input
         .clock(clock),
 		.reset(reset),
@@ -364,6 +354,8 @@ module pipeline (
 		.reg_rs(reg_rs),
 		.cdb_rs(cdb_out),
 		.rob_rs(rob_rs),
+		.lsq_rs(lsq_rs),
+		.lsq_fu(lsq_fu),
 		// output
 		.rs_mt(rs_mt),
 		.rs_cdb(rs_cdb),
@@ -371,7 +363,8 @@ module pipeline (
 		//.rs_fu(rs_fu),
 		.rs_rob(rs_rob),
 		.rs_lsq(rs_lsq),
-		.rs_entry_full(rs_entry_full)
+		.rs_entry_full(rs_entry_full),
+		.fu_lsq(fu_lsq)
 	);
 
 	rob rob_0(
@@ -386,11 +379,28 @@ module pipeline (
 		// output
 		.rob_full(rob_full),
 		.halt(halt),
+		.squash(squash),
 		.rob_id(rob_id),
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),
 		.rob_reg(rob_reg),
 		.sq_retire(sq_retire)
+	);
+
+	lsq lsq_0 (
+		.clock(clock),
+		.reset(reset),
+		.squash(squash),
+
+		.rs_lsq(rs_lsq),
+		.fu_lsq(fu_lsq),
+
+		.sq_retire(sq_retire), // from rob
+		// .store_finish, // from d-cache indicate whether the store finished write
+
+		.sq_rob_valid(sq_rob_valid), // to rob
+		.lsq_fu(lsq_fu),
+		.lsq_rs(lsq_rs)
 	);
 
 endmodule  // module verisimple

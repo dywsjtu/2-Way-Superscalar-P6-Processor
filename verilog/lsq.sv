@@ -20,22 +20,13 @@ module lsq (
     input   FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq,
 
     input                                   sq_retire, // from rob
-    input                                   store_finish, // from d-cache indicate whether the store finished write
 
-    output  logic   [`LSQ_IDX_LEN-1:0]      loadq_tail,
-    output  logic                           loadq_full,
-    output  logic   [`LSQ_IDX_LEN-1:0]      storeq_tail,
-    output  logic                           storeq_full,
     output  logic                           sq_rob_valid, // to rob
-
-    output  LSQ_FU_PACKET                   lsq_fu_3,
-    output  LSQ_FU_PACKET                   lsq_fu_2,
-    output  LSQ_FU_PACKET                   lsq_fu_1,
-    output  LSQ_FU_PACKET                   lsq_fu_0,
-
+    output  LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu,
     output  LSQ_RS_PACKET                   lsq_rs,
 
     // connet to memory (dcache)    
+    input                                   store_finish, // from d-cache indicate whether the store finished write
     input	logic   [`XLEN-1:0] 		    Dmem2proc_data,
     output	logic   [`XLEN-1:0] 	        Dmem2proc_addr,
     output	logic   [`XLEN-1:0] 		    proc2Dmem_data,
@@ -56,9 +47,18 @@ module lsq (
     logic               [`LSQ_IDX_LEN-1:0]                  next_lq_head;
     logic               [`LSQ_IDX_LEN-1:0]                  next_lq_tail;
     logic               [`LSQ_IDX_LEN-1:0]                  next_lq_counter;
-    
-    assign loadq_tail   = lq_tail;
-    assign loadq_full   = lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
+
+
+    logic [`LOAD_QUEUE_SIZE-1:0]    lq_selection;
+
+    ps4 lq_selector (
+        .req({  lq_entries[3].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[3]
+                lq_entries[2].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[2]
+                lq_entries[1].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[1]
+                lq_entries[0].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[0]   }),
+        .gnt(lq_selection)
+    );
+
 
     logic   temp_flag;
     
@@ -181,8 +181,6 @@ module lsq (
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_tail;
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_counter;
 
-    assign storeq_tail      = sq_tail;
-    assign storeq_full      = sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
     assign storeq_fu.valid  = fu_storeq.valid && ~storeq_full;
     assign sq_rob_valid     = sq_retire; // mem_delay_counter; // tell rob sq finish write header to memory
 
@@ -238,12 +236,10 @@ module lsq (
         end
     end
 
-
-
     assign lsq_rs.loadq_tail    =   lq_tail;
-    assign lsq_rs.loadq_full    =   loadq_full;
+    assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
     assign lsq_rs.storeq_tail   =   sq_tail;
-    assign lsq_rs.storeq_full   =   storeq_full;
+    assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
 
 endmodule

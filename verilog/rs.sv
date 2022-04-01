@@ -13,22 +13,24 @@
 `timescale 1ns/100ps
 
 module rs (
-    input                       clock,
-    input                       reset,
+    input                                   clock,
+    input                                   reset,
 
-    input   ID_RS_PACKET        id_rs,
-    input   MT_RS_PACKET        mt_rs,
-    input   REG_RS_PACKET       reg_rs,
-    input   CDB_ENTRY           cdb_rs,
-    input   ROB_RS_PACKET       rob_rs,
-    input   LSQ_RS_PACKET       lsq_rs,
+    input   ID_RS_PACKET                    id_rs,
+    input   MT_RS_PACKET                    mt_rs,
+    input   REG_RS_PACKET                   reg_rs,
+    input   CDB_ENTRY                       cdb_rs,
+    input   ROB_RS_PACKET                   rob_rs,
+    input   LSQ_RS_PACKET                   lsq_rs,
+    input   LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu,
 
-    output  RS_MT_PACKET        rs_mt,
-    output  CDB_ENTRY           rs_cdb,
-    output  RS_REG_PACKET       rs_reg, // TODO
-    output  RS_ROB_PACKET       rs_rob,
-    output  RS_LSQ_PACKET       rs_lsq,
-    output  logic               rs_entry_full
+    output  RS_MT_PACKET                    rs_mt,
+    output  CDB_ENTRY                       rs_cdb,
+    output  RS_REG_PACKET                   rs_reg, // TODO
+    output  RS_ROB_PACKET                   rs_rob,
+    output  RS_LSQ_PACKET                   rs_lsq,
+    output  logic                           rs_entry_full,
+    output  FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq
 );  
     // TODO add debug outputs for below data
     RS_ENTRY        [`FU_SIZE-1:0]          rs_entries;
@@ -175,6 +177,9 @@ module rs (
         .fu_result_valid(fu_result_valid[7])
     );
 
+    FU_LSQ_PACKET   [`NUM_LS-1:0]           fu_lsq;
+    LSQ_FU_PACKET   [`NUM_LS-1:0]           lsq_fu;
+
     fu_ls fu8 (
         .clock(clock),
         .reset(reset),
@@ -182,10 +187,12 @@ module rs (
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[8]),
         .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_pos),
+        .storeq_pos(lsq_rs.storeq_tail),
+        .lsq_fu(lsq_fu[0]),
 
         .fu_rs(fu_rs[8]),
-        .fu_result_valid(fu_result_valid[8])
+        .fu_result_valid(fu_result_valid[8]),
+        .fu_lsq(fu_lsq[0])
     );
 
     fu_ls fu9 (
@@ -195,10 +202,12 @@ module rs (
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[9]),
         .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_pos),
+        .storeq_pos(lsq_rs.storeq_tail),
+        .lsq_fu(lsq_fu[1]),
 
         .fu_rs(fu_rs[9]),
-        .fu_result_valid(fu_result_valid[9])
+        .fu_result_valid(fu_result_valid[9]),
+        .fu_lsq(fu_lsq[1])
     );
 
     fu_ls fu10 (
@@ -208,10 +217,12 @@ module rs (
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[10]),
         .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_pos),
+        .storeq_pos(lsq_rs.storeq_tail),
+        .lsq_fu(lsq_fu[2]),
 
         .fu_rs(fu_rs[10]),
-        .fu_result_valid(fu_result_valid[10])
+        .fu_result_valid(fu_result_valid[10]),
+        .fu_lsq(fu_lsq[2])
     );
 
     fu_ls fu11 (
@@ -221,10 +232,12 @@ module rs (
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[11]),
         .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_pos),
+        .storeq_pos(lsq_rs.storeq_tail),
+        .lsq_fu(lsq_fu[3]),
 
         .fu_rs(fu_rs[11]),
-        .fu_result_valid(fu_result_valid[11])
+        .fu_result_valid(fu_result_valid[11]),
+        .fu_lsq(fu_lsq[3])
     );
 
     fu_mult fu12 (
