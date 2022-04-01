@@ -53,15 +53,15 @@ module dcache(
     logic [1:0][`CACHE_LINES-1:0]                            dirty;
     logic [`CACHE_LINES-1:0]                                 LRU_idx, LRU_next;
 
-    logic [`CACHE_LINE_BITS - 1:0]  current_index;
+    logic [`CACHE_LINE_BITS - 1:0]  current_idx;
     logic [12 - `CACHE_LINE_BITS:0] current_tag;
     logic [3:0]                     current_mem_tag;
 
     //Load from mem
     logic data_write_enable; 
     logic write2mem;
-    assign {current_tag, current_idx} = proc2Dcache_addr[15:3];
 
+    assign {current_tag, current_idx} = proc2Dcache_addr[15:3];
     assign data_write_enable = (current_mem_tag == Dmem2proc_tag) && (current_mem_tag != 0);
     assign proc2Dmem_addr    = (write2mem) ? {16'b0,current_tag, current_idx,3'b0}: {proc2Dcache_addr[31:3],3'b0};
     assign proc2Dmem_command = (read_en && ~Dcache_valid_out) ? BUS_LOAD :  
@@ -69,24 +69,32 @@ module dcache(
     assign proc2Dmem_data    = (write2mem && dirty[LRU_idx[current_idx]]) ? data[LRU_idx[current_idx]] : 64'b0;
     
     
+
     
     //Read from Dcache
-    assign Dcache_data_out = (read_en && tags[0][current_index] == current_tag && valids[0][current_index]) ? data[0][current_index] :
-                             (read_en && tags[1][current_index] == current_tag && valids[1][current_index]) ? data[1][current_index] : 64'b0; 
-
-    assign Dcache_valid_out = read_en && ((tags[0][current_index] == current_tag && valids[0][current_index]) ||
-                                          (tags[1][current_index] == current_tag && valids[1][current_index]));
+    logic hit0,hit1;
+    assign hit0 = read_en && tags[0][current_idx] == current_tag && valids[0][current_idx];
+    assign hit1 = read_en && tags[1][current_idx] == current_tag && valids[1][current_idx];
+    assign Dcache_data_out = hit0 ? data[0][current_idx] :
+                             hit1 ? data[1][current_idx] : 64'b0; 
+    assign Dcache_valid_out = hit0 || hit1;
 
     
-
-    //Update LRU                
+    //Update LRU
+    logic block_idx;                
     always_comb begin
         LRU_next = LRU_idx;
-        // if (data_write_enable || write_en) begin
-        //     LRU_next[current_idx] += 1;
-        // end
-        if (write_en) begin
-            LRU_next[current_idx] += 1;
+        if (data_write_enable || write_en) begin
+            if(current_tag == tags[0][current_idx] && valids[0][current_idx]) begin
+                block_idx             = 1'b0;
+                LRU_next[current_idx] = 1'b1;
+            end else if (current_tag == tags[1][current_idx] && valids[1][current_idx]) begin
+                block_idx             = 1'b1;
+                LRU_next[current_idx] = 1'b0;
+            end else begin
+                block_idx             = LRU_idx[current_idx];
+                LRU_next[current_idx] = LRU_idx[current_idx] + 1;
+            end
         end
     end
 
@@ -104,28 +112,17 @@ module dcache(
             write2mem       <= `SD 0;
         end else begin
             current_mem_tag <= `SD Dmem2proc_response;
-            if (write_en) begin
-                valids[LRU_idx[current_idx]] <= `SD 1'b1;
-                tags[LRU_idx[current_idx]]   <= `SD current_tag;
-                data[LRU_idx[current_idx]]   <= `SD proc2Dcache_data;
-                //write_done                   <= `SD ~data_write_enable && write_en;
-                if (tags[LRU_idx[current_idx]] == current_tag) begin
-                    dirty[LRU_idx[current_idx]] <= `SD 1'b1;
+            if (write_en || data_write_enable) begin
+                valids[block_idx][current_idx] <= `SD 1'b1;
+                tags[block_idx][current_idx]   <= `SD current_tag;
+                //data[block_idx][current_idx]   <= `SD proc2Dcache_data;
+                data[block_idx][current_idx]   <= `SD (data_write_enable) ? Dmem2proc_data : proc2Dcache_data;
+                if (write_en && tags[block_idx][current_idx] == current_tag && data[block_idx][current_idx] != proc2Dcache_data && valids[block_idx][current_idx]) begin
+                    dirty[block_idx][current_idx] <= `SD 1'b1;
                 end else begin
-                    write2mem <= `SD dirty[LRU_idx[current_idx]];
+                    write2mem <= `SD dirty[block_idx][current_idx];
                 end
             end
-            // if (data_write_enable || write_en) begin
-            //     valids[LRU_idx[current_idx]] <= `SD 1'b1;
-            //     tags[LRU_idx[current_idx]]   <= `SD current_tag;
-            //     data[LRU_idx[current_idx]]   <= `SD (data_write_enable) ? Dmem2proc_data : proc2Dcache_data;
-            //     write_done                   <= `SD ~data_write_enable && write_en;
-            //     if (tags[LRU_idx[current_idx]] == current_tag) begin
-            //         dirty[LRU_idx[current_idx]] <= `SD 1'b1;
-            //     end else begin
-            //         write2mem <= `SD dirty[LRU_idx[current_idx]];
-            //     end
-            // end
             LRU_idx   <= `SD LRU_next;
         end
     end
@@ -140,11 +137,17 @@ module dcache(
             else begin
                 $display("Block 0:");
                 for(int i = 0; i < `CACHE_LINES; i +=1) begin
-                    $display("DEBUG %4d: data[%d] = %d, tag[%d]=%d", cycle_count,i,data[0][i],i,tags[0][i]);
-                    // $display("DEBUG %4d: data[%d] = %d, tag[%d]=%d, valid[%d]=%d, dirty[%d]=%d", cycle_count,i,data[0][i],i,tags[0][i],i,valids[0][i],i,dirty[0][i]);
+                    $display("DEBUG %4d: data[%4d] = %d, tag[%4d]=%d, valids[%4d]=%d, dirty[%4d]=%d", cycle_count,i,data[0][i],i,tags[0][i],i,valids[0][i], i, dirty[0][i]);
                 end
+                $display("Block 1:");
+                for(int i = 0; i < `CACHE_LINES; i +=1) begin
+                    $display("DEBUG %4d: data[%4d] = %d, tag[%4d]=%d, valids[%4d]=%d, dirty[%4d]=%d", cycle_count,i,data[1][i],i,tags[1][i],i,valids[1][i], i, dirty[1][i]);
+                end
+                $display("DEBUG %4d: data_write_enable = %d", cycle_count, data_write_enable);
+                //$display("DEBUG %4d: Dmem2proc_tag = %d, Dmem2proc_response = %d", cycle_count, Dmem2proc_tag, Dmem2proc_response);
+                $display("DEBUG %4d: proc2Dmem_command = %d, proc2Dmem_addr = %d", cycle_count, proc2Dmem_command, proc2Dmem_addr);
                 $display("DEBUG %4d: proc2Dcache_addr = 0x%x, current_tag = %d, current_idx = %d", cycle_count, proc2Dcache_addr, current_tag, current_idx);
-                //$display("DEBUG %4d: Dcache_data_out = %d, hit = %d", cycle_count, Dcache_data_out, Dcache_valid_out);
+                $display("DEBUG %4d: read_en = %d, hit0 = %d, hit1 = %d, Dcache_data_out = %d, hit = %d", cycle_count, read_en, hit0, hit1, Dcache_data_out, Dcache_valid_out);
                 cycle_count += 1;
             end
         end
