@@ -607,9 +607,12 @@ typedef struct packed {
 // load store queue related structure
 typedef struct packed {
 	logic	[`XLEN-1:0]				addr;
+	logic							valid;
 	logic							filled;
-	logic	[`LOAD_QUEUE_SIZE-1:0]	sq_pos;
+	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } LOAD_QUEUE_ENTRY;
+
+`define NO_SQ_POS	`LSQ_IDX_LEN'b1111;
 
 typedef struct packed {
 	logic	[`XLEN-1:0]		addr;
@@ -620,7 +623,14 @@ typedef struct packed {
 	logic 					load;
 	logic					store;
 	logic					valid;
-} RS_LSQ;
+} RS_LSQ_PACKET;
+
+typedef struct packed {
+	logic   [`LSQ_IDX_LEN-1:0]		loadq_tail;
+	logic							loadq_full;
+	logic   [`LSQ_IDX_LEN-1:0]		storeq_tail;
+	logic							storeq_full;
+} LSQ_RS_PACKET;
 
 typedef struct packed {
 	logic 							load;
@@ -628,17 +638,16 @@ typedef struct packed {
 	logic							valid;
 	logic	[`XLEN-1:0]				addr;
 	logic	[`XLEN-1:0]				value;
-	logic	[`LOAD_QUEUE_SIZE-1:0]	lq_pos;
-	logic	[`LOAD_QUEUE_SIZE-1:0]	sq_pos;
-} FU_LSQ;
-
+	logic	[`LSQ_IDX_LEN-1:0]		lq_pos;
+	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
+} FU_LSQ_PACKET;
 
 typedef struct packed {
 	logic 					load;
 	logic					store;
 	logic					valid;
 	logic	[`XLEN-1:0]		value;				
-} LSQ_FU;
+} LSQ_FU_PACKET;
 
 
 `endif // __SYS_DEFS_VH__

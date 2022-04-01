@@ -66,6 +66,7 @@ module pipeline (
 	RS_MT_PACKET        rs_mt;
     RS_FU_PACKET        rs_fu;
 	RS_REG_PACKET    	rs_reg;
+	RS_LSQ_PACKET		rs_lsq;
 
 	// ROB
 	logic 				rob_full;
@@ -369,6 +370,7 @@ module pipeline (
 		.rs_reg(rs_reg),
 		//.rs_fu(rs_fu),
 		.rs_rob(rs_rob),
+		.rs_lsq(rs_lsq),
 		.rs_entry_full(rs_entry_full)
 	);
 

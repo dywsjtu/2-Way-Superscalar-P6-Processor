@@ -21,11 +21,13 @@ module rs (
     input   REG_RS_PACKET       reg_rs,
     input   CDB_ENTRY           cdb_rs,
     input   ROB_RS_PACKET       rob_rs,
+    input   LSQ_RS_PACKET       lsq_rs,
 
     output  RS_MT_PACKET        rs_mt,
     output  CDB_ENTRY           rs_cdb,
     output  RS_REG_PACKET       rs_reg, // TODO
     output  RS_ROB_PACKET       rs_rob,
+    output  RS_LSQ_PACKET       rs_lsq,
     output  logic               rs_entry_full
 );  
     // TODO add debug outputs for below data
@@ -48,7 +50,7 @@ module rs (
     logic           [4:0]                   fu_type;
     logic           [4:0]                   fu_end;
     logic                                   rs_entry_full_indicator;
-
+    
 
     always_comb begin
         for (int i = 0; i < `FU_SIZE; i += 1) begin
@@ -179,6 +181,8 @@ module rs (
         .valid(fu_type == `FU_LS && fu_valid[8]),
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[8]),
+        .loadq_pos(lsq_rs.loadq_tail),
+        .storeq_pos(lsq_rs.storeq_pos),
 
         .fu_rs(fu_rs[8]),
         .fu_result_valid(fu_result_valid[8])
@@ -190,6 +194,8 @@ module rs (
         .valid(fu_type == `FU_LS && ~fu_valid[8] && fu_valid[9]),
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[9]),
+        .loadq_pos(lsq_rs.loadq_tail),
+        .storeq_pos(lsq_rs.storeq_pos),
 
         .fu_rs(fu_rs[9]),
         .fu_result_valid(fu_result_valid[9])
@@ -201,6 +207,8 @@ module rs (
         .valid(fu_type == `FU_LS && ~fu_valid[8] && ~fu_valid[9] && fu_valid[10]),
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[10]),
+        .loadq_pos(lsq_rs.loadq_tail),
+        .storeq_pos(lsq_rs.storeq_pos),
 
         .fu_rs(fu_rs[10]),
         .fu_result_valid(fu_result_valid[10])
@@ -212,6 +220,8 @@ module rs (
         .valid(fu_type == `FU_LS && ~fu_valid[8] && ~fu_valid[9] && ~fu_valid[10] && fu_valid[11]),
         .id_fu((id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal) ? id_rs : 0),
         .rs_fu(rs_fu[11]),
+        .loadq_pos(lsq_rs.loadq_tail),
+        .storeq_pos(lsq_rs.storeq_pos),
 
         .fu_rs(fu_rs[11]),
         .fu_result_valid(fu_result_valid[11])
@@ -324,9 +334,10 @@ module rs (
     assign rs_rob.entry_idx[1]      = mt_rs.rs_infos[1].tag;
     assign rs_mt.register_idxes     = id_rs.input_reg_idx;
     assign rs_reg.register_idxes    = id_rs.input_reg_idx;
-    
-    // assign fu_type = id_rs.wr_mem ? FU_STORE : id_rs.rd_mem ? FU_LOAD : FU_ALU;
-    // assign rs_entry_full = rs_entries[fu_type].busy;
+
+    assign rs_lsq.load              = id_rs.rd_mem;
+    assign rs_lsq.store             = id_rs.wr_mem;
+    assign rs_lsq.valid             = id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal
 
 
     assign fu_type =    (id_rs.cond_branch || id_rs.uncond_branch)  ?   `FU_BEQ  :
@@ -358,8 +369,10 @@ module rs (
         endcase
     end
 
-    assign rs_entry_full = rs_entry_full_indicator  ? ~busy[fu_num] || ~fu_result_valid[fu_num] || 
-                                                      (fu_num < fu_type) || ~(fu_num < fu_end)
+    assign rs_entry_full = rs_entry_full_indicator  ? (~busy[fu_num] || ~fu_result_valid[fu_num] || 
+                                                      (fu_num < fu_type) || ~(fu_num < fu_end)) ||
+                                                      (id_rs.rd_mem && lsq_rs.loadq_full) || 
+                                                      (id_rs.wr_mem && lsq_rs.storeq_full)
                                                     : 1'b0;
 
     logic               temp_logic;

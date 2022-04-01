@@ -9,6 +9,8 @@ module fu_ls(
 	input							valid,
     input	ID_RS_PACKET			id_fu,
 	input   RS_FU_PACKET            rs_fu,
+	input	[`LSQ_IDX_LEN-1:0]		loadq_pos,
+    input	[`LSQ_IDX_LEN-1:0]		storeq_pos,
 
     output  FU_RS_PACKET            fu_rs,
 	output							fu_result_valid

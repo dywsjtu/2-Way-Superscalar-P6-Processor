@@ -12,79 +12,155 @@
 `timescale 1ns/100ps
 
 module lsq (
-    input   logic                       clock,
-    input   logic                       reset,
-    input   logic                       squash,
-    
-    input   RS_LSQ                      rs_lsq,
-    input   FU_LSQ  [`NUM_LS-1:0]       fu_lsq,
+    input   logic                           clock,
+    input   logic                           reset,
+    input   logic                           squash,
 
-    input                               sq_retire, // from rob
-    input                               store_finish, // from d-cache indicate whether the store finished write
+    input   RS_LSQ_PACKET                   rs_lsq,
+    input   FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq,
 
-    output  logic   [`LSQ_IDX_LEN-1:0]  loadq_tail,
-    output  logic                       loadq_full,
-    output  logic   [`LSQ_IDX_LEN-1:0]  storeq_tail,
-    output  logic                       storeq_full,
-    output  logic                       sq_rob_valid, // to rob
+    input                                   sq_retire, // from rob
+    input                                   store_finish, // from d-cache indicate whether the store finished write
 
-    output  LSQ_FU                      lsq_fu_3,
-    output  LSQ_FU                      lsq_fu_2,
-    output  LSQ_FU                      lsq_fu_1,
-    output  LSQ_FU                      lsq_fu_0,
+    output  logic   [`LSQ_IDX_LEN-1:0]      loadq_tail,
+    output  logic                           loadq_full,
+    output  logic   [`LSQ_IDX_LEN-1:0]      storeq_tail,
+    output  logic                           storeq_full,
+    output  logic                           sq_rob_valid, // to rob
 
-    // connet to memory (dcache)
-    input	logic   [63:0] 			    Dmem2proc_data,
-    output	logic   [`XLEN-1:0] 	    Dmem2proc_addr,
-    output	logic   [63:0] 			    proc2Dmem_data,
-    output	logic   [`XLEN-1:0] 	    proc2Dmem_addr
-);
+    output  LSQ_FU_PACKET                   lsq_fu_3,
+    output  LSQ_FU_PACKET                   lsq_fu_2,
+    output  LSQ_FU_PACKET                   lsq_fu_1,
+    output  LSQ_FU_PACKET                   lsq_fu_0,
+
+    output  LSQ_RS_PACKET                   lsq_rs,
+
+    // connet to memory (dcache)    
+    input	logic   [`XLEN-1:0] 		    Dmem2proc_data,
+    output	logic   [`XLEN-1:0] 	        Dmem2proc_addr,
+    output	logic   [`XLEN-1:0] 		    proc2Dmem_data,
+    output	logic   [`XLEN-1:0] 	        proc2Dmem_addr
+);  
     // load queue
      
-    LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]      lq_entries;
-    logic               [`LOAD_QUEUE_SIZE-1:0]      lq_valid;
-    logic               [`LSQ_IDX_LEN-1:0]          lq_head;
-    logic               [`LSQ_IDX_LEN-1:0]          lq_tail;
-    logic               [`LSQ_IDX_LEN-1:0]          lq_counter;
+    LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]              lq_entries;
+    logic               [`LOAD_QUEUE_SIZE-1:0]              lq_retire_valid;
+    logic               [`LOAD_QUEUE_SIZE-1:0][`XLEN-1:0]   lq_value;
+    logic               [`LSQ_IDX_LEN-1:0]                  lq_head;
+    logic               [`LSQ_IDX_LEN-1:0]                  lq_tail;
+    logic               [`LSQ_IDX_LEN-1:0]                  lq_counter;
 
-    LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]      next_lq_entries;
-    logic               [`LOAD_QUEUE_SIZE-1:0]      next_lq_valid;
-    logic               [`LSQ_IDX_LEN-1:0]          next_lq_head;
-    logic               [`LSQ_IDX_LEN-1:0]          next_lq_tail;
-    logic               [`LSQ_IDX_LEN-1:0]          next_lq_counter;
+    LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]              next_lq_entries;
+    logic               [`LOAD_QUEUE_SIZE-1:0]              next_lq_retire_valid;
+    logic               [`LOAD_QUEUE_SIZE-1:0][`XLEN-1:0]   next_lq_value;
+    logic               [`LSQ_IDX_LEN-1:0]                  next_lq_head;
+    logic               [`LSQ_IDX_LEN-1:0]                  next_lq_tail;
+    logic               [`LSQ_IDX_LEN-1:0]                  next_lq_counter;
     
-    assign loadq_tail  = lq_tail;
+    assign loadq_tail   = lq_tail;
     assign loadq_full   = lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
+
+    logic   temp_flag;
     
     always_comb begin
-        next_lq_entries     = lq_entries;
-        next_lq_valid       = lq_valid;
-        next_lq_head        = lq_head;
-        next_lq_tail        = lq_tail;
-        next_lq_counter     = lq_counter;
+        next_lq_entries         = lq_entries;
+        next_lq_retire_valid    = lq_retire_valid;
+        next_lq_value           = lq_value;
+        next_lq_head            = lq_head;
+        next_lq_tail            = lq_tail;
+        next_lq_counter         = lq_counter;
 
         if (rs_lsq.valid && rs_lsq.load) begin
             next_lq_tail    = (lq_tail == `LOAD_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : lq_tail + 1;
+            next_lq_counter += 1;
         end
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (fu_lsq[i].valid && fu_lsq[i].load && ~lq_entries[fu_lsq[i].lq_pos].filled) begin
-                next_lq_entries[fu_lsq[i].lq_pos] = {fu_lsq[i].addr, 1'b1, fu_lsq[i].sq_pos};
+                next_lq_entries[fu_lsq[i].lq_pos] = {fu_lsq[i].addr, 1'b0, 1'b1, fu_lsq[i].sq_pos};
             end
         end
+
+        if (sq_retire) begin
+            for (int i = 0; i < `NUM_LS; i += 1) begin
+                if (lq_entries[i].sq_pos == sq_head) begin
+                    next_lq_entries[i].sq_pos = `NO_SQ_POS;
+                end
+            end
+        end
+
+        for (int i = 0; i < `NUM_LS; i += 1) begin
+            if (lq_entries[i].filled && ~lq_retire_valid[i] && 
+                lq_entries[i].valid && ~(lq_entries[i].sq_pos == `NO_SQ_POS)) begin
+                    if (lq_entries[i].sq_pos > sq_head) begin
+                        temp_flag = 1'b1;
+                        for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
+                            if (j < lq_entries[i].sq_pos && j >= sq_head && temp_flag) begin
+                                if (~sq_entries[j].valid) begin
+                                    temp_flag = 1'b0;
+                                end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                                    temp_flag               = 1'b0;
+                                    next_lq_retire_valid[i] = 1'b1;
+                                    next_lq_value[i]        = sq_value[j];
+                                end
+                            end
+                        end
+                        if (temp_flag) begin
+                            next_lq_entries[i].sq_pos = `NO_SQ_POS;
+                        end
+                    end else begin
+                        temp_flag = 1'b1;
+                        for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
+                            if (j < lq_entries[i].sq_pos && temp_flag) begin
+                                if (~sq_entries[j].valid) begin
+                                    temp_flag = 1'b0;
+                                end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                                    temp_flag               = 1'b0;
+                                    next_lq_retire_valid[i] = 1'b1;
+                                    next_lq_value[i]        = sq_value[j];
+                                end
+                            end
+                        end
+                        for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
+                            if (j >= sq_head && temp_flag) begin
+                                if (~sq_entries[j].valid) begin
+                                    temp_flag = 1'b0;
+                                end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                                    temp_flag               = 1'b0;
+                                    next_lq_retire_valid[i] = 1'b1;
+                                    next_lq_value[i]        = sq_value[j];
+                                end
+                            end
+                        end
+                        if (temp_flag) begin
+                            next_lq_entries[i].sq_pos = `NO_SQ_POS;
+                        end
+                    end
+                end
+            end
+        end
+
+
+
+
+
     end
 
     always_ff @(posedge clock) begin
         if (reset || squash) begin
-            lq_head     <= `SD `LOAD_QUEUE_SIZE'b0;
-            lq_tail     <= `SD `LOAD_QUEUE_SIZE'b0;
-            lq_counter  <= `SD 0;
-            lq_entries  <= `SD 0;
+            lq_head             <= `SD `LSQ_IDX_LEN'b0;
+            lq_tail             <= `SD `LSQ_IDX_LEN'b0;
+            lq_retire_valid     <= `SD `LOAD_QUEUE_SIZE'b0;
+            lq_value            <= `SD 0;
+            lq_counter          <= `SD 0;
+            lq_entries          <= `SD 0;
         end else begin
-            lq_head     <= `SD next_lq_head;
-            lq_tail     <= `SD next_lq_tail;
-            lq_counter  <= `SD next_lq_counter;
-            lq_entries  <= `SD next_lq_entries;
+            lq_head             <= `SD next_lq_head;
+            lq_tail             <= `SD next_lq_tail;
+            lq_retire_valid     <= `SD next_lq_retire_valid;
+            lq_value            <= `SD next_lq_value;
+            lq_counter          <= `SD next_lq_counter;
+            lq_entries          <= `SD next_lq_entries;
         end
     end
 
@@ -106,9 +182,9 @@ module lsq (
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_counter;
 
     assign storeq_tail      = sq_tail;
-    assign storeq_full      = sq_counter == `STORE_QUEUE_SIZE;
+    assign storeq_full      = sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
     assign storeq_fu.valid  = fu_storeq.valid && ~storeq_full;
-    assign sq_rob_valid     = mem_delay_counter;
+    assign sq_rob_valid     = sq_retire; // mem_delay_counter; // tell rob sq finish write header to memory
 
     always_comb begin
         next_sq_entries         = sq_entries;
@@ -120,33 +196,54 @@ module lsq (
         
         if (rs_lsq.valid && rs_lsq.store) begin
             next_sq_tail    = (sq_tail == `STORE_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : sq_tail + 1;
+            next_sq_counter += 1;
+        end
+
+        if (sq_retire) begin
+            proc2Dmem_data              = sq_value[sq_head];
+            proc2Dmem_addr              = sq_entries[sq_head].addr;
+            next_sq_entries[sq_head]    = 0;
+            next_sq_head                = (sq_head == `STORE_QUEUE_SIZE - 1) ? `LSQ_IDX_LEN'b0 : sq_head + 1;
+            next_sq_counter             -= 1;
+            next_sq_valid[sq_head]      = 1'b0;
+            next_sq_value[sq_head]      = `XLEN'b0;
         end
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (fu_lsq[i].valid && fu_lsq[i].store && ~sq_entries[fu_lsq[i].sq_pos].filled) begin
-                next_sq_entries[fu_lsq[i].sq_pos] = {fu_lsq[i].addr, 1'b1};
+                next_sq_entries[fu_lsq[i].sq_pos]   = {fu_lsq[i].addr, 1'b1};
+                next_sq_valid[fu_lsq[i].sq_pos]     = 1'b1;
+                next_sq_value[fu_lsq[i].sq_pos]     = fu_lsq[i].value;
             end
         end
+        
+
     end
 
     always_ff @(posedge clock) begin
         if (reset || squash) begin
-            sq_head             <=  `SD `STORE_QUEUE_SIZE'b0;
-            sq_tail             <=  `SD `STORE_QUEUE_SIZE'b0;
-            sq_counter          <=  `SD `STORE_QUEUE_SIZE'b0;
+            sq_head             <=  `SD `LSQ_IDX_LEN'b0;
+            sq_tail             <=  `SD `LSQ_IDX_LEN'b0;
+            sq_counter          <=  `SD `LSQ_IDX_LEN'b0;
+            sq_valid            <=  `SD `STORE_QUEUE_SIZE'b0;
+            sq_value            <=  `SD 0;
             sq_entries          <=  `SD 0;
         end else begin
             sq_head             <=  `SD next_sq_head;
             sq_tail             <=  `SD next_sq_tail;
             sq_counter          <=  `SD next_sq_counter;
+            sq_valid            <=  `SD next_sq_valid;
+            sq_value            <=  `SD next_sq_value;
             sq_entries          <=  `SD next_sq_entries;
         end
     end
 
 
 
-
-
+    assign lsq_rs.loadq_tail    =   lq_tail;
+    assign lsq_rs.loadq_full    =   loadq_full;
+    assign lsq_rs.storeq_tail   =   sq_tail;
+    assign lsq_rs.storeq_full   =   storeq_full;
 
 
 endmodule
