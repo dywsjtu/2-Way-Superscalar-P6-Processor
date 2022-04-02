@@ -37,7 +37,7 @@ module testbench;
     //From Dmem
     .Dmem2proc_response(Dmem2proc_response),
     .Dmem2proc_data(Dmem2proc_data),
-    .Dmem2proc_tag(Dmem2proc_tag)
+    .Dmem2proc_tag(Dmem2proc_tag),
 
     //From LSQ
     .lsq_load(lsq_load),
@@ -117,20 +117,20 @@ module testbench;
       reset = 0;
 
       //Read from mem
-      // lsq_load.valid = 1;
-      // lsq_store.valid = 0;
-      // lsq_load.addr = 8;
-      // @(negedge clock);
-      // #1;
-      // check(dcache_load.value,64'b0,lsq_load.valid,0);
-      // lsq_load.valid = 0;
-      // mem_wait;
-      // lsq_load.valid = 1;
-      // lsq_load.addr = 8;
-      // @(negedge clock);
-      // #1;
-      // check(dcache_load.value,64'b0,lsq_load.valid,1);
-      // #1;
+      lsq_load.valid = 1;
+      lsq_store.valid = 0;
+      lsq_load.addr = 8;
+      @(negedge clock);
+      #1;
+      check(dcache_load.value,64'b0,dcache_load.valid,0);
+      lsq_load.valid = 0;
+      mem_wait;
+      lsq_load.valid = 1;
+      lsq_load.addr = 8;
+      @(negedge clock);
+      #1;
+      check(dcache_load.value,64'b0,dcache_load.valid,1);
+      #1;
       
       //Write to dcache
       lsq_load.valid = 0;
@@ -189,29 +189,29 @@ module testbench;
       check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 1
       mem_wait;
      
-      /*CHECK LRU*/ 
-      lsq_store.valid = 1;
-      lsq_load.valid = 0;
-      lsq_store.addr = 4112;
-      lsq_store.value = 1027;
-      @(negedge clock);
-      #1;
-      mem_wait;
+      // /*CHECK LRU*/ 
+      // lsq_store.valid = 1;
+      // lsq_load.valid = 0;
+      // lsq_store.addr = 4112;
+      // lsq_store.value = 1027;
+      // @(negedge clock);
+      // #1;
+      // mem_wait;
 
-      //Check write
-      lsq_load.valid = 1;
-      lsq_store.valid = 0;
-      lsq_load.addr = 2832; //replaced
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,64'b0,dcache_load.valid,0);
+      // //Check write
+      // lsq_load.valid = 1;
+      // lsq_store.valid = 0;
+      // lsq_load.addr = 2832; //replaced
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,0);
 
-      lsq_load.valid = 1;
-      lsq_store.valid = 0;
-      lsq_load.addr = 4112;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,1027,dcache_load.valid,1);
+      // lsq_load.valid = 1;
+      // lsq_store.valid = 0;
+      // lsq_load.addr = 4112;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,1027,dcache_load.valid,1);
       
 
 
