@@ -58,7 +58,9 @@ module testbench;
 
     task mem_wait;
     begin
+      //logic cycle_left = `MEM_LATENCY_IN_CYCLES;
       for (int i = 0; i < `MEM_LATENCY_IN_CYCLES; i += 1) begin
+          //$display("Cycle wait = %d", i+1);
           @(negedge clock); //wait to be fetched from mem
       end
     end
@@ -116,22 +118,7 @@ module testbench;
       @(negedge clock);
       reset = 0;
 
-      //Read from mem
-      lsq_load.valid = 1;
-      lsq_store.valid = 0;
-      lsq_load.addr = 8;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,64'b0,dcache_load.valid,0);
-      lsq_load.valid = 0;
-      mem_wait;
-      lsq_load.valid = 1;
-      lsq_load.addr = 8;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,64'b0,dcache_load.valid,1);
-      #1;
-      
+
       //Write to dcache
       lsq_load.valid = 0;
       lsq_store.valid = 1;
@@ -142,52 +129,80 @@ module testbench;
       check(dcache_load.value,64'b0,dcache_load.valid,0);
       mem_wait;
       show_mem_with_decimal(16,16);
-      //show_mem_with_decimal(0,`MEM_64BIT_LINES - 1); 
+
+      // //Read from mem
+      // lsq_load.valid = 1;
+      // lsq_store.valid = 0;
+      // lsq_load.addr = 8;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,0);
+      // lsq_load.valid = 0;
+      // mem_wait;
+      // lsq_load.valid = 1;
+      // lsq_load.addr = 8;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,1);
+      // #1;
+      
+      // //Write to dcache
+      // lsq_load.valid = 0;
+      // lsq_store.valid = 1;
+      // lsq_store.addr = 16;
+      // lsq_store.value = 107;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,0);
+      // mem_wait;
+      // //show_mem_with_decimal(16,16);
+      // //show_mem_with_decimal(0,`MEM_64BIT_LINES - 1); 
         
-      //Check for write
-      lsq_load.valid = 1;
-      lsq_store.valid = 0;
-      lsq_load.addr = 16;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,107,dcache_load.valid,1);
+      // //Check for write
+      // lsq_load.valid = 1;
+      // lsq_store.valid = 0;
+      // lsq_load.addr = 16;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,107,dcache_load.valid,1);
 
-      //Write to dcache
-      lsq_store.valid = 1;
-      lsq_load.valid = 0;
-      lsq_store.addr = 2832;
-      lsq_store.value = 1122;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,64'b0,dcache_load.valid,0);
-      mem_wait;
+      // //Write to dcache
+      // lsq_store.valid = 1;
+      // lsq_load.valid = 0;
+      // lsq_store.addr = 2832;
+      // lsq_store.value = 1122;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,0);
+      // mem_wait;
 
-      //Check write
-      lsq_load.valid = 1;
-      lsq_store.valid = 0;
-      lsq_load.addr = 2832;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,1122,dcache_load.valid,1);
+      // //Check write
+      // lsq_load.valid = 1;
+      // lsq_store.valid = 0;
+      // lsq_load.addr = 2832;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,1122,dcache_load.valid,1);
 
-      //Check for dirty
-      lsq_store.valid = 1;
-      lsq_load.valid = 0;
-      lsq_store.addr = 16;
-      lsq_store.value = 107;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 0
-      mem_wait;
+      // //Check for dirty
+      // lsq_store.valid = 1;
+      // lsq_load.valid = 0;
+      // lsq_store.addr = 16;
+      // lsq_store.value = 107;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 0
+      // mem_wait;
 
-      lsq_store.valid = 1;
-      lsq_load.valid = 0;
-      lsq_store.addr = 16;
-      lsq_store.value = 806;
-      @(negedge clock);
-      #1;
-      check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 1
-      mem_wait;
+      // lsq_store.valid = 1;
+      // lsq_load.valid = 0;
+      // lsq_store.addr = 16;
+      // lsq_store.value = 806;
+      // @(negedge clock);
+      // #1;
+      // check(dcache_load.value,64'b0,dcache_load.valid,0); //dirty bit = 1
+      // mem_wait;
+      // show_mem_with_decimal(0,16); 
      
       // /*CHECK LRU*/ 
       // lsq_store.valid = 1;
