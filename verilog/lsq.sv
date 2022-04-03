@@ -101,7 +101,7 @@ module lsq (
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (fu_lsq[i].valid && fu_lsq[i].load && ~lq_entries[i].filled) begin
-                next_lq_entries[i]              = {fu_lsq[i].addr, 1'b0, 1'b1, fu_lsq[i].sq_pos};
+                next_lq_entries[i]              = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b0, 1'b1, fu_lsq[i].sq_pos};
                 next_lq_retire_valid[i]         = 1'b0;
             end
         end
@@ -123,7 +123,7 @@ module lsq (
                         if (j < lq_entries[i].sq_pos && j >= sq_head && temp_flag) begin
                             if (~sq_valid[j]) begin
                                 temp_flag = 1'b0;
-                            end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                            end else if (sq_entries[j].addr == lq_entries[i].addr && sq_entries[j].mem_size == lq_entries[i].mem_size) begin
                                 temp_flag               = 1'b0;
                                 next_lq_retire_valid[i] = 1'b1;
                                 next_lq_value[i]        = sq_value[j];
@@ -139,7 +139,7 @@ module lsq (
                         if (j < lq_entries[i].sq_pos && temp_flag) begin
                             if (~sq_valid[j]) begin
                                 temp_flag = 1'b0;
-                            end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                            end else if (sq_entries[j].addr == lq_entries[i].addr && sq_entries[j].mem_size == lq_entries[i].mem_size) begin
                                 temp_flag               = 1'b0;
                                 next_lq_retire_valid[i] = 1'b1;
                                 next_lq_value[i]        = sq_value[j];
@@ -150,7 +150,7 @@ module lsq (
                         if (j >= sq_head && temp_flag) begin
                             if (~sq_valid[j]) begin
                                 temp_flag = 1'b0;
-                            end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                            end else if (sq_entries[j].addr == lq_entries[i].addr && sq_entries[j].mem_size == lq_entries[i].mem_size) begin
                                 temp_flag               = 1'b0;
                                 next_lq_retire_valid[i] = 1'b1;
                                 next_lq_value[i]        = sq_value[j];
@@ -228,7 +228,7 @@ module lsq (
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (fu_lsq[i].valid && fu_lsq[i].store && ~sq_entries[fu_lsq[i].sq_pos].filled) begin
-                next_sq_entries[fu_lsq[i].sq_pos]   = {fu_lsq[i].addr, 1'b1};
+                next_sq_entries[fu_lsq[i].sq_pos]   = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b1};
                 next_sq_valid[fu_lsq[i].sq_pos]     = 1'b1;
                 next_sq_value[fu_lsq[i].sq_pos]     = fu_lsq[i].value;
             end
@@ -261,9 +261,11 @@ module lsq (
     assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
     assign next_lsq_load_dc     = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
-                                    lq_entries[lq_selection].addr   };
+                                    lq_entries[lq_selection].addr,
+                                    lq_entries[lq_selection].mem_size   };
     assign next_lsq_store_dc    = { sq_valid[sq_head] && rob_lsq.sq_retire,
                                     sq_entries[sq_head].addr,
+                                    sq_entries[sq_head].mem_size,
                                     sq_value[sq_head],
                                     rob_lsq.sq_halt };
     always_ff @(posedge clock) begin

@@ -79,7 +79,9 @@ module testbench;
 		.proc2mem_command  (proc2mem_command),
 		.proc2mem_addr     (proc2mem_addr),
 		.proc2mem_data     (proc2mem_data),
-		.proc2mem_size     (proc2mem_size),
+		`ifndef CACHE_MODE
+			.proc2mem_size     (proc2mem_size),
+		`endif
 		
 		.pipeline_completed_insts(pipeline_completed_insts),
 		.pipeline_error_status(pipeline_error_status),

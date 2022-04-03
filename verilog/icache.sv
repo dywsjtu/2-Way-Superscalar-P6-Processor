@@ -15,7 +15,7 @@ module icache(
 
     output logic [63:0] Icache_data_out, // value is memory[proc2Icache_addr]
     output logic Icache_valid_out      // when this is high
-    );
+);
 
     logic [`CACHE_LINE_BITS - 1:0] current_index, last_index;
     logic [12 - `CACHE_LINE_BITS:0] current_tag, last_tag;

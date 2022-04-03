@@ -44,7 +44,8 @@ module fu_ls(
 
 	assign fu_lsq.load			= working_id_fu.rd_mem;
 	assign fu_lsq.store			= working_id_fu.wr_mem;
-	assign fu_lsq.valid			= fu_result_valid;
+	assign fu_lsq.valid			= ~working_rs_fu.selected &&
+								  working_id_fu.valid && working_rs_fu.rs_value_valid;
 	assign fu_lsq.addr			= alu_result;
 	assign fu_lsq.value			= working_rs_fu.rs_value[1];
 	// assign fu_lsq.lq_pos		= working_loadq_pos;
@@ -54,7 +55,7 @@ module fu_ls(
 	// 							  working_id_fu.valid && working_rs_fu.rs_value_valid;
 	assign fu_result_valid		= ~reset && ~working_rs_fu.selected &&
 								  working_id_fu.valid && working_rs_fu.rs_value_valid &&
-								  (working_id_fu.wr_mem ? alu_result : lsq_fu.valid);
+								  (working_id_fu.wr_mem ? fu_lsq.valid : lsq_fu.valid);
 	assign fu_rs.alu_result	 	= working_id_fu.wr_mem ? `XLEN'b0 : lsq_fu.value;
 
 	// synopsys sync_set_reset "reset"

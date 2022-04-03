@@ -26,7 +26,7 @@
 // Memory/testbench attribute definitions
 //
 //////////////////////////////////////////////
-//`define CACHE_MODE //removes the byte-level interface from the memory mode, DO NOT MODIFY!
+`define CACHE_MODE //removes the byte-level interface from the memory mode, DO NOT MODIFY!
 `define NUM_MEM_TAGS           15
 
 `define MEM_SIZE_IN_BYTES      (64*1024)
@@ -607,6 +607,7 @@ typedef struct packed {
 // load store queue related structure
 typedef struct packed {
 	logic	[`XLEN-1:0]				addr;
+	logic	[2:0]					mem_size; // byte, half-word or word
 	logic							valid;
 	logic							filled;
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
@@ -615,8 +616,9 @@ typedef struct packed {
 `define NO_SQ_POS	`LSQ_IDX_LEN'b1111
 
 typedef struct packed {
-	logic	[`XLEN-1:0]		addr;
-	logic					filled;
+	logic	[`XLEN-1:0]				addr;
+	logic	[2:0]					mem_size; // byte, half-word or word
+	logic							filled;
 } STORE_QUEUE_ENTRY;
 
 typedef struct packed {
@@ -639,6 +641,7 @@ typedef struct packed {
 	logic							valid;
 	logic	[`XLEN-1:0]				addr;
 	logic	[`XLEN-1:0]				value;
+	logic	[2:0]					mem_size; // byte, half-word or word
 //	logic	[`LSQ_IDX_LEN-1:0]		lq_pos;
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } FU_LSQ_PACKET;
@@ -650,25 +653,27 @@ typedef struct packed {
 } LSQ_FU_PACKET;
 
 typedef struct packed {
-	logic					valid;
-	logic	[`XLEN-1:0]		addr;
+	logic							valid;
+	logic	[`XLEN-1:0]				addr;
+	logic	[2:0]					mem_size; // byte, half-word or word
 } LSQ_LOAD_DCACHE_PACKET;
 
 typedef struct packed {
-	logic					valid;
-	logic	[`XLEN-1:0]		addr;
-	logic	[`XLEN-1:0]		value;
-	logic					halt;
+	logic							valid;
+	logic	[`XLEN-1:0]				addr;
+	logic	[2:0]					mem_size; // byte, half-word or word	
+	logic	[`XLEN-1:0]				value;
+	logic							halt;
 } LSQ_STORE_DCACHE_PACKET;
 
 typedef struct packed {
-	logic					valid;
-	logic	[`XLEN-1:0]		value;
+	logic							valid;
+	logic	[`XLEN-1:0]				value;
 } DCACHE_LOAD_LSQ_PACKET;
 
 typedef struct packed {
-	logic					valid;
-	logic					halt_valid;
+	logic							valid;
+	logic							halt_valid;
 } DCACHE_STORE_LSQ_PACKET;
 
 

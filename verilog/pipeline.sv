@@ -25,8 +25,9 @@ module pipeline (
 	output logic [1:0]  proc2mem_command,    // command sent to memory
 	output logic [`XLEN-1:0] proc2mem_addr,      // Address sent to memory
 	output logic [63:0] proc2mem_data,      // Data sent to memory
-	output MEM_SIZE proc2mem_size,          // data size sent to memory
-
+	`ifndef CACHE_MODE
+		output MEM_SIZE proc2mem_size,          // data size sent to memory
+	`endif
 	output logic [3:0]  		pipeline_completed_insts,
 	output EXCEPTION_CODE   	pipeline_error_status,
 	output logic [4:0]  		pipeline_commit_wr_idx,
@@ -167,8 +168,10 @@ module pipeline (
 	assign proc2mem_addr =
 	     do_Ifetch ? proc2Imem_addr : proc2Dmem_addr;
 	//if it's an instruction, then load a double word (64 bits)
-	assign proc2mem_size =
-	     do_Ifetch ? DOUBLE : proc2Dmem_size;
+	`ifndef CACHE_MODE
+		assign proc2mem_size =
+			do_Ifetch ? DOUBLE : proc2Dmem_size;
+	`endif
 	assign proc2mem_data = {32'b0, proc2Dmem_data};
 
 	// always @* begin
