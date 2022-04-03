@@ -32,7 +32,7 @@ module lsq (
     // output	logic   [`XLEN-1:0] 		    proc2Dmem_data,
     // output	logic   [`XLEN-1:0] 	        proc2Dmem_addr
     input   DCACHE_LOAD_LSQ_PACKET          dc_load_lsq,
-    input   DCACHE_STORE_LSQ_PACKET         dc_store_lsq
+    input   DCACHE_STORE_LSQ_PACKET         dc_store_lsq,
     output  LSQ_LOAD_DCACHE_PACKET          lsq_load_dc,
     output  LSQ_STORE_DCACHE_PACKET         lsq_store_dc
 
@@ -53,6 +53,21 @@ module lsq (
     // logic               [`LSQ_IDX_LEN-1:0]                  next_lq_tail;
     // logic               [`LSQ_IDX_LEN-1:0]                  next_lq_counter;
 
+    // store queue
+    STORE_QUEUE_ENTRY   [`STORE_QUEUE_SIZE-1:0]             sq_entries;
+    logic               [`STORE_QUEUE_SIZE-1:0]             sq_valid;
+    logic               [`STORE_QUEUE_SIZE-1:0][`XLEN-1:0]  sq_value;
+    logic               [`LSQ_IDX_LEN-1:0]                  sq_head;
+    logic               [`LSQ_IDX_LEN-1:0]                  sq_tail;
+    logic               [`LSQ_IDX_LEN-1:0]                  sq_counter;
+
+    STORE_QUEUE_ENTRY   [`STORE_QUEUE_SIZE-1:0]             next_sq_entries;
+    logic               [`STORE_QUEUE_SIZE-1:0]             next_sq_valid;
+    logic               [`STORE_QUEUE_SIZE-1:0][`XLEN-1:0]  next_sq_value;
+    logic               [`LSQ_IDX_LEN-1:0]                  next_sq_head;
+    logic               [`LSQ_IDX_LEN-1:0]                  next_sq_tail;
+    logic               [`LSQ_IDX_LEN-1:0]                  next_sq_counter;
+
     LSQ_LOAD_DCACHE_PACKET                                  next_lsq_load_dc;
     LSQ_STORE_DCACHE_PACKET                                 next_lsq_store_dc;
     LSQ_RS_PACKET       [`NUM_LS-1:0]                       next_lsq_fu;
@@ -61,10 +76,10 @@ module lsq (
     logic [1:0]    lq_selection;
 
     ps4_num lq_selector (
-        .req({  lq_entries[3].addr[`LSQ_IDX_LEN-1] && lq_entries[3].valid && ~lq_retire_valid[3]
-                lq_entries[2].addr[`LSQ_IDX_LEN-1] && lq_entries[2].valid && ~lq_retire_valid[2]
-                lq_entries[1].addr[`LSQ_IDX_LEN-1] && lq_entries[1].valid && ~lq_retire_valid[1]
-                lq_entries[0].addr[`LSQ_IDX_LEN-1] && lq_entries[0].valid && ~lq_retire_valid[0]   }),
+        .req({  lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[3].valid && ~lq_retire_valid[3],
+                lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[2].valid && ~lq_retire_valid[2],
+                lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[1].valid && ~lq_retire_valid[1],
+                lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[0].valid && ~lq_retire_valid[0]   }),
         .num(lq_selection)
     );
 
@@ -97,57 +112,56 @@ module lsq (
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (lq_entries[i].filled && ~lq_retire_valid[i] && 
                 lq_entries[i].valid && ~(lq_entries[i].sq_pos == `NO_SQ_POS)) begin
-                    if (lq_entries[i].sq_pos > sq_head) begin
-                        temp_flag = 1'b1;
-                        for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
-                            if (j < lq_entries[i].sq_pos && j >= sq_head && temp_flag) begin
-                                if (~sq_entries[j].valid) begin
-                                    temp_flag = 1'b0;
-                                end else if (sq_entries[j].addr == lq_entries[i].addr) begin
-                                    temp_flag               = 1'b0;
-                                    next_lq_retire_valid[i] = 1'b1;
-                                    next_lq_value[i]        = sq_value[j];
-                                end
+                if (lq_entries[i].sq_pos > sq_head) begin
+                    temp_flag = 1'b1;
+                    for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
+                        if (j < lq_entries[i].sq_pos && j >= sq_head && temp_flag) begin
+                            if (~sq_valid[j]) begin
+                                temp_flag = 1'b0;
+                            end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                                temp_flag               = 1'b0;
+                                next_lq_retire_valid[i] = 1'b1;
+                                next_lq_value[i]        = sq_value[j];
                             end
                         end
-                        if (temp_flag) begin
-                            next_lq_entries[i].sq_pos = `NO_SQ_POS;
-                        end
-                    end else begin
-                        temp_flag = 1'b1;
-                        for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
-                            if (j < lq_entries[i].sq_pos && temp_flag) begin
-                                if (~sq_entries[j].valid) begin
-                                    temp_flag = 1'b0;
-                                end else if (sq_entries[j].addr == lq_entries[i].addr) begin
-                                    temp_flag               = 1'b0;
-                                    next_lq_retire_valid[i] = 1'b1;
-                                    next_lq_value[i]        = sq_value[j];
-                                end
+                    end
+                    if (temp_flag) begin
+                        next_lq_entries[i].sq_pos = `NO_SQ_POS;
+                    end
+                end else begin
+                    temp_flag = 1'b1;
+                    for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
+                        if (j < lq_entries[i].sq_pos && temp_flag) begin
+                            if (~sq_valid[j]) begin
+                                temp_flag = 1'b0;
+                            end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                                temp_flag               = 1'b0;
+                                next_lq_retire_valid[i] = 1'b1;
+                                next_lq_value[i]        = sq_value[j];
                             end
                         end
-                        for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
-                            if (j >= sq_head && temp_flag) begin
-                                if (~sq_entries[j].valid) begin
-                                    temp_flag = 1'b0;
-                                end else if (sq_entries[j].addr == lq_entries[i].addr) begin
-                                    temp_flag               = 1'b0;
-                                    next_lq_retire_valid[i] = 1'b1;
-                                    next_lq_value[i]        = sq_value[j];
-                                end
+                    end
+                    for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
+                        if (j >= sq_head && temp_flag) begin
+                            if (~sq_valid[j]) begin
+                                temp_flag = 1'b0;
+                            end else if (sq_entries[j].addr == lq_entries[i].addr) begin
+                                temp_flag               = 1'b0;
+                                next_lq_retire_valid[i] = 1'b1;
+                                next_lq_value[i]        = sq_value[j];
                             end
                         end
-                        if (temp_flag) begin
-                            next_lq_entries[i].sq_pos = `NO_SQ_POS;
-                        end
+                    end
+                    if (temp_flag) begin
+                        next_lq_entries[i].sq_pos = `NO_SQ_POS;
                     end
                 end
             end
         end
 
         if (dc_load_lsq.valid) begin
-            next_lq_valid[lq_selection]      = 1'b1;
-            next_lq_value[lq_selection]      = dc_load_lsq.value;
+            next_lq_retire_valid[lq_selection]  = 1'b1;
+            next_lq_value[lq_selection]         = dc_load_lsq.value;
         end
 
         if (rs_lsq.valid && rs_lsq.load) begin
@@ -183,19 +197,6 @@ module lsq (
 
 
     // store queue
-    STORE_QUEUE_ENTRY   [`STORE_QUEUE_SIZE-1:0]             sq_entries;
-    logic               [`STORE_QUEUE_SIZE-1:0]             sq_valid;
-    logic               [`STORE_QUEUE_SIZE-1:0][`XLEN-1:0]  sq_value;
-    logic               [`LSQ_IDX_LEN-1:0]                  sq_head;
-    logic               [`LSQ_IDX_LEN-1:0]                  sq_tail;
-    logic               [`LSQ_IDX_LEN-1:0]                  sq_counter;
-
-    STORE_QUEUE_ENTRY   [`STORE_QUEUE_SIZE-1:0]             next_sq_entries;
-    logic               [`STORE_QUEUE_SIZE-1:0]             next_sq_valid;
-    logic               [`STORE_QUEUE_SIZE-1:0][`XLEN-1:0]  next_sq_value;
-    logic               [`LSQ_IDX_LEN-1:0]                  next_sq_head;
-    logic               [`LSQ_IDX_LEN-1:0]                  next_sq_tail;
-    logic               [`LSQ_IDX_LEN-1:0]                  next_sq_counter;
 
     always_comb begin
         next_sq_entries         = sq_entries;
@@ -254,8 +255,8 @@ module lsq (
     assign lsq_rs.storeq_tail   =   sq_tail;
     assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
-    assign next_lsq_load_dc     = { lq_entries[lq_selection].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
-                                    lq_entries[lq_selection].addr}
+    assign next_lsq_load_dc     = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
+                                    lq_entries[lq_selection].addr   };
     assign next_lsq_store_dc    = { sq_valid[sq_head] && sq_retire,
                                     sq_entries[sq_head].addr,
                                     sq_value[sq_head]   };

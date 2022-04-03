@@ -52,7 +52,7 @@ HEADERS     = $(wildcard *.svh)
 TESTBENCH   = testbench/testbench.sv testbench/mem.sv #$(wildcard testbench/*.sv)
 TESTBENCH  += $(wildcard testbench/*.c)
 PIPEFILES   := $(wildcard verilog/*.sv)
-PIPEFILES   := $(filter-out verilog/dcache.sv verilog/lsq.sv, $(PIPEFILES))
+# PIPEFILES   := $(filter-out verilog/dcache.sv verilog/lsq.sv, $(PIPEFILES))
 
 SIMFILES    = $(PIPEFILES)
 

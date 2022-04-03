@@ -23,6 +23,7 @@ module icache(
     assign {current_tag, current_index} = proc2Icache_addr[15:3];
 
     logic [3:0] current_mem_tag;
+    logic miss_outstanding;
     // Trying to implement prefetching here ... 
     logic [1:0] miss_offset; // Goes from 3 -> 2 -> 1 -> 0 as we prefetch memory at the offset
 

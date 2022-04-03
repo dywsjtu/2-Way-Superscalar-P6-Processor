@@ -612,7 +612,7 @@ typedef struct packed {
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } LOAD_QUEUE_ENTRY;
 //lq_entries[3].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[3]
-`define NO_SQ_POS	`LSQ_IDX_LEN'b1111;
+`define NO_SQ_POS	`LSQ_IDX_LEN'b1111
 
 typedef struct packed {
 	logic	[`XLEN-1:0]		addr;

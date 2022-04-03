@@ -324,11 +324,21 @@ module pipeline (
 	logic [`XLEN-1:0] FU_value;
 
 	cdb cdb_0(
-		//INPUT
-        .clock(clock),lsq_rs
         //input
         .clock(clock),
-		.reset(reset),
+		.reset(reset), 
+		.rs_cdb(rs_cdb),
+
+		//OUTPUT
+		.cdb_out(cdb_out)
+	);
+
+	// TODO fix this
+	map_table map_table_0 (
+        //input
+        .clock(clock),
+ 		.reset(reset),
+
         .dispatch_enable(dispatch_enable),
         .rd_dispatch(id_packet_out.dest_reg_idx),
         .rob_mt(rob_mt),
@@ -387,6 +397,11 @@ module pipeline (
 		.sq_retire(sq_retire)
 	);
 
+	DCACHE_LOAD_LSQ_PACKET          dc_load_lsq;
+	DCACHE_STORE_LSQ_PACKET         dc_store_lsq;
+	LSQ_LOAD_DCACHE_PACKET          lsq_load_dc;
+	LSQ_STORE_DCACHE_PACKET         lsq_store_dc;
+
 	lsq lsq_0 (
 		.clock(clock),
 		.reset(reset),
@@ -400,7 +415,13 @@ module pipeline (
 
 		.sq_rob_valid(sq_rob_valid), // to rob
 		.lsq_fu(lsq_fu),
-		.lsq_rs(lsq_rs)
+		.lsq_rs(lsq_rs),
+
+		.dc_load_lsq(dc_load_lsq),
+		.dc_store_lsq(dc_store_lsq),
+		.lsq_load_dc(lsq_load_dc),
+		.lsq_store_dc(lsq_store_dc)
+
 	);
 
 endmodule  // module verisimple

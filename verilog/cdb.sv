@@ -25,7 +25,7 @@ module cdb (
     // input logic [`XLEN-1:0]         FU_value,
 
     //OUTPUT
-    output CDB_ENTRY            cdb_out
+    output CDB_ENTRY                cdb_out
     //output logic                full//whether CDB is full
 );
     /*Need to be discussed*/

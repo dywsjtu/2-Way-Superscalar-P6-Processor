@@ -19,7 +19,7 @@ module ps4(
     assign gnt[0] = ~req[3] && ~req[2] && ~req[1] &&  req[0];
 endmodule
 
-module ps4num(
+module ps4_num(
     input        [3:0] req,
     output logic [1:0] num
 );
@@ -90,7 +90,7 @@ module rps2 (
     input              en,
     input              cnt,
 
-    output logic [1:0] gnt,
+    output logic [1:0] gnt
 );
     assign gnt[1] = en && (( cnt && req[1]) || (~cnt && ~req[0] &&  req[1]));
     assign gnt[0] = en && ((~cnt && req[0]) || ( cnt && ~req[1] &&  req[0]));

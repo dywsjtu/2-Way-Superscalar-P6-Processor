@@ -45,8 +45,8 @@ module fu_ls(
 	assign fu_lsq.load			= working_id_fu.rd_mem;
 	assign fu_lsq.store			= working_id_fu.wr_mem;
 	assign fu_lsq.valid			= fu_result_valid;
-	assign fu_lsq.addr			= working_id_fu
-	assign fu_lsq.value			= alu_result;
+	assign fu_lsq.addr			= alu_result;
+	assign fu_lsq.value			= working_rs_fu.rs_value[1];
 	// assign fu_lsq.lq_pos		= working_loadq_pos;
 	assign fu_lsq.sq_pos		= working_storeq_pos;
 	

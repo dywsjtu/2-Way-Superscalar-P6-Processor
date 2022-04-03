@@ -178,8 +178,8 @@ module rs (
         .fu_result_valid(fu_result_valid[7])
     );
 
-    FU_LSQ_PACKET   [`NUM_LS-1:0]           fu_lsq;
-    LSQ_FU_PACKET   [`NUM_LS-1:0]           lsq_fu;
+    // FU_LSQ_PACKET   [`NUM_LS-1:0]           fu_lsq;
+    // LSQ_FU_PACKET   [`NUM_LS-1:0]           lsq_fu;
     logic fu8_v;
     logic fu9_v;
     logic fu10_v;
