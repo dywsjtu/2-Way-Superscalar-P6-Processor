@@ -165,7 +165,7 @@ module lsq (
         end
 
         if (rs_lsq.valid && rs_lsq.load) begin
-            next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 1'b0, 1'b0, 0};
+            next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 1'b0, 1'b0, `LSQ_IDX_LEN'b0};
             next_lq_retire_valid[rs_lsq.idx]    = 1'b0;
         end
 

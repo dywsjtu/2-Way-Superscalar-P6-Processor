@@ -135,7 +135,7 @@ module pipeline (
 	icache icache_0 (
 		.clock(clock),
 		.reset(reset),
-	 	.Imem2proc_response(do_Ifetch ? mem2proc_response : 0),
+	 	.Imem2proc_response(do_Ifetch ? mem2proc_response : 4'b0),
 	    .Imem2proc_data(mem2proc_data),
 	    .Imem2proc_tag(mem2proc_tag),
 

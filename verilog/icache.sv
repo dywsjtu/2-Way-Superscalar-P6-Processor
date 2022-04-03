@@ -24,12 +24,6 @@ module icache(
 
     logic [3:0] current_mem_tag;
     logic miss_outstanding;
-    // Trying to implement prefetching here ... 
-    logic [1:0] miss_offset; // Goes from 3 -> 2 -> 1 -> 0 as we prefetch memory at the offset
-
-    wire [`CACHE_LINE_BITS - 1:0] current_index_offset;
-
-    assign current_index_offset = current_index + miss_offset; // Index plus offset
 
     assign data_write_enable = (current_mem_tag == Imem2proc_tag) && (current_mem_tag != 0);
 
@@ -37,7 +31,10 @@ module icache(
 
     assign update_mem_tag    = changed_addr || miss_outstanding || data_write_enable;
 
-    assign proc2Imem_addr    = {proc2Icache_addr[31:3] + miss_offset, 3'b0};
+    assign unanswered_miss   = changed_addr ? !Icache_valid_out :
+                                        miss_outstanding && (Imem2proc_response == 0);
+
+    assign proc2Imem_addr    = {proc2Icache_addr[31:3], 3'b0};
     always @(negedge clock) begin
         $display("icache debug: %h %h %h %h %h", proc2Icache_addr, current_index, last_index, current_tag, last_tag);
         $display("icache debug outstanding, changed_addr: %h %h", miss_outstanding, changed_addr);
@@ -58,28 +55,22 @@ module icache(
             last_index       <= `SD -1;   // These are -1 to get ball rolling when
             last_tag         <= `SD -1;   // reset goes low because addr "changes"
             current_mem_tag  <= `SD 0;
-            miss_offset      <= `SD 0;
+            miss_outstanding <= `SD 0;
 
             valids <= `SD `CACHE_LINES'b0;  
         end else begin
             last_index              <= `SD current_index;
             last_tag                <= `SD current_tag;
-            if(miss_offset == 0 && changed_addr && !Icache_valid_out) begin // Initial miss
-                miss_offset <= `SD 3;
-            end
-            else if(miss_offset != 0 && Imem2proc_response == 0) begin // Hit prefetch, now reduce offset
-                miss_offset <= `SD miss_offset - 1;
-            end
-
+            miss_outstanding        <= `SD unanswered_miss;
 
             if(update_mem_tag)
                 current_mem_tag     <= `SD Imem2proc_response;
 
-                if(data_write_enable) begin
-                    data[current_index_offset]     <= `SD Imem2proc_data;
-                    tags[current_index_offset]     <= `SD current_tag;
-                    valids[current_index_offset]   <= `SD 1;
-                end
+				    if(data_write_enable) begin
+				        data[current_index]     <= `SD Imem2proc_data;
+						tags[current_index]     <= `SD current_tag;
+					    valids[current_index]   <= `SD 1;
+				    end
         end
     end
 
