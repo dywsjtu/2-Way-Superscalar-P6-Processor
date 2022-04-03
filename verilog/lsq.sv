@@ -40,8 +40,8 @@ module lsq (
 );  
     logic                                                   sq_rob_valid;
     assign  lsq_rob.retire_valid    = sq_rob_valid;
-    // assign  lsq_rob.halt_valid      = dc_store_lsq.halt_valid;
-    assign  lsq_rob.halt_valid      = 1'b1; // TODO: Change this
+    // assign  lsq_rob.halt_valid      = (sq_head == sq_tail) && dc_store_lsq.halt_valid;
+    assign  lsq_rob.halt_valid      = (sq_head == sq_tail); // TODO: Change this
     // load queue
      
     LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]              lq_entries;
