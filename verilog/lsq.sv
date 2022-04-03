@@ -18,10 +18,11 @@ module lsq (
 
     input   RS_LSQ_PACKET                   rs_lsq,
     input   FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq,
+    input   ROB_LSQ_PACKET                  rob_lsq,
+    // input                                   sq_retire, // from rob
 
-    input                                   sq_retire, // from rob
-
-    output  logic                           sq_rob_valid, // to rob
+    // output  logic                           sq_rob_valid, // to rob
+    output  LSQ_ROB_PACKET                  lsq_rob,
     output  LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu,
     output  LSQ_RS_PACKET                   lsq_rs,
 
@@ -37,6 +38,10 @@ module lsq (
     output  LSQ_STORE_DCACHE_PACKET         lsq_store_dc
 
 );  
+    logic                                                   sq_rob_valid;
+    assign  lsq_rob.retire_valid    = sq_rob_valid;
+    // assign  lsq_rob.halt_valid      = dc_store_lsq.halt_valid;
+    assign  lsq_rob.halt_valid      = 1'b1; // TODO: Change this
     // load queue
      
     LOAD_QUEUE_ENTRY    [`LOAD_QUEUE_SIZE-1:0]              lq_entries;
@@ -101,7 +106,7 @@ module lsq (
             end
         end
 
-        if (sq_retire) begin
+        if (rob_lsq.sq_retire) begin
             for (int i = 0; i < `NUM_LS; i += 1) begin
                 if (lq_entries[i].sq_pos == sq_head) begin
                     next_lq_entries[i].sq_pos = `NO_SQ_POS;
@@ -257,9 +262,10 @@ module lsq (
 
     assign next_lsq_load_dc     = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
                                     lq_entries[lq_selection].addr   };
-    assign next_lsq_store_dc    = { sq_valid[sq_head] && sq_retire,
+    assign next_lsq_store_dc    = { sq_valid[sq_head] && rob_lsq.sq_retire,
                                     sq_entries[sq_head].addr,
-                                    sq_value[sq_head]   };
+                                    sq_value[sq_head],
+                                    rob_lsq.sq_halt };
     always_ff @(posedge clock) begin
         if (reset || squash) begin
             lsq_load_dc         <=  `SD 0;

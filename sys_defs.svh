@@ -658,6 +658,7 @@ typedef struct packed {
 	logic					valid;
 	logic	[`XLEN-1:0]		addr;
 	logic	[`XLEN-1:0]		value;
+	logic					halt;
 } LSQ_STORE_DCACHE_PACKET;
 
 typedef struct packed {
@@ -667,7 +668,18 @@ typedef struct packed {
 
 typedef struct packed {
 	logic					valid;
+	logic					halt_valid;
 } DCACHE_STORE_LSQ_PACKET;
 
+
+typedef struct packed {
+	logic			sq_retire;
+	logic			sq_halt;
+} ROB_LSQ_PACKET;
+
+typedef struct packed {
+	logic			retire_valid;
+	logic			halt_valid;
+} LSQ_ROB_PACKET;
 
 `endif // __SYS_DEFS_VH__

@@ -39,7 +39,8 @@ module dcache(
     output logic [`XLEN-1:0]        proc2Dmem_data,
     output logic [1:0]              proc2Dmem_command,
     output logic [`XLEN-1:0]        proc2Dmem_addr
-    );
+);
+    assign  dcache_store.halt_valid = 1'b1; // TODO: Change this.
 
     //Cache memory (2-way associative + LRU)
     logic [1:0][`CACHE_LINES-1:0] [31:0]                     data;

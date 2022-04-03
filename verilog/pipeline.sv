@@ -50,8 +50,8 @@ module pipeline (
 	// ID
 	ID_ROB_PACKET       id_rob;   
 	ID_RS_PACKET        id_rs;
-	logic				sq_rob_valid;
-	logic				sq_retire;
+	// logic				sq_rob_valid;
+	// logic				sq_retire;
 
 	// CDB
 	CDB_ENTRY           cdb_out;
@@ -77,6 +77,8 @@ module pipeline (
     ROB_MT_PACKET       rob_mt;
     ROB_REG_PACKET      rob_reg;
 	ROB_ID_PACKET       rob_id;
+	ROB_LSQ_PACKET		rob_lsq;
+	LSQ_ROB_PACKET		lsq_rob;
 
 	REG_RS_PACKET       reg_rs;
 
@@ -385,7 +387,8 @@ module pipeline (
 		.id_rob(id_rob),
 		.rs_rob(rs_rob),
 		.cdb_rob(cdb_out),
-		.sq_rob_valid(sq_rob_valid),
+		.lsq_rob(lsq_rob),
+		// .sq_rob_valid(sq_rob_valid),
 		// output
 		.rob_full(rob_full),
 		.halt(halt),
@@ -394,7 +397,8 @@ module pipeline (
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),
 		.rob_reg(rob_reg),
-		.sq_retire(sq_retire)
+		.rob_lsq(rob_lsq)
+		// .sq_retire(sq_retire)
 	);
 
 	DCACHE_LOAD_LSQ_PACKET          dc_load_lsq;
@@ -409,11 +413,12 @@ module pipeline (
 
 		.rs_lsq(rs_lsq),
 		.fu_lsq(fu_lsq),
-
-		.sq_retire(sq_retire), // from rob
+		.rob_lsq(rob_lsq),
+		// .sq_retire(sq_retire), // from rob
 		// .store_finish, // from d-cache indicate whether the store finished write
 
-		.sq_rob_valid(sq_rob_valid), // to rob
+		// .sq_rob_valid(sq_rob_valid), // to rob
+		.lsq_rob(lsq_rob),
 		.lsq_fu(lsq_fu),
 		.lsq_rs(lsq_rs),
 

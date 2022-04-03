@@ -19,7 +19,8 @@ module rob(
     input   ID_ROB_PACKET       id_rob,
     input   RS_ROB_PACKET       rs_rob,
     input   CDB_ENTRY           cdb_rob,
-    input   logic               sq_rob_valid,
+    input   LSQ_ROB_PACKET      lsq_rob,
+    // input   logic               sq_rob_valid,
 
     output  logic               rob_full,
     output  logic               halt,
@@ -29,7 +30,8 @@ module rob(
     output  ROB_RS_PACKET       rob_rs,
     output  ROB_MT_PACKET       rob_mt,
     output  ROB_REG_PACKET      rob_reg,
-    output  logic               sq_retire
+    output  ROB_LSQ_PACKET      rob_lsq
+    // output  logic               sq_retire
 );  
     logic               [`ROB_IDX_LEN-1:0]  rob_head;
     logic               [`ROB_IDX_LEN-1:0]  rob_tail;
@@ -40,14 +42,15 @@ module rob(
     logic       retire_valid;
     logic       valid;
 
-    assign halt                 = rob_entries[rob_head].halt;
+    assign rob_lsq.sq_halt      = rob_entries[rob_head].halt;
+    assign halt                 = rob_entries[rob_head].halt && lsq_rob.halt_valid;
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full             = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
     assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty) 
-                                     && (~rob_entries[rob_head].store || sq_rob_valid)) 
+                                     && (~rob_entries[rob_head].store || lsq_rob.retire_valid)) 
                                   || rob_entries[rob_head].halt;
-    assign sq_retire            = retire_valid && rob_entries[rob_head].store;
+    assign rob_lsq.sq_retire    = retire_valid && rob_entries[rob_head].store;
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
 
@@ -119,12 +122,7 @@ module rob(
 
     `ifdef DEBUG
     logic [31:0] cycle_count;
-    // synopsys sync_set_reset "reset"
-    always_ff @(negedge clock) begin
-        if(reset) begin
-            cycle_count = 0;
-        end
-        else begin
+    // synopsys sync_set_reset "reset"dc_store_lsq.halt_valid
             $display("DEBUG %4d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
             $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
