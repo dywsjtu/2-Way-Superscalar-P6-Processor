@@ -40,7 +40,6 @@ module fu_alu(
 		opa_mux_out = `XLEN'hdeadfbac;
 		case (working_id_fu.opa_select)
 			OPA_IS_RS1:  opa_mux_out = working_rs_fu.rs_value[0];
-			OPA_IS_NPC:  opa_mux_out = working_id_fu.NPC;
 			OPA_IS_PC:   opa_mux_out = working_id_fu.PC;
 			OPA_IS_ZERO: opa_mux_out = 0;
 		endcase
@@ -56,10 +55,7 @@ module fu_alu(
 		case (working_id_fu.opb_select)
 			OPB_IS_RS2:   opb_mux_out = working_rs_fu.rs_value[1];
 			OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(working_id_fu.inst);
-			OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(working_id_fu.inst);
-			OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(working_id_fu.inst);
 			OPB_IS_U_IMM: opb_mux_out = `RV32_signext_Uimm(working_id_fu.inst);
-			OPB_IS_J_IMM: opb_mux_out = `RV32_signext_Jimm(working_id_fu.inst);
 		endcase 
 	end
 

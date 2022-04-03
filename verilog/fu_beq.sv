@@ -38,15 +38,8 @@ module fu_beq(
 	//
 	// ALU opA mux
 	//
-	always_comb begin
-		opa_mux_out = `XLEN'hdeadfbac;
-		case (working_id_fu.opa_select)
-			OPA_IS_RS1:  opa_mux_out = working_rs_fu.rs_value[0];
-			OPA_IS_NPC:  opa_mux_out = working_id_fu.NPC;
-			OPA_IS_PC:   opa_mux_out = working_id_fu.PC;
-			OPA_IS_ZERO: opa_mux_out = 0;
-		endcase
-	end
+	assign opa_mux_out = working_id_fu.opa_select == OPA_IS_RS1	? working_rs_fu.rs_value[0]
+																: working_id_fu.PC;
 
 	//
 	// ALU opB mux
@@ -56,33 +49,14 @@ module fu_beq(
 		// value on the output of the mux you have an invalid opb_select
 		opb_mux_out = `XLEN'hfacefeed;
 		case (working_id_fu.opb_select)
-			OPB_IS_RS2:   opb_mux_out = working_rs_fu.rs_value[1];
 			OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(working_id_fu.inst);
-			OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(working_id_fu.inst);
 			OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(working_id_fu.inst);
-			OPB_IS_U_IMM: opb_mux_out = `RV32_signext_Uimm(working_id_fu.inst);
 			OPB_IS_J_IMM: opb_mux_out = `RV32_signext_Jimm(working_id_fu.inst);
 		endcase 
 	end
 
-
-	//
-	// instantiate the ALU
-	//
-	alu alu_0 (// Inputs
-		.clock(clock),
-		.reset(reset),
-
-		.refresh(working_rs_fu.squash || working_rs_fu.selected),
-		.val_valid(working_rs_fu.rs_value_valid),
-		.opa(opa_mux_out),
-		.opb(opb_mux_out),
-		.func(working_id_fu.alu_func),
-
-		// Output
-		.valid(alu_result_valid),
-		.result(alu_result)
-	);
+	assign alu_result_valid = working_rs_fu.rs_value_valid;
+	assign alu_result = opa_mux_out + opb_mux_out;
 
 	// 
 	 // instantiate the branch condition tester
