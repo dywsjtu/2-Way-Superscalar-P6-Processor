@@ -79,15 +79,27 @@ module lsq (
     logic                                                   next_sq_rob_valid;
 
     logic [1:0]    lq_selection;
+    logic [1:0]    next_lq_selection;
 
-    ps4_num lq_selector (
-        .req({  lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[3].valid && ~lq_retire_valid[3],
-                lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[2].valid && ~lq_retire_valid[2],
-                lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[1].valid && ~lq_retire_valid[1],
-                lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[0].valid && ~lq_retire_valid[0]   }),
-        .num(lq_selection)
-    );
+    // logic [1:0]     cnt;
 
+    // counter2 counter (
+    //     .clock(clock),
+    //     .reset(reset),
+    //     .count(cnt)
+    // );
+
+    // rps4_num lq_selector (
+    //     .cnt(cnt),
+    //     .req({  lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[3].valid && ~lq_retire_valid[3],
+    //             lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[2].valid && ~lq_retire_valid[2],
+    //             lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[1].valid && ~lq_retire_valid[1],
+    //             lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[0].valid && ~lq_retire_valid[0]   }),
+    //     .en(1'b1),
+    //     .num(next_lq_selection)
+    // );
+
+    logic   update_selection;
     logic   temp_flag;
     
     always_comb begin
@@ -98,6 +110,7 @@ module lsq (
         // next_lq_tail            = lq_tail;
         // next_lq_counter         = lq_counter;
         next_lsq_fu             = 0;
+        update_selection        = 1'b0;
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (fu_lsq[i].valid && fu_lsq[i].load && ~lq_entries[i].filled) begin
@@ -167,11 +180,24 @@ module lsq (
         if (dc_load_lsq.valid) begin
             next_lq_retire_valid[lq_selection]  = 1'b1;
             next_lq_value[lq_selection]         = dc_load_lsq.value;
+            update_selection                    = 1'b1;
         end
 
         if (rs_lsq.valid && rs_lsq.load) begin
             next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 1'b0, 1'b0, `LSQ_IDX_LEN'b0};
             next_lq_retire_valid[rs_lsq.idx]    = 1'b0;
+        end
+
+        if (update_selection) begin
+            if (next_lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[3].valid && ~next_lq_retire_valid[3]) begin
+                next_lq_selection = 2'b11;
+            end else if (next_lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[2].valid && ~next_lq_retire_valid[2]) begin
+                next_lq_selection = 2'b10;
+            end else if (next_lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[1].valid && ~next_lq_retire_valid[1]) begin
+                next_lq_selection = 2'b01;
+            end else if (next_lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[0].valid && ~next_lq_retire_valid[0]) begin
+                next_lq_selection = 2'b00;
+            end
         end
 
         for (int i = 0; i < `LOAD_QUEUE_SIZE; i += 1) begin
@@ -180,10 +206,20 @@ module lsq (
         end
     end
 
+    // always_ff @(posedge clock) begin
+    //     if (reset || squash) begin
+    //         lq_selection        <=  `SD 0;
+    //     end
+    //     if (update_selection) begin
+    //         lq_selection        <=  `SD next_lq_selection;
+    //     end
+    // end
+
     always_ff @(posedge clock) begin
         if (reset || squash) begin
             // lq_head             <= `SD `LSQ_IDX_LEN'b0;
             // lq_tail             <= `SD `LSQ_IDX_LEN'b0;
+            lq_selection        <= `SD 2'b00;
             lq_retire_valid     <= `SD `LOAD_QUEUE_SIZE'b0;
             lq_value            <= `SD 0;
             // lq_counter          <= `SD 0;
@@ -192,6 +228,7 @@ module lsq (
         end else begin
             // lq_head             <= `SD next_lq_head;
             // lq_tail             <= `SD next_lq_tail;
+            lq_selection        <= `SD next_lq_selection;
             lq_retire_valid     <= `SD next_lq_retire_valid;
             lq_value            <= `SD next_lq_value;
             // lq_counter          <= `SD next_lq_counter;

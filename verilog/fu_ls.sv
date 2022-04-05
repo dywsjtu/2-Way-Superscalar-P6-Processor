@@ -33,7 +33,7 @@ module fu_ls(
 	assign fu_rs.halt           = working_id_fu.halt;
 	assign fu_rs.illegal        = working_id_fu.illegal;
 	assign fu_rs.csr_op         = working_id_fu.csr_op;
-	assign fu_rs.mem_size       = working_id_fu.inst.r.funct3;
+	assign fu_rs.mem_size       = MEM_SIZE'(working_id_fu.inst.r.funct3[1:0]);
 
 
 	assign alu_result 			= working_rs_fu.rs_value[0] + 

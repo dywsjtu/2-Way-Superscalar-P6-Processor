@@ -28,7 +28,7 @@ module fu_mult(
 	assign fu_rs.halt           = working_id_fu.halt;
 	assign fu_rs.illegal        = working_id_fu.illegal;
 	assign fu_rs.csr_op         = working_id_fu.csr_op;
-	assign fu_rs.mem_size       = working_id_fu.inst.r.funct3;
+	assign fu_rs.mem_size       = MEM_SIZE'(working_id_fu.inst.r.funct3[1:0]);
 	assign fu_result_valid		= ~working_rs_fu.selected &&
 								  working_id_fu.valid && working_rs_fu.rs_value_valid && 
 								  alu_result_valid;

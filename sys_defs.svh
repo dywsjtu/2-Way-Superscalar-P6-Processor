@@ -42,9 +42,10 @@
 // float to integer conversion is rounding to nearest
 
 typedef union packed {
-    logic [7:0][7:0] byte_level;
-    logic [3:0][15:0] half_level;
-    logic [1:0][31:0] word_level;
+    logic [7:0][7:0] 	byte_level;
+    logic [3:0][15:0] 	half_level;
+    logic [1:0][31:0] 	word_level;
+	logic	   [63:0]	double_level;
 } EXAMPLE_CACHE_BLOCK;
 
 //////////////////////////////////////////////
@@ -242,14 +243,14 @@ typedef enum logic [1:0] {
 	BUS_STORE    = 2'h2
 } BUS_COMMAND;
 
-`ifndef CACHE_MODE
+// `ifndef CACHE_MODE
 typedef enum logic [1:0] {
 	BYTE = 2'h0,
 	HALF = 2'h1,
 	WORD = 2'h2,
 	DOUBLE = 2'h3
 } MEM_SIZE;
-`endif
+// 
 //
 // useful boolean single-bit definitions
 //
@@ -601,13 +602,13 @@ typedef struct packed {
 	logic					rd_mem, wr_mem;
 	logic	[4:0]			dest_reg_idx;
 	logic					halt, illegal, csr_op;
-	logic	[2:0]			mem_size; // byte, half-word or word
+	MEM_SIZE				mem_size; // byte, half-word or word
 } FU_RS_PACKET;
 
 // load store queue related structure
 typedef struct packed {
 	logic	[`XLEN-1:0]				addr;
-	logic	[2:0]					mem_size; // byte, half-word or word
+	MEM_SIZE						mem_size; // byte, half-word or word
 	logic							valid;
 	logic							filled;
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
@@ -617,7 +618,7 @@ typedef struct packed {
 
 typedef struct packed {
 	logic	[`XLEN-1:0]				addr;
-	logic	[2:0]					mem_size; // byte, half-word or word
+	MEM_SIZE						mem_size; // byte, half-word or word
 	logic							filled;
 } STORE_QUEUE_ENTRY;
 
@@ -641,7 +642,7 @@ typedef struct packed {
 	logic							valid;
 	logic	[`XLEN-1:0]				addr;
 	logic	[`XLEN-1:0]				value;
-	logic	[2:0]					mem_size; // byte, half-word or word
+	MEM_SIZE						mem_size; // byte, half-word or word
 //	logic	[`LSQ_IDX_LEN-1:0]		lq_pos;
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } FU_LSQ_PACKET;
@@ -655,13 +656,13 @@ typedef struct packed {
 typedef struct packed {
 	logic							valid;
 	logic	[`XLEN-1:0]				addr;
-	logic	[2:0]					mem_size; // byte, half-word or word
+	MEM_SIZE						mem_size; // byte, half-word or word
 } LSQ_LOAD_DCACHE_PACKET;
 
 typedef struct packed {
 	logic							valid;
 	logic	[`XLEN-1:0]				addr;
-	logic	[2:0]					mem_size; // byte, half-word or word	
+	MEM_SIZE						mem_size; // byte, half-word or word	
 	logic	[`XLEN-1:0]				value;
 	logic							halt;
 } LSQ_STORE_DCACHE_PACKET;
@@ -686,5 +687,23 @@ typedef struct packed {
 	logic			retire_valid;
 	logic			halt_valid;
 } LSQ_ROB_PACKET;
+
+typedef struct packed {
+	EXAMPLE_CACHE_BLOCK				data;
+	logic	[12-3:0]				addr;
+	logic	[`CACHE_IDX_LEN:0]		lru_counter;
+	logic							valid;
+} DCACHE_ENTRY;
+
+typedef struct packed {
+	logic							valid;
+	logic							sent; // whether the message has been sent to memory
+	logic	[3:0]					tag;
+	logic	[12:0]					addr;
+	logic	[63:0]					value;
+	MEM_SIZE						mem_size;
+	logic	[1:0]					op; // 0 for just load, 1 for load for store, 2 for store
+} MISS_ENTRY;
+
 
 `endif // __SYS_DEFS_VH__

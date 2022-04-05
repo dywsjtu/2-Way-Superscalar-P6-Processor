@@ -5,176 +5,233 @@
 //  Description :  data cache;                                         // 
 /////////////////////////////////////////////////////////////////////////
 
-`define DEBUG
 `ifndef __DCACHE_V__
 `define __DCACHE_V__
 
 `timescale 1ns/100ps
 
-`define CACHE_LINES 32
-`define CACHE_LINE_BITS $clog2(`CACHE_LINES)
+`define CACHE_LINES     32
+`define CACHE_IDX_LEN   6
+`define MISS_LINES      8
 
-module dcache(
-    input clock,
-    input reset,
-    input stall,
+module dcache (
+    input                                   clock,
+    input                                   reset,
+    //From Pipeline
+    input                                   chosen2Mem,
 
     //From Dmem
-    input [3:0]  Dmem2proc_response,
-    input [63:0] Dmem2proc_data,
-    input [3:0]  Dmem2proc_tag,
-
-    //From LSQ
-    input LSQ_LOAD_DCACHE_PACKET  lsq_load,
-    input LSQ_STORE_DCACHE_PACKET lsq_store,
-
-    //To LSQ
-    output DCACHE_STORE_LSQ_PACKET dcache_store,
-    output DCACHE_LOAD_LSQ_PACKET  dcache_load,
+    input                                   Dmem2proc_valid,
+    input [3:0]                             Dmem2proc_response,
+    input [63:0]                            Dmem2proc_data,
+    input [3:0]                             Dmem2proc_tag,
 
     //To Dmem
-    `ifndef CACHE_MODE
-	    output  MEM_SIZE proc2Dmem_size, //BYTE, HALF, WORD or DOUBLE
-    `endif
-    output logic [`XLEN-1:0]        proc2Dmem_data,
-    output logic [1:0]              proc2Dmem_command,
-    output logic [`XLEN-1:0]        proc2Dmem_addr
-);
-    assign  dcache_store.halt_valid = 1'b1; // TODO: Change this.
+    output logic                            proc2Dmem_valid,
+    output logic [63:0]                     proc2Dmem_data,
+    output logic [1:0]                      proc2Dmem_command,
+    output logic [`XLEN-1:0]                proc2Dmem_addr,
 
-    //Cache memory (2-way associative + LRU)
-    logic [1:0][`CACHE_LINES-1:0] [31:0]                     data;
-    logic [1:0][`CACHE_LINES-1:0] [13 - `CACHE_LINE_BITS:0]  tags;
-    logic [1:0][`CACHE_LINES-1:0]                            valids;
-    //logic [1:0][`CACHE_LINES-1:0]                            dirty;
-    logic [`CACHE_LINES-1:0]                                 LRU_idx, LRU_next;
+    //From LSQ
+    input LSQ_LOAD_DCACHE_PACKET            lsq_load_dc,
+    input LSQ_STORE_DCACHE_PACKET           lsq_store_dc,
 
-    logic [`CACHE_LINE_BITS - 1:0]  current_idx_l, current_idx_s, current_idx;
-    logic [13 - `CACHE_LINE_BITS:0] current_tag_l, current_tag_s,current_tag;
-    logic [3:0]                     current_mem_tag;
+    //To LSQ
+    output DCACHE_LOAD_LSQ_PACKET           dc_load_lsq,
+    output DCACHE_STORE_LSQ_PACKET          dc_store_lsq,
+)
+    DCACHE_ENTRY    [`CACHE_LINES-1:0]      dcache_entries;
+    DCACHE_ENTRY    [`CACHE_LINES-1:0]      next_dcache_entries;
 
-    //Load from mem
-    logic data_write_enable; 
-    logic write2mem;
-    logic block_idx; 
+    MISS_ENTRY      [`MISS_LINES-1:0]       miss_entries;
+    MISS_ENTRY      [`MISS_LINES-1:0]       next_miss_entries;
 
-    assign {current_tag_l, current_idx_l} = lsq_load.addr[15:2];
-    assign {current_tag_s, current_idx_s} = lsq_store.addr[15:2];
-    assign data_write_enable = lsq_load.valid && (Dmem2proc_response == Dmem2proc_tag) && (Dmem2proc_response != 0);
-    //assign data_write_enable = (current_mem_tag == Dmem2proc_tag) && (current_mem_tag != 0);
-    assign proc2Dmem_addr    = (lsq_load.valid && ~dcache_load.valid) ? {lsq_load.addr[31:2],2'b0} :  
-                               (write2mem) ? {lsq_store.addr[31:2],2'b0} : BUS_NONE; 
-    //assign proc2Dmem_addr = (write2mem) ? {16'b0,tags[block_idx][current_idx_s], current_idx_s,2'b0}: {lsq_load.addr[31:2],2'b0};
-    assign proc2Dmem_command = (lsq_load.valid && ~dcache_load.valid) ? BUS_LOAD :  
-                               (write2mem) ? BUS_STORE : BUS_NONE; 
-    assign proc2Dmem_data    = (write2mem) ? lsq_store.value : 32'b0;
-    `ifndef CACHE_MODE
-	    assign proc2Dmem_size = WORD; 
-    `endif
-    
-    
+    DCACHE_LOAD_LSQ_PACKET                  next_dc_load_lsq;
+    DCACHE_STORE_LSQ_PACKET                 next_dc_store_lsq;
 
-    
-    //Read from Dcache
-    logic hit0,hit1;
-    assign hit0 = lsq_load.valid && tags[0][current_idx_l] == current_tag && valids[0][current_idx_l];
-    assign hit1 = lsq_load.valid && tags[1][current_idx_l] == current_tag && valids[1][current_idx_l];
-    assign dcache_load.value = hit0 ? data[0][current_idx_l] :
-                             hit1 ? data[1][current_idx_l] : 32'b0; 
-    assign dcache_load.valid = hit0 || hit1;
+    logic                                   temp_valid;
+    EXAMPLE_CACHE_BLOCK                     temp_value;
+    logic           [12-3:0]                temp_addr;
+    logic           [1:0]                   temp_op;
+    logic           [`CACHE_IDX_LEN-1:0]    temp_minus;
 
-    assign current_idx =  (data_write_enable) ? current_idx_l : current_idx_s;
-    assign current_tag =  (data_write_enable) ? current_tag_l : current_idx_s;
-    
-    //Update LRU
-                   
     always_comb begin
-        LRU_next = LRU_idx;
-        //WRITE
-        if (data_write_enable || lsq_store.valid) begin
-            if(current_tag == tags[0][current_idx] && valids[0][current_idx]) begin
-                block_idx             = 1'b0;
-                LRU_next[current_idx] = 1'b1;
-            end else if (current_tag == tags[1][current_idx] && valids[1][current_idx]) begin
-                block_idx             = 1'b1;
-                LRU_next[current_idx] = 1'b0;
-            end else begin
-                block_idx             = LRU_idx[current_idx];
-                LRU_next[current_idx] = LRU_idx[current_idx] + 1;
+        dc_load_lsq.valid       = 1'b0;
+        dc_load_lsq.value       = `XLEN'b0;
+        dc_store_lsq.valid      = 1'b0;
+        dc_store_lsq.halt_valid = 1'b0;
+        next_dcache_entries     = dcache_entries;
+        next_miss_entries       = miss_entries;
+
+        if (Dmem2proc_valid) begin
+            temp_valid = 1'b0;
+            for (int i = 0; i < `MISS_LINES; i += 1) begin
+                if (~temp_valid && miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].tag == Dmem2proc_response) begin
+                    temp_valid  = 1'b1;
+                    temp_value  = Dmem2proc_data;
+                    temp_addr   = miss_entries[i].addr[12:3];
+                    temp_op     = miss_entries[i].op;
+                    // if (miss_entries[i].op == 2'b01) begin
+                    //     casez (miss_entries[i].mem_size)
+                    //         BYTE: temp_value.byte_level[addr[2:0]]  = miss_entries[i].value[7:0];
+                    //         HALF: temp_value.half_level[addr[2:1]]  = miss_entries[i].value[15:0];
+                    //         WORD: temp_value.word_level[addr[2]]    = miss_entries[i].value[31:0];
+                    //     endcase
+                    //     next_miss_entries[i].valid  = 1'b1;
+                    //     next_miss_entries[i].sent   = 1'b0;
+                    //     next_miss_entries[i].tag    = 4'b0;
+                    //     next_miss_entries[i].value  = temp_value.double_level;
+                    //     next_miss_entries[i].op     = 2'b10;
+                    // end else
+                    //     next_miss_entries[i].valid  = 1'b0;
+                    // end
+                    next_miss_entries[i].valid  = 1'b0;
+                end
+            end
+            if (temp_valid && temp_op != 2'b10) begin
+                temp_valid = 1'b0;
+                for (int i = 0; i < `CACHE_LINES; i += 1) begin
+                    if (~temp_valid && dcache_entries.lru_counter == `CACHE_IDX_LEN'b0) begin
+                        temp_valid = 1'b1;
+                        next_dcache_entries[i] = {  temp_value;
+                                                    temp_addr;
+                                                    `CACHE_IDX_LEN'b011111;
+                                                    1'b1;   };
+                    end else if (dcache_entries.lru_counter != `CACHE_IDX_LEN'b0) begin
+                        next_dcache_entries[i].lru_counter = dcache_entries[i].lru_counter - 1;
+                    end
+                end
             end
         end
-        //READ
-        if (hit0 || hit1) begin
-            if(current_tag_l == tags[0][current_idx_l] && valids[0][current_idx_l]) begin
-                block_idx             = 1'b0;
-                LRU_next[current_idx_l] = 1'b1;
-            end else if (current_tag_l == tags[1][current_idx_l] && valids[1][current_idx_l]) begin
-                block_idx             = 1'b1;
-                LRU_next[current_idx_l] = 1'b0;
+
+        if (lsq_load_dc.valid && ~lsq_store_dc.halt) begin
+            temp_valid = 1'b0;
+            temp_minus = `CACHE_IDX_LEN'b100000;
+            for (int i = 0; i < `CACHE_LINES; i += 1) begin
+                // match cache
+                if (next_dcache_entries[i].valid && next_dcache_entries[i].addr == lsq_load_dc.addr[12:3]) begin
+                    dc_load_lsq.valid   = 1'b1;
+                    casez (lsq_load_dc.mem_size)
+                        BYTE: dc_load_lsq.value = {24'b0,   next_dcache_entries[i].data.byte_level[lsq_load_dc.addr[2:0]];
+                        HALF: dc_load_lsq.value = {16'b0,   next_dcache_entries[i].data.half_level[lsq_load_dc.addr[2:1]];
+                        WORD: dc_load_lsq.value =           next_dcache_entries[i].data.word_level[lsq_load_dc.addr[2]];
+                    endcase                   
+                    temp_valid = 1'b1;
+                    temp_minus = next_dcache_entries[i].lru_counter;
+                    next_dcache_entries[i].lru_counter = `CACHE_IDX_LEN'b100000;
+                end
+            end
+            for (int i = 0; i < `CACHE_LINES; i += 1) begin
+                next_dcache_entries[i].lru_counter = next_dcache_entries[i].lru_counter - 
+                                                     (next_dcache_entries[i].lru_counter > temp_minus ? `CACHE_IDX_LEN'b1 : `CACHE_IDX_LEN'b0);
+            end
+            if (~temp_valid) begin
+                for (int i = 0; i < `MISS_LINES; i += 1) begin
+                    if (next_miss_entries[i].valid && next_miss_entries[i].addr[12:3] == lsq_load_dc.addr[12:3]) begin
+                        temp_valid      = 1'b1;
+                    end
+                end
+                if (~temp_valid) begin
+                    for (int i = 0; i < `MISS_LINES; i += 1) begin
+                        if (~temp_valid && next_miss_entries[i].valid == 1'b0) begin
+                            temp_valid  = 1'b1;
+                            next_miss_entries[i] = {    1'b1,
+                                                        1'b0,
+                                                        4'b0000,
+                                                        lsq_load_dc.addr[12:0],
+                                                        64'b0,
+                                                        lsq_load_dc.mem_size,
+                                                        2'b00   };
+                        end
+                    end
+                end
+            end
+        end
+        
+        if (lsq_store_dc.valid && ~lsq_store_dc.halt) begin
+            temp_valid = 1'b0;
+            temp_minus = `CACHE_IDX_LEN'b100000;
+            for (int i = 0; i < `CACHE_LINES; i += 1) begin
+                // match cache
+                if (next_dcache_entries[i].valid && next_dcache_entries[i].addr == lsq_store_dc.addr[12:3]) begin
+                    casez (lsq_store_dc.mem_size)
+                        BYTE: next_dcache_entries[i].data.byte_level[lsq_store_dc.addr[2:0]]    = lsq_store_dc.value[7:0];
+                        HALF: next_dcache_entries[i].data.half_level[lsq_store_dc.addr[2:1]]    = lsq_store_dc.value[15:0];
+                        WORD: next_dcache_entries[i].data.word_level[lsq_store_dc.addr[2]]      = lsq_store_dc.value[31:0];
+                    endcase
+                    temp_valid = 1'b1;
+                    temp_minus = next_dcache_entries[i].lru_counter;
+                    next_dcache_entries[i].lru_counter = `CACHE_IDX_LEN'b100000;
+                end
+            end
+            for (int i = 0; i < `CACHE_LINES; i += 1) begin
+                next_dcache_entries[i].lru_counter = next_dcache_entries[i].lru_counter - 
+                                                     (next_dcache_entries[i].lru_counter > temp_minus ? `CACHE_IDX_LEN'b1 : `CACHE_IDX_LEN'b0);
+            end
+            if (temp_valid) begin
+                temp_valid = 1'b0;
+                for (int i = 0; i < `MISS_LINES; i += 1) begin
+                    if (~temp_valid && next_miss_entries[i].valid == 1'b0) begin
+                        temp_valid  = 1'b1;
+                        next_miss_entries[i] = {    1'b1,
+                                                    1'b0,
+                                                    4'b0000,
+                                                    lsq_store_dc.addr[12:0],
+                                                    temp_value.double_level,
+                                                    lsq_store_dc.mem_size,
+                                                    2'b10   };
+                    end
+                end
+                if (temp_valid) begin
+                    dc_store_lsq.valid      = 1'b1;
+                    dc_store_lsq.halt_valid = 1'b0;
+                end
             end else begin
-                block_idx             = LRU_idx[current_idx_l];
-                LRU_next[current_idx_l] = LRU_idx[current_idx_l] + 1;
+                for (int i = 0; i < `MISS_LINES; i += 1) begin
+                    if (next_miss_entries[i].valid && next_miss_entries[i].addr[12:3] == lsq_load_dc.addr[12:3]) begin
+                        temp_valid      = 1'b1;
+                    end
+                end
+                if (~temp_valid) begin
+                    for (int i = 0; i < `MISS_LINES; i += 1) begin
+                        if (~temp_valid && next_miss_entries[i].valid == 1'b0) begin
+                            temp_valid  = 1'b1;
+                            next_miss_entries[i] = {    1'b1,
+                                                        1'b0,
+                                                        4'b0000,
+                                                        lsq_store_dc.addr[12:0],
+                                                        64'b0,
+                                                        lsq_store_dc.mem_size,
+                                                        2'b01   };
+                        end
+                    end
+                end
+            end
+        end
+
+        temp_valid = 1'b0;
+        for (int i = 0; i < `MISS_LINES; i += 1) begin
+            if (~temp_valid && next_miss_entries[i].valid == 1'b0 && ~next_miss_entries[i].sent) begin
+                next_miss_entries[i].sent   = chosen2Mem;
+                proc2Dmem_valid             = 1'b1;
+                proc2Dmem_data              = next_miss_entries[i].data;
+                proc2Dmem_command           = next_miss_entries[i].op == 2'b10 ? `BUS_STORE : `BUS_LOAD;
+                proc2Dmem_addr              = {19'b0, next_miss_entries[i].addr[12:3], 3'b0};
+                next_miss_entries[i].tag    = Dmem2proc_tag,
+                temp_valid                  = 1'b1;
             end
         end
     end
 
-    // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if (reset) begin
-            for (int i = 0; i < 2; i += 1) begin
-                valids[i]   <= `SD 0;
-                tags[i]     <= `SD 0;
-                data[i]     <= `SD 0;
-            end
-            LRU_idx         <= `SD 0;
-            current_mem_tag <= `SD 0;
-            write2mem       <= `SD 0;
+            dcache_entries      <=  `SD 0;
+            miss_entries        <=  `SD 0;
         end else begin
-            current_mem_tag <= `SD Dmem2proc_response;
-            if (lsq_store.valid || data_write_enable) begin
-                valids[block_idx][current_idx] <= `SD 1'b1;
-                tags[block_idx][current_idx]   <= `SD current_tag;
-                data[block_idx][current_idx]   <= `SD (data_write_enable) ? Dmem2proc_data : lsq_store.value;
-                dcache_store.valid <= ~data_write_enable && lsq_store.valid;
-                write2mem <= `SD (data_write_enable) ? 1'b0 : 
-                                                       (lsq_store.valid && tags[block_idx][current_idx] != current_tag);
-            end else begin
-                write2mem       <= `SD 0;
-            end
-            LRU_idx   <= `SD LRU_next;
+            dcache_entries      <=  `SD next_dcache_entries;
+            next_miss_entries   <=  `SD miss_entries;
         end
     end
-
-    `ifdef DEBUG
-        logic [31:0] cycle_count;
-        always_ff @(negedge clock) begin
-            if (reset) begin
-                cycle_count = 0;
-                $display("Reset");
-            end
-            else begin
-                $display("Block 0:");
-                for(int i = 0; i < `CACHE_LINES; i +=1) begin
-                    $display("DEBUG %4d: data[%4d] = %d, tag[%4d]=%d, valids[%4d]=%d", cycle_count,i,data[0][i],i,tags[0][i],i,valids[0][i]);
-                end
-                $display("Block 1:");
-                for(int i = 0; i < `CACHE_LINES; i +=1) begin
-                    $display("DEBUG %4d: data[%4d] = %d, tag[%4d]=%d, valids[%4d]=%d", cycle_count,i,data[1][i],i,tags[1][i],i,valids[1][i]);
-                end
-                //$display("DEBUG %4d: data_write_enable = %d", cycle_count, data_write_enable);
-                $display("DEBUG %4d: load_idx = %d, load_tag = %d", cycle_count, current_idx_l, current_tag_l);
-                $display("DEBUG %4d: store_idx = %d, store_tag = %d", cycle_count, current_idx_s, current_tag_s);
-                //$display("DEBUG %4d: Dmem2proc_tag = %d, Dmem2proc_response = %d", cycle_count, Dmem2proc_tag, Dmem2proc_response);
-                $display("DEBUG %4d: proc2Dmem_command = %d, proc2Dmem_addr = %d, proc2Dmem_data = %d", cycle_count, proc2Dmem_command, proc2Dmem_addr, proc2Dmem_data);
-                //$display("DEBUG %4d: proc2Dcache_addr = 0x%x, current_tag = %d, current_idx = %d", cycle_count, proc2Dcache_addr, current_tag, current_idx);
-                $display("DEBUG %4d: read_en = %d, hit0 = %d, hit1 = %d, Dcache_data_out = %d, hit = %d", cycle_count, lsq_load.valid, hit0, hit1, dcache_load.value, dcache_load.valid);
-                cycle_count += 1;
-            end
-        end
-        always_ff @(posedge clock) begin
-            $display("DEBUG %4d: current_mem_tag = %d, Dmem2proc_tag = %d, Dmem2proc_response = %d", cycle_count, current_mem_tag, Dmem2proc_tag, Dmem2proc_response);
-        end
-    `endif
-
 endmodule
-`endif
+
+`endif //__DCACHE_V__

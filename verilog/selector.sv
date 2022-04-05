@@ -19,18 +19,18 @@ module ps4(
     assign gnt[0] = ~req[3] && ~req[2] && ~req[1] &&  req[0];
 endmodule
 
-module ps4_num(
-    input        [3:0] req,
-    output logic [1:0] num
-);
-    logic [3:0] gnt;
-    assign gnt[3] =  req[3];
-    assign gnt[2] = ~req[3] &&  req[2];
-    assign gnt[1] = ~req[3] && ~req[2] &&  req[1];
-    assign gnt[0] = ~req[3] && ~req[2] && ~req[1] &&  req[0];
-    assign num[1] = gnt[3] || gnt[2];
-    assign num[0] = gnt[3] || gnt[1];
-endmodule
+// module ps4_num(
+//     input        [3:0] req,
+//     output logic [1:0] num
+// );
+//     logic [3:0] gnt;
+//     assign gnt[3] =  req[3];
+//     assign gnt[2] = ~req[3] &&  req[2];
+//     assign gnt[1] = ~req[3] && ~req[2] &&  req[1];
+//     assign gnt[0] = ~req[3] && ~req[2] && ~req[1] &&  req[0];
+//     assign num[1] = gnt[3] || gnt[2];
+//     assign num[0] = gnt[3] || gnt[1];
+// endmodule
 
 module counter2(
     input              clock,
@@ -125,6 +125,24 @@ module rps4 (
     in_rps2 left (req[3:2], en_t[1], cnt[0], gnt[3:2], req_up_t[1]);
     in_rps2 right(req[1:0], en_t[0], cnt[0], gnt[1:0], req_up_t[0]);
     in_rps2 top  (req_up_t, en,      cnt[1], en_t,     req_up);
+endmodule
+
+module rps4_num (
+    input        [3:0] req,
+    input              en,
+    input        [1:0] cnt,
+
+    output logic [1:0] num
+);
+    logic [1:0] req_up_t;
+    logic [1:0] en_t;
+    logic [3:0] gnt;
+
+    in_rps2 left (req[3:2], en_t[1], cnt[0], gnt[3:2], req_up_t[1]);
+    in_rps2 right(req[1:0], en_t[0], cnt[0], gnt[1:0], req_up_t[0]);
+    in_rps2 top  (req_up_t, en,      cnt[1], en_t,     req_up);
+    assign num[1] = gnt[3] || gnt[2];
+    assign num[0] = gnt[3] || gnt[1];
 endmodule
 
 module rps8 (
