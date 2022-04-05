@@ -124,26 +124,29 @@ module pipeline (
 	assign pipeline_commit_wr_en 	= rob_reg.dest_valid;
 	assign pipeline_commit_NPC 		= rob_reg.OLD_PC_p_4;
 	
-		//////////////////////////////////////////////////
-	//                                              //
-	//              ICache                          //
-	//                                              //
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+//                                              //
+//              ICache                          //
+//                                              //
+//////////////////////////////////////////////////
 
-	logic [`XLEN-1:0] proc2Icache_addr;
-	logic [1:0] proc2Imem_command;
-    logic [63:0] Icache_data_out; // value is memory[proc2Icache_addr]
-    logic Icache_valid_out;      // when this is high
+	logic [`XLEN-1:0]				proc2Icache_addr;
+	logic [1:0]						proc2Imem_command;
+    logic [63:0]					Icache_data_out; 		// value is memory[proc2Icache_addr]
+    logic 							Icache_valid_out;      	// when this is high
 
 	icache icache_0 (
 		.clock(clock),
 		.reset(reset),
-	 	.Imem2proc_response(do_Ifetch ? mem2proc_response : 4'b0),
+
+		// input
+	 	.Imem2proc_response(mem2proc_response),
 	    .Imem2proc_data(mem2proc_data),
 	    .Imem2proc_tag(mem2proc_tag),
 
 	    .proc2Icache_addr(proc2Icache_addr),
 
+		// output
     	.proc2Imem_command(proc2Imem_command),
     	.proc2Imem_addr(proc2Imem_addr),
 
@@ -151,32 +154,92 @@ module pipeline (
 	    .Icache_valid_out(Icache_valid_out)
 	);
 
+
+//////////////////////////////////////////////////
+//                                              //
+//              DCache                          //
+//                                              //
+//////////////////////////////////////////////////
+
+	// logic 						chosen2Mem;
+
+    // logic                        Dmem2proc_valid;
+    // logic [3:0]					Dmem2proc_response;
+    // logic [63:0]					Dmem2proc_data;
+    // logic [3:0]					Dmem2proc_tag;
+
+    logic                           proc2Dmem_valid;
+    logic [63:0]                    proc2Dmem_data;
+    logic [1:0]                     proc2Dmem_command;
+    logic [`XLEN-1:0]               proc2Dmem_addr;
+
+	DCACHE_LOAD_LSQ_PACKET          dc_load_lsq;
+	DCACHE_STORE_LSQ_PACKET         dc_store_lsq;
+	LSQ_LOAD_DCACHE_PACKET          lsq_load_dc;
+	LSQ_STORE_DCACHE_PACKET         lsq_store_dc;
+
+	dcache dcache_0 (
+		.clock(clock),
+		.reset(reset),
+
+		// From Pipeline
+		.chosen2Mem(~do_Ifetch),
+
+    	// From Dmem
+    	.Dmem2proc_valid(mem2proc_tag != 4'b0000),
+    	.Dmem2proc_response(mem2proc_response),
+    	.Dmem2proc_data(mem2proc_data),
+    	.Dmem2proc_tag(mem2proc_tag),
+
+    	// To Dmem
+    	.proc2Dmem_valid(proc2Dmem_valid),
+    	.proc2Dmem_data(proc2Dmem_data),
+    	.proc2Dmem_command(proc2Dmem_command),
+    	.proc2Dmem_addr(proc2Dmem_addr),
+
+		// From LSQ
+		.lsq_load_dc(lsq_load_dc),
+		.lsq_store_dc(lsq_store_dc),
+
+		// To LSQ
+		.dc_load_lsq(dc_load_lsq),
+		.dc_store_lsq(dc_store_lsq)
+	);
+
+//////////////////////////////////////////////////
+//                                              //
+//             Cache2Mem                        //
+//                                              //
+//////////////////////////////////////////////////
+
+	assign proc2mem_addr	= (proc2Dmem_command == BUS_NONE || ~proc2Dmem_valid) ? proc2Imem_addr 		: proc2Dmem_addr;
+	assign proc2mem_command	= (proc2Dmem_command == BUS_NONE || ~proc2Dmem_valid) ? proc2Imem_command 	: proc2Dmem_command;
+	assign proc2mem_data	= (proc2Dmem_command == BUS_NONE || ~proc2Dmem_valid) ? 64'b0 				: proc2Dmem_data;
+
 	// Memory
 
-	logic [`XLEN-1:0] mem_result_out;
-	logic [`XLEN-1:0] proc2Dmem_addr;
-	logic [`XLEN-1:0] proc2Dmem_data;
-	logic [1:0]  proc2Dmem_command;
-	MEM_SIZE proc2Dmem_size;
+	// logic [`XLEN-1:0] mem_result_out;
+	// logic [`XLEN-1:0] proc2Dmem_addr;
+	// logic [`XLEN-1:0] proc2Dmem_data;
+	// logic [1:0]  proc2Dmem_command;
+	// MEM_SIZE proc2Dmem_size;
 
-	assign proc2Dmem_command = BUS_NONE;
+	// assign proc2Dmem_command = BUS_NONE;
 	
-	assign do_Ifetch = (proc2Dmem_command == BUS_NONE);
+	assign do_Ifetch = (proc2Dmem_command == BUS_NONE || ~proc2Dmem_valid);
 
-	assign proc2mem_command =
-	     do_Ifetch ? proc2Imem_command : proc2Dmem_command;
-	assign proc2mem_addr =
-	     do_Ifetch ? proc2Imem_addr : proc2Dmem_addr;
+	// assign proc2mem_command =
+	//      do_Ifetch ? proc2Imem_command : proc2Dmem_command;
+	// assign proc2mem_addr =
+	//      do_Ifetch ? proc2Imem_addr : proc2Dmem_addr;
 	//if it's an instruction, then load a double word (64 bits)
-	`ifndef CACHE_MODE
-		assign proc2mem_size =
-			do_Ifetch ? DOUBLE : proc2Dmem_size;
-	`endif
-	assign proc2mem_data = {32'b0, proc2Dmem_data};
+	// `ifndef CACHE_MODE
+	// 	assign proc2mem_size =
+	// 		do_Ifetch ? DOUBLE : proc2Dmem_size;
+	// `endif
+	// assign proc2mem_data = {32'b0, proc2Dmem_data};
 
-	// always @* begin
-	// 	$monitor("proc2mem_data", proc2mem_data);
-	// end
+
 
 
 //////////////////////////////////////////////////
@@ -209,6 +272,7 @@ module pipeline (
 		// .ex_mem_take_branch(ex_mem_take_branch),
 		// .ex_mem_target_pc(ex_mem_target_pc),
 		.Imem2proc_data(Icache_data_out),
+		.Imem2proc_valid(Icache_valid_out),
 		.rob_id(rob_id),
 		
 		// Outputs
@@ -266,7 +330,7 @@ module pipeline (
 	end // always
 
 		
-	assign dispatch_enable = (!rob_full) && (!rs_entry_full) && Icache_valid_out; // TO DO check lsq not full
+	assign dispatch_enable = (!rob_full) && (!rs_entry_full);
 	//ID TO ROB
 	assign id_rob = {	
 						id_packet_out.valid && ~id_packet_out.illegal,
@@ -404,11 +468,6 @@ module pipeline (
 		// .sq_retire(sq_retire)
 	);
 
-	DCACHE_LOAD_LSQ_PACKET          dc_load_lsq;
-	DCACHE_STORE_LSQ_PACKET         dc_store_lsq;
-	LSQ_LOAD_DCACHE_PACKET          lsq_load_dc;
-	LSQ_STORE_DCACHE_PACKET         lsq_store_dc;
-
 	lsq lsq_0 (
 		.clock(clock),
 		.reset(reset),
@@ -431,6 +490,7 @@ module pipeline (
 		.lsq_store_dc(lsq_store_dc)
 
 	);
+
 
 endmodule  // module verisimple
 `endif // __PIPELINE_V__

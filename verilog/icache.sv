@@ -46,31 +46,36 @@ module icache(
     logic [`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
     logic [`CACHE_LINES-1:0]                            valids;
 
-    assign Icache_data_out = data[current_index];
+    assign Icache_data_out = valids[current_index] ? data[current_index] : 64'b0;
     assign Icache_valid_out = valids[current_index] && (tags[current_index] == current_tag);
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if(reset) begin
-            last_index       <= `SD -1;   // These are -1 to get ball rolling when
-            last_tag         <= `SD -1;   // reset goes low because addr "changes"
-            current_mem_tag  <= `SD 0;
-            miss_outstanding <= `SD 0;
+            last_index              <= `SD -1;   // These are -1 to get ball rolling when
+            last_tag                <= `SD -1;   // reset goes low because addr "changes"
+            current_mem_tag         <= `SD 0;
+            miss_outstanding        <= `SD 0;
+            data                    <= `SD 0;
+            tags                    <= `SD 0;
 
-            valids <= `SD `CACHE_LINES'b0;  
+            valids                  <= `SD `CACHE_LINES'b0;  
         end else begin
             last_index              <= `SD current_index;
             last_tag                <= `SD current_tag;
             miss_outstanding        <= `SD unanswered_miss;
-
-            if(update_mem_tag)
+            
+            if (miss_outstanding) begin
                 current_mem_tag     <= `SD Imem2proc_response;
+            end else if (changed_addr || data_write_enable) begin
+                current_mem_tag     <= `SD 4'b0;
+            end
 
-				    if(data_write_enable) begin
-				        data[current_index]     <= `SD Imem2proc_data;
-						tags[current_index]     <= `SD current_tag;
-					    valids[current_index]   <= `SD 1;
-				    end
+            if(data_write_enable) begin
+                data[current_index]     <= `SD Imem2proc_data;
+                tags[current_index]     <= `SD current_tag;
+                valids[current_index]   <= `SD 1;
+            end
         end
     end
 

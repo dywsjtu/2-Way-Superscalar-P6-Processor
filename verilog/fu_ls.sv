@@ -50,6 +50,7 @@ module fu_ls(
 	assign fu_lsq.value			= working_rs_fu.rs_value[1];
 	// assign fu_lsq.lq_pos		= working_loadq_pos;
 	assign fu_lsq.sq_pos		= working_storeq_pos;
+	assign fu_lsq.mem_size		= fu_rs.mem_size;
 	
 	// assign fu_result_valid		= ~reset && ~working_rs_fu.selected &&
 	// 							  working_id_fu.valid && working_rs_fu.rs_value_valid;

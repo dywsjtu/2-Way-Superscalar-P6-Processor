@@ -233,6 +233,7 @@ module dispatch_stage(
 	// input         							ex_mem_take_branch,		// taken-branch signal
 	// input					[`XLEN-1:0]		ex_mem_target_pc,		// target pc: use if take_branch is TRUE
 	input					[63:0] 			Imem2proc_data,			// Data coming back from instruction-memory
+	input									Imem2proc_valid,
 	input	ROB_ID_PACKET       			rob_id,
 
 	// output	IF_ID_PACKET 				if_packet_out			// Output data packet from IF going to ID, see sys_defs for signal information 
@@ -305,6 +306,7 @@ module dispatch_stage(
 	// );
 
 	// instantiate the instruction decoder
+	logic valid_inst;
 	decoder decoder_0 (
 		.valid(!stall),
 		.inst(id_packet_out.inst),
@@ -324,8 +326,10 @@ module dispatch_stage(
 		.mult_op(id_packet_out.mult_op),
 		.halt(id_packet_out.halt),
 		.illegal(id_packet_out.illegal),
-		.valid_inst(id_packet_out.valid)
+		.valid_inst(valid_inst)
 	);
+
+	assign id_packet_out.valid = valid_inst && Imem2proc_valid;
 
 	// mux to generate dest_reg_idx based on
 	// the dest_reg_select output from decoder

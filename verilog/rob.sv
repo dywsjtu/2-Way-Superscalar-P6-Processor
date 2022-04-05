@@ -122,7 +122,11 @@ module rob(
 
     `ifdef DEBUG
     logic [31:0] cycle_count;
-    // synopsys sync_set_reset "reset"dc_store_lsq.halt_valid
+    // synopsys sync_set_reset "reset"
+    always_ff @(negedge clock) begin
+        if(reset) begin
+            cycle_count = 0;
+        end else begin
             $display("DEBUG %4d: rob_empty = %b, retire_valid = %b, squash = %b", cycle_count, rob_empty, retire_valid, squash);
             $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
