@@ -19,94 +19,61 @@ module btb (
 
     //Read from BTB
     input logic                     read_en,
-    input logic [31:0]              branchPC,
+    input logic [31:0]              PC_in_r,
 
     //Write into BTB
     input logic                     write_en,       
-    input logic [31:0]              data_in,
-    input logic [31:0]              PC_in,
+    input logic [31:0]              targetPC_in,
+    input logic [31:0]              PC_in_w,
 
     //OUTPUT
-    output logic [31:0]             targetPC,
+    output logic [31:0]             targetPC_out,
     output logic                    hit //if the targetPC is valid
 );
+    //Directed mapped
+   logic [`BTB_SIZE-1:0][`XLEN-1:0]             btb_addr;
+   logic [`BTB_SIZE-1:0]                        btb_valid;
+   logic [`BTB_SIZE-1:0][13-`BTB_IDX_LEN:0]     btb_tags;
 
-    //Inside BTB 2-way associative
-    BTB_ENTRY [1:0][`BTB_SIZE-1:0] btb_entries;
-    BTB_ENTRY [1:0][`BTB_SIZE-1:0] btb_entries_next;
-    logic [`BTB_SIZE-1:0] current_idx; //would update the less frequent block
-    
-    logic [`BTB_IDX_LEN-1:0] read_idx;
-    logic [`BTB_IDX_LEN-1:0] write_idx;
-    logic hit_b0, hit_b1;
+   logic [13-`BTB_IDX_LEN:0]     current_tag_r, current_tag_w;
+   logic [`BTB_IDX_LEN-1:0]      current_idx_r, current_idx_w;   
+   
+   assign {current_tag_r,current_idx_r} = PC_in_r[15:2];
+   assign {current_tag_w,current_idx_w} = PC_in_w[15:2];
 
-    //Read from BTB
-    assign read_idx = branchPC[`BTB_IDX_LEN+2:3];
-    assign hit_b0 =  (btb_entries[0][read_idx].valid && branchPC[31:`BTB_IDX_LEN+3]== btb_entries[0][read_idx].tag);
-    assign hit_b1 =  (btb_entries[1][read_idx].valid && branchPC[31:`BTB_IDX_LEN+3]== btb_entries[1][read_idx].tag);
+   assign targetPC_out = (read_en && btb_valid[current_idx_r] && btb_tags[current_idx_r]==current_tag_r) ? 
+                            btb_addr[current_idx_r] : 32'b0;
+   assign hit = read_en && btb_valid[current_idx_r] && btb_tags[current_idx_r]==current_tag_r;
 
-    // assign targetPC = (read_en && hit_b0) ? {branchPC[31:14],btb_entries[0][read_idx].data,2'b0}: 
-    //                   (read_en && hit_b1) ? {branchPC[31:14],btb_entries[1][read_idx].data,2'b0}:
-    //                   32'b0; 
-    assign targetPC = (read_en && hit_b0) ? btb_entries[0][read_idx].data: 
-                      (read_en && hit_b1) ? btb_entries[1][read_idx].data:
-                      32'b0; 
-    assign hit = read_en && (hit_b0 || hit_b1);
-              
-    assign write_idx = PC_in[`BTB_IDX_LEN+2:3];
-    always_comb begin
-        //Write new target address into BTB
-        btb_entries_next[0] = btb_entries[0];
-        btb_entries_next[1] = btb_entries[1];
-        if (write_en && 
-            ~(PC_in[31:`BTB_IDX_LEN+3]== btb_entries[0][write_idx].tag && data_in == btb_entries[0][write_idx].data) &&
-            ~(PC_in[31:`BTB_IDX_LEN+3]== btb_entries[1][write_idx].tag && data_in == btb_entries[1][write_idx].data))
-            begin
-            //$display("Write with data 0x%x",data_in);
-            if (~btb_entries[0][write_idx].valid || PC_in[31:`BTB_IDX_LEN+3]== btb_entries[0][write_idx].tag) begin //block 0 is empty;
-                //$display("[0] = 0x%x",data_in);
-                current_idx[write_idx] = 1'b0;
-            end else if  (~btb_entries[1][write_idx].valid || PC_in[31:`BTB_IDX_LEN+3]== btb_entries[1][write_idx].tag) begin //block 1 is empty
-                //$display("[1] = 0x%x",data_in);
-                current_idx[write_idx] = 1'b1;
+
+   // synopsys sync_set_reset "reset"
+   always_ff @(posedge clock) begin
+       if (reset) begin
+           btb_addr     <= `SD 0;
+           btb_valid    <= `SD 0;
+           btb_tags     <= `SD 0;
+       end else begin
+           if (write_en) begin
+               btb_addr[current_idx_w]      <= `SD targetPC_in;
+               btb_valid[current_idx_w]     <= `SD 1'b1;
+               btb_tags[current_idx_w]      <= `SD current_tag_w;
+           end
+       end
+   end
+
+   `ifdef DEBUG
+        logic [31:0] cycle_count;
+        always_ff @(negedge clock) begin
+            if (reset) begin
+                cycle_count = 0;
             end else begin
-                current_idx[write_idx] += 1;
-            end
-            btb_entries_next[current_idx[write_idx]][write_idx].valid = 1'b1;
-            btb_entries_next[current_idx[write_idx]][write_idx].tag = PC_in[31:`BTB_IDX_LEN+3];
-            btb_entries_next[current_idx[write_idx]][write_idx].data = data_in;
+                for (int i = 0; i < `BTB_SIZE; i += 1) begin
+                    $display("DEBUG %4d: BTB_tag[%4d]=%d, BTB_addr[%4d]=0x%x, BTB_valid[%4d]=%b", cycle_count, i, btb_tags[i], i, btb_addr[i], i, btb_valid[i]);
+                end
+                cycle_count += 1;
+            end  
         end
-    end
-
-    // synopsys sync_set_reset "reset"
-    always_ff @(posedge clock) begin
-        if (reset) begin
-            btb_entries[0] <= `SD 0;
-            btb_entries[1] <= `SD 0;
-        end
-        else begin
-            btb_entries[0] <= `SD btb_entries_next[0];
-            btb_entries[1] <= `SD btb_entries_next[1];
-        end
-    end
-
-    `ifdef DEBUG
-    logic [31:0] cycle_count;
-    always_ff @(negedge clock) begin
-        if (reset) begin
-            cycle_count = 0;
-        end else begin
-            for (int i = 0; i < `BTB_SIZE; i+= 1) begin
-                $display("DEBUG %4d: b0_tag[%2d] = %x, b0_data[%2d] = %x, b1_tag[%2d] = %x, b1_data[%2d] = %x, ", cycle_count, i,btb_entries[0][i].tag, i, btb_entries[0][i].data,
-                                                                                                i, btb_entries[1][i].tag, i, btb_entries[1][i].data);
-            end
-            $display("DEBUG %4d: hit = %d, hit_b0 = %d, hit_b1 = %d", cycle_count,hit,hit_b0,hit_b1);
-            $display("DEBUG %4d: read_idx = %d", cycle_count, read_idx);
-            $display("DEBUG %4d: branchPC = 0x%x", cycle_count, branchPC);
-            cycle_count += 1;
-        end
-    end
-    `endif
+   `endif
 
 endmodule
 `endif
