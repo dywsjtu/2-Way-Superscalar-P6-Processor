@@ -224,6 +224,13 @@ module dcache (
                 temp_valid                  = 1'b1;
             end
         end
+
+        dc_store_lsq.halt_valid = 1'b1;
+        for (int i = 0; i < `MISS_LINES; i += 1) begin
+            if (next_miss_entries[i].valid && next_miss_entries[i].op == 2'b10) begin
+                dc_store_lsq.halt_valid = 1'b0;
+            end
+        end
     end
 
     // synopsys sync_set_reset "reset"

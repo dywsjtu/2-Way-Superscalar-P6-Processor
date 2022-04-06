@@ -76,8 +76,8 @@ module lsq (
 
     logic                                                   sq_rob_valid;
     assign  lsq_rob.retire_valid    = sq_rob_valid;
-    // assign  lsq_rob.halt_valid      = (sq_head == sq_tail) && dc_store_lsq.halt_valid;
-    assign  lsq_rob.halt_valid      = (sq_head == sq_tail); // TODO: Change this
+    assign  lsq_rob.halt_valid      = (sq_head == sq_tail) && dc_store_lsq.halt_valid;
+    // assign  lsq_rob.halt_valid      = (sq_head == sq_tail); // TODO: Change this
     // load queue
 
     logic [1:0]    lq_selection;
@@ -113,10 +113,11 @@ module lsq (
         // next_lq_counter         = lq_counter;
         next_lsq_fu             = 0;
         update_selection        = 1'b0;
+        next_lq_selection       = lq_selection;
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
-            if (fu_lsq[i].valid && fu_lsq[i].load && ~lq_entries[i].filled) begin
-                next_lq_entries[i]              = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b0, 1'b1, fu_lsq[i].sq_pos};
+            if (fu_lsq[i].valid && fu_lsq[i].load && lq_entries[i].valid && ~lq_entries[i].filled) begin
+                next_lq_entries[i]              = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b1, 1'b1, fu_lsq[i].sq_pos};
                 next_lq_retire_valid[i]         = 1'b0;
             end
         end
@@ -186,7 +187,7 @@ module lsq (
         end
 
         if (rs_lsq.valid && rs_lsq.load) begin
-            next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 1'b0, 1'b0, `LSQ_IDX_LEN'b0};
+            next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 2'b00, 1'b1, 1'b0, `LSQ_IDX_LEN'b0};
             next_lq_retire_valid[rs_lsq.idx]    = 1'b0;
         end
 
@@ -298,7 +299,7 @@ module lsq (
 
     // assign lsq_rs.loadq_tail    =   lq_tail;
     // assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
-    assign lsq_rs.storeq_tail   =   sq_tail;
+    assign lsq_rs.storeq_tail   =   (sq_counter == 0) ? `NO_SQ_POS : sq_tail;
     assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
     assign next_lsq_load_dc     = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],

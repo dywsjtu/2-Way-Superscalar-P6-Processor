@@ -165,10 +165,11 @@ clean:
 	rm -rf dve* inter.vpd DVEfiles
 	rm -rf syn_simv syn_simv.daidir syn_program.out sim_program.out
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
-	rm -f *.elf *.dump *.mem debug_bin
+	# rm -f *.elf *.dump *.mem debug_bin
 	rm -rf simv.vdb
 
 nuke:	clean
 	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn
 	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl
+	rm -f *.elf *.dump *.mem debug_bin
 	rm -rf syn_simv.vdb
