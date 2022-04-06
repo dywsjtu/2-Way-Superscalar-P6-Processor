@@ -114,7 +114,7 @@ module pipeline (
 	logic squash;
 
 	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
-	assign memory_error = (proc2mem_command != BUS_NONE && mem2proc_response==4'h0);
+	assign memory_error = (proc2mem_command != BUS_NONE) && (mem2proc_response==4'h0);
 	assign pipeline_error_status 	= 	halt			?	HALTED_ON_WFI :
 										memory_error 	? 	LOAD_ACCESS_FAULT :
 	                                						NO_ERROR;

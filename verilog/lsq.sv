@@ -69,9 +69,9 @@ module lsq (
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_tail;
     logic               [`LSQ_IDX_LEN-1:0]                  next_sq_counter;
 
-    LSQ_LOAD_DCACHE_PACKET                                  next_lsq_load_dc;
-    LSQ_STORE_DCACHE_PACKET                                 next_lsq_store_dc;
-    LSQ_RS_PACKET       [`NUM_LS-1:0]                       next_lsq_fu;
+    // LSQ_LOAD_DCACHE_PACKET                                  next_lsq_load_dc;
+    // LSQ_STORE_DCACHE_PACKET                                 next_lsq_store_dc;
+    LSQ_FU_PACKET       [`NUM_LS-1:0]                       next_lsq_fu;
     logic                                                   next_sq_rob_valid;
 
     logic                                                   sq_rob_valid;
@@ -130,6 +130,7 @@ module lsq (
             end
         end
 
+        temp_flag = 1'b1;
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (lq_entries[i].filled && ~lq_retire_valid[i] && 
                 lq_entries[i].valid && ~(lq_entries[i].sq_pos == `NO_SQ_POS)) begin
@@ -300,27 +301,28 @@ module lsq (
     // assign lsq_rs.loadq_tail    =   lq_tail;
     // assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
     assign lsq_rs.storeq_tail   =   (sq_counter == 0) ? `NO_SQ_POS : sq_tail;
+    assign lsq_rs.sq_tail       =   sq_tail;
     assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
-    assign next_lsq_load_dc     = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
-                                    lq_entries[lq_selection].addr,
-                                    lq_entries[lq_selection].mem_size   };
-    assign next_lsq_store_dc    = { sq_valid[sq_head] && rob_lsq.sq_retire,
-                                    sq_entries[sq_head].addr,
-                                    sq_entries[sq_head].mem_size,
-                                    sq_value[sq_head],
-                                    rob_lsq.sq_halt };
+    assign lsq_load_dc  = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
+                            lq_entries[lq_selection].addr,
+                            lq_entries[lq_selection].mem_size   };
+    assign lsq_store_dc = { sq_valid[sq_head] && rob_lsq.sq_retire && ~lsq_rob.retire_valid,
+                            sq_entries[sq_head].addr,
+                            sq_entries[sq_head].mem_size,
+                            sq_value[sq_head],
+                            rob_lsq.sq_halt };
 
-    // synopsys sync_set_reset "reset"
-    always_ff @(posedge clock) begin
-        if (reset || squash) begin
-            lsq_load_dc         <=  `SD 0;
-            lsq_store_dc        <=  `SD 0;
-        end else begin
-            lsq_load_dc         <=  `SD next_lsq_load_dc;
-            lsq_store_dc        <=  `SD next_lsq_store_dc;
-        end
-    end
+    // // synopsys sync_set_reset "reset"
+    // always_ff @(posedge clock) begin
+    //     if (reset || squash) begin
+    //         lsq_load_dc         <=  `SD 0;
+    //         lsq_store_dc        <=  `SD 0;
+    //     end else begin
+    //         lsq_load_dc         <=  `SD next_lsq_load_dc;
+    //         lsq_store_dc        <=  `SD next_lsq_store_dc;
+    //     end
+    // end
 
 endmodule
 

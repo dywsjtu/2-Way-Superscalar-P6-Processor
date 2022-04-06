@@ -200,7 +200,7 @@ module rs (
         .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[8]),
         // .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_tail),
+        .storeq_pos(id_rs.wr_mem ? lsq_rs.sq_tail : lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[0]),
 
         .fu_rs(fu_rs[8]),
@@ -215,7 +215,7 @@ module rs (
         .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[9]),
         // .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_tail),
+        .storeq_pos(id_rs.wr_mem ? lsq_rs.sq_tail : lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[1]),
 
         .fu_rs(fu_rs[9]),
@@ -230,7 +230,7 @@ module rs (
         .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[10]),
         // .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_tail),
+        .storeq_pos(id_rs.wr_mem ? lsq_rs.sq_tail : lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[2]),
 
         .fu_rs(fu_rs[10]),
@@ -245,7 +245,7 @@ module rs (
         .id_fu(id_valid ? id_rs : 0),
         .rs_fu(rs_fu[11]),
         // .loadq_pos(lsq_rs.loadq_tail),
-        .storeq_pos(lsq_rs.storeq_tail),
+        .storeq_pos(id_rs.wr_mem ? lsq_rs.sq_tail : lsq_rs.storeq_tail),
         .lsq_fu(lsq_fu[3]),
 
         .fu_rs(fu_rs[11]),

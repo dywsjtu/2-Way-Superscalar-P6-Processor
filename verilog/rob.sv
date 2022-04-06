@@ -50,7 +50,7 @@ module rob(
     assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty) 
                                      && (~rob_entries[rob_head].store || lsq_rob.retire_valid)) 
                                   || rob_entries[rob_head].halt;
-    assign rob_lsq.sq_retire    = retire_valid && rob_entries[rob_head].store;
+    assign rob_lsq.sq_retire    = rob_entries[rob_head].ready && rob_entries[rob_head].store;
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
 

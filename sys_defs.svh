@@ -88,9 +88,9 @@ typedef enum logic [3:0] {
 `define LOAD_QUEUE_SIZE		4
 `define STORE_QUEUE_SIZE	8
 `define LSQ_IDX_LEN			4
-`define CACHE_LINES     32
-`define CACHE_IDX_LEN   6
-`define MISS_LINES      8
+`define CACHE_LINES     	32
+`define CACHE_IDX_LEN   	6
+`define MISS_LINES      	8
 
 // `define SMALL_FU_OUT_TEST
 // `define FU_SIZE			4
@@ -638,6 +638,7 @@ typedef struct packed {
 //	logic   [`LSQ_IDX_LEN-1:0]		loadq_tail;
 //	logic							loadq_full;
 	logic   [`LSQ_IDX_LEN-1:0]		storeq_tail;
+	logic   [`LSQ_IDX_LEN-1:0]		sq_tail;
 	logic							storeq_full;
 } LSQ_RS_PACKET;
 
@@ -695,8 +696,8 @@ typedef struct packed {
 
 typedef struct packed {
 	EXAMPLE_CACHE_BLOCK				data;
-	logic	[15-3:0]				addr;
-	logic	[`CACHE_IDX_LEN:0]		lru_counter;
+	logic	[12:0]					addr;
+	logic	[`CACHE_IDX_LEN-1:0]	lru_counter;
 	logic							valid;
 } DCACHE_ENTRY;
 
