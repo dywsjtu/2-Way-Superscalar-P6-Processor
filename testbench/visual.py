@@ -14,6 +14,8 @@ class Info:
         self.lines = []
         self.rob_entries = collections.defaultdict(list)
         self.rs_entries = collections.defaultdict(list)
+        self.icache_entries = collections.defaultdict(list)
+        self.dcache_entries = collections.defaultdict(list)
         self.mt_entries = collections.defaultdict(list)
         self.cdb = {}
         self.registers = [["reg", "value"]]
@@ -29,8 +31,10 @@ for line in out:
     cur_data.lines.append(line)
     line = line[match.end() :]
     CDB = "cdb_out"
-    LEN_RS = 6
-    LEN_MT = 6
+    LEN_RS = 10
+    LEN_MT = 10
+    LEN_ICACHE = 10
+    LEN_DCACHE = 10
     if line.startswith("registers"):
         cur_data.registers.extend([x.split(" = ")[1]] for x in line.split(", ")[:-1])
 
@@ -61,7 +65,7 @@ for line in out:
                 entries.append(value)
 
     if line.startswith("rob_entries"):
-        entry_match = re.match(r"rob_entries\[\s+(\d+)\] = '{(.*)}", line)
+        entry_match = re.match(r"rob_entries\[\s*(\d+)\] = '{(.*)}", line)
         idx, entry = entry_match.groups()
         entry.replace(" ", "")
         idx = int(idx)
@@ -80,6 +84,30 @@ for line in out:
                 while idx >= len(l):
                     l.append(" ")
                 l[idx] += key[len("rob_")]
+    if line.startswith("icache"):
+        line = line.strip()
+        line = line.split(":")[1]
+        for x in line.split(", "):
+            key, value = x.split(" = ")
+            entries = cur_data.icache_entries[key]
+            if len(entries) < LEN_ICACHE:
+                entries.append(value)
+    if line.startswith("dcache"):
+        entry_match = re.match(r"dcache\[\s*(\d+)\] = '{(.*)}", line)
+        idx, entry = entry_match.groups()
+        entry.replace(" ", "")
+        idx = int(idx)
+        for kv in entry.split(","):
+            key, value = kv.split(":")[-2:]
+            if key == "'{byte_level":
+                key = "data"
+                value = value[:-1]
+            value = value[2:]
+            # if key == "value":
+            # value = value.rjust(10, " ")
+            entries = cur_data.dcache_entries[key]
+            if len(entries) < LEN_DCACHE:
+                entries.append(value)
 
 tabulate.PRESERVE_WHITESPACE = True
 
@@ -106,7 +134,7 @@ def horizontal_stack(*tables):
 
 
 def diff(screen, old_text, text):
-    assert len(old_text) == len(text)
+    # assert len(old_text) == len(text)
     for old, new in zip(old_text, text):
         curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_MAGENTA, -1)
@@ -140,12 +168,20 @@ def main(screen):
         rs_table = " RS\n" + tabulate(
             data[cycle].rs_entries, showindex="always", headers="keys"
         )
+        icache_table = " ICache\n" + tabulate(
+            data[cycle].icache_entries, showindex="always", headers="keys"
+        )
+        dcache_table = " DCache\n" + tabulate(
+            data[cycle].dcache_entries, showindex="always", headers="keys"
+        )
         mt_table = " MT\n" + tabulate(
             data[cycle].mt_entries, showindex="always", headers="keys"
         )
         cdb_table = " CDB\n" + tabulate(data[cycle].cdb, headers="keys")
-        text = horizontal_stack(rob_table, reg_table, cdb_table) + horizontal_stack(
-            rs_table, mt_table
+        text = (
+            horizontal_stack(rob_table, reg_table, cdb_table)
+            + horizontal_stack(rs_table, mt_table)
+            + horizontal_stack(icache_table, dcache_table)
         )
         if old_text is None:
             old_text = text

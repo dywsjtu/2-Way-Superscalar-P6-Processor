@@ -440,13 +440,10 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			value;
 	logic						valid;
 	logic						take_branch;
-<<<<<<< HEAD
 	`ifdef BRANCH_MODE
 	logic						mis_pred;
 	`endif
-=======
 	logic	[`XLEN-1:0]			branch_target;
->>>>>>> e5af2ca00900f21fa87a3a07855ebe077e0179ca
 } CDB_ENTRY;
 
 typedef struct packed {

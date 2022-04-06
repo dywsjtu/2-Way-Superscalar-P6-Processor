@@ -51,6 +51,8 @@ module icache(
         $display("icache debug: %h %h %h %h %h", proc2Icache_addr, current_index, last_index, current_tag, last_tag);
         $display("icache debug outstanding, changed_addr: %h %h", miss_outstanding, changed_addr);
     end
+    
+    
     //assign proc2Imem_command = (miss_outstanding && !changed_addr) ?  BUS_LOAD : BUS_NONE;
     assign MSHR_write_enable = (MSHR_response[MSHR_count_3]==Imem2proc_tag) && (Imem2proc_tag != 0) 
                                 && MSHR_valid[MSHR_count_3] && MSHR_sent[MSHR_count_3];
@@ -64,6 +66,23 @@ module icache(
     logic [`CACHE_LINES-1:0] [63:0]                     data;
     logic [`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
     logic [`CACHE_LINES-1:0]                            valids;
+
+    
+    // DEBUG show the icache state
+    `ifdef DEBUG
+    logic [31:0] cycle_count;
+    // synopsys sync_set_reset "reset"
+    always_ff @(negedge clock) begin
+        if(reset) begin
+            cycle_count = 0;
+        end else begin
+            for(int i = 0; i < `CACHE_LINES; i += 1) begin
+                $display("DEBUG %4d: icache[%2d]: valids = %h, tags = %h, data = %h", cycle_count, i, valids[i], tags[i], data[i]);
+            end
+            cycle_count = cycle_count + 1;
+        end
+    end
+    `endif
 
     assign Icache_data_out = valids[current_index] ? data[current_index] : 64'b0;
     assign Icache_valid_out = valids[current_index] && (tags[current_index] == current_tag);

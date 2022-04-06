@@ -43,6 +43,24 @@ module dcache (
 
     MISS_ENTRY      [`MISS_LINES-1:0]       miss_entries;
     MISS_ENTRY      [`MISS_LINES-1:0]       next_miss_entries;
+    
+    // DEBUG show the icache state
+    `ifdef DEBUG
+    logic [31:0] cycle_count;
+    DCACHE_ENTRY cur_entry;
+    // synopsys sync_set_reset "reset"
+    always_ff @(negedge clock) begin
+        if(reset) begin
+            cycle_count = 0;
+        end else begin
+            for(int i = 0; i < `CACHE_LINES; i += 1) begin
+                cur_entry = dcache_entries[i];
+                $display("DEBUG %4d: dcache[%2d] = %p", cycle_count, i, cur_entry);
+            end
+            cycle_count = cycle_count + 1;
+        end
+    end
+    `endif
 
     // DCACHE_LOAD_LSQ_PACKET                  next_dc_load_lsq;
     // DCACHE_STORE_LSQ_PACKET                 next_dc_store_lsq;
