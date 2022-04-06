@@ -28,6 +28,7 @@
 //////////////////////////////////////////////
 `define CACHE_MODE //removes the byte-level interface from the memory mode, DO NOT MODIFY!
 `define NUM_MEM_TAGS           15
+//`define PREFETCH_MODE
 
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
