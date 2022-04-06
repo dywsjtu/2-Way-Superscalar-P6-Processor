@@ -36,6 +36,7 @@ module cdb (
     assign cdb_out.value        = rs_cdb.value;
     assign cdb_out.valid        = rs_cdb.valid;
     assign cdb_out.take_branch  = rs_cdb.take_branch;
+    assign cdb_out.branch_target= rs_cdb.branch_target;
     `ifdef DEBUG
     logic [31:0] cycle_count;
     // synopsys sync_set_reset "reset"

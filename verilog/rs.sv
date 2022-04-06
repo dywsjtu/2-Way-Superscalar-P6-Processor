@@ -352,9 +352,10 @@ module rs (
     );
 
     assign rs_cdb.tag               = rs_entries[fu_num].T_dest;
-    assign rs_cdb.value             = fu_rs[fu_num].alu_result;
+    assign rs_cdb.value             = fu_rs[fu_num].take_branch ? fu_rs[fu_num].NPC : fu_rs[fu_num].alu_result;
     assign rs_cdb.valid             = fu_result_valid[fu_num];
     assign rs_cdb.take_branch       = fu_rs[fu_num].take_branch;
+    assign rs_cdb.branch_target     = fu_rs[fu_num].take_branch ? fu_rs[fu_num].alu_result : fu_rs[fu_num].NPC;
 
     assign rs_rob.entry_idx[0]      = mt_rs.rs_infos[0].tag;
     assign rs_rob.entry_idx[1]      = mt_rs.rs_infos[1].tag;

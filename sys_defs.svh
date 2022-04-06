@@ -417,6 +417,7 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			value;			// value
 	logic						store;
 	logic						mis_pred;  		// is mispredicted 
+	logic	[`XLEN-1:0]			branch_target;
 	logic						take_branch;	// whether is predicted to take branch
 	logic						halt;			// whether it's a halt
 } ROB_ENTRY;
@@ -426,6 +427,7 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			value;
 	logic						valid;
 	logic						take_branch;
+	logic	[`XLEN-1:0]			branch_target;
 } CDB_ENTRY;
 
 typedef struct packed {
