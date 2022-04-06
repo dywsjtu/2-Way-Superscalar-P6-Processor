@@ -37,8 +37,8 @@ module fu_ls(
 
 
 	assign alu_result 			= working_rs_fu.rs_value[0] + 
-								  working_id_fu.opb_select == OPB_IS_I_IMM 	? `RV32_signext_Iimm(working_id_fu.inst)
-																			: `RV32_signext_Simm(working_id_fu.inst);
+								  ((working_id_fu.opb_select == OPB_IS_I_IMM)	? `RV32_signext_Iimm(working_id_fu.inst)
+																				: `RV32_signext_Simm(working_id_fu.inst));
 	assign fu_rs.take_branch 	= 1'b0;
 
 
