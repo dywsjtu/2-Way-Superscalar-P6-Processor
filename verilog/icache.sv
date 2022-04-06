@@ -1,5 +1,6 @@
 `define CACHE_LINES 32
 `define CACHE_LINE_BITS $clog2(`CACHE_LINES)
+`define MSHR_SIZE 4
 
 module icache(
     input clock,
@@ -17,10 +18,21 @@ module icache(
     output logic Icache_valid_out      // when this is high
 );
 
-    logic [`CACHE_LINE_BITS - 1:0] current_index, last_index;
-    logic [12 - `CACHE_LINE_BITS:0] current_tag, last_tag;
+    //MSHR (temporary set size to 4)
+    logic [$clog2(`MSHR_SIZE)-1:0]       MSHR_count_1;//allocate
+    logic [$clog2(`MSHR_SIZE)-1:0]       MSHR_count_2;//sent
+    logic [$clog2(`MSHR_SIZE)-1:0]       MSHR_count_3;//answered
+
+    logic [`MSHR_SIZE-1:0][3:0]          MSHR_response;
+    logic [`MSHR_SIZE-1:0][`XLEN-1:0]    MSHR_addr;
+    logic [`MSHR_SIZE-1:0]               MSHR_valid;
+    logic [`MSHR_SIZE-1:0]               MSHR_sent;
+
+    logic [`CACHE_LINE_BITS - 1:0] current_index, last_index, mshr_idx;
+    logic [12 - `CACHE_LINE_BITS:0] current_tag, last_tag, mshr_tag;
 
     assign {current_tag, current_index} = proc2Icache_addr[15:3];
+    assign {mshr_tag, mshr_idx} = MSHR_addr[MSHR_count_3][15:3];
 
     logic [3:0] current_mem_tag;
     logic miss_outstanding;
@@ -34,13 +46,20 @@ module icache(
     assign unanswered_miss   = changed_addr ? !Icache_valid_out :
                                         miss_outstanding && (Imem2proc_response == 0);
 
-    assign proc2Imem_addr    = {proc2Icache_addr[31:3], 3'b0};
+   // assign proc2Imem_addr    = {proc2Icache_addr[31:3], 3'b0};
     always @(negedge clock) begin
         $display("icache debug: %h %h %h %h %h", proc2Icache_addr, current_index, last_index, current_tag, last_tag);
         $display("icache debug outstanding, changed_addr: %h %h", miss_outstanding, changed_addr);
     end
-    assign proc2Imem_command = (miss_outstanding && !changed_addr) ?  BUS_LOAD : BUS_NONE;
-
+    //assign proc2Imem_command = (miss_outstanding && !changed_addr) ?  BUS_LOAD : BUS_NONE;
+    assign MSHR_write_enable = (MSHR_response[MSHR_count_3]==Imem2proc_tag) && (Imem2proc_tag != 0) 
+                                && MSHR_valid[MSHR_count_3] && MSHR_sent[MSHR_count_3];
+    assign proc2Imem_addr    = (miss_outstanding && !changed_addr) ? {proc2Icache_addr[31:3], 3'b0}:
+                                                                    MSHR_addr[MSHR_count_2];
+                                                                    
+    assign proc2Imem_command = ((miss_outstanding && !changed_addr) 
+                                || (MSHR_valid[MSHR_count_2] && ~MSHR_sent[MSHR_count_2])) ?  BUS_LOAD : BUS_NONE;
+    
     //Cache memory
     logic [`CACHE_LINES-1:0] [63:0]                     data;
     logic [`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
@@ -60,6 +79,17 @@ module icache(
             tags                    <= `SD 0;
 
             valids                  <= `SD `CACHE_LINES'b0;  
+
+            //prefetch initialize
+            //for prefetch
+            MSHR_response    <= `SD 0;
+            MSHR_addr        <= `SD 0;
+            MSHR_valid       <= `SD 0;
+            MSHR_sent        <= `SD 0;
+            MSHR_count_1     <= `SD 0;
+            MSHR_count_2     <= `SD 0;
+            MSHR_count_3     <= `SD 0;
+
         end else begin
             last_index              <= `SD current_index;
             last_tag                <= `SD current_tag;
@@ -71,7 +101,31 @@ module icache(
                 current_mem_tag     <= `SD 4'b0;
             end
 
-            if(data_write_enable) begin
+            //prefetch: add to MSHR
+            if (~Icache_valid_out && ~MSHR_valid[MSHR_count_1]) begin
+                MSHR_addr[MSHR_count_1]   <= `SD proc2Icache_addr + 8;
+                MSHR_valid[MSHR_count_1]  <= `SD 1'b1; 
+                MSHR_count_1              <= `SD MSHR_count_1 + 1;
+            end
+
+            //prefetch: send request
+            if(proc2Imem_addr == MSHR_addr[MSHR_count_2] && MSHR_valid[MSHR_count_2] && ~MSHR_sent[MSHR_count_2]) begin
+                MSHR_sent[MSHR_count_2]  <= `SD 1'b1; 
+                MSHR_response[MSHR_count_2] <= `SD Imem2proc_response;
+                MSHR_count_2             <= `SD MSHR_count_2 + 1;
+            end
+
+            //prefetch: write to Icache + clear MSHR entry
+            if (MSHR_write_enable) begin
+                data[mshr_idx]                  <= `SD Imem2proc_data;
+                tags[mshr_idx]                  <= `SD mshr_tag;
+                valids[mshr_idx]                <= `SD 1;
+                MSHR_addr[MSHR_count_3]         <= `SD 0;
+                MSHR_valid[MSHR_count_3]        <= `SD 0;
+                MSHR_response[MSHR_count_3]     <= `SD 0;
+                MSHR_sent[MSHR_count_3]         <= `SD 0;
+                MSHR_count_3                    <= `SD MSHR_count_3 + 1; 
+            end else if (data_write_enable) begin
                 data[current_index]     <= `SD Imem2proc_data;
                 tags[current_index]     <= `SD current_tag;
                 valids[current_index]   <= `SD 1;

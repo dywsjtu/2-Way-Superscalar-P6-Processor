@@ -235,6 +235,9 @@ module dispatch_stage(
 	input					[63:0] 			Imem2proc_data,			// Data coming back from instruction-memory
 	input									Imem2proc_valid,
 	input	ROB_ID_PACKET       			rob_id,
+	`ifdef BRANCH_MODE
+		input 	FU_ID_PACKET				fu_id,
+	`endif
 
 	// output	IF_ID_PACKET 				if_packet_out			// Output data packet from IF going to ID, see sys_defs for signal information 
 	// input	IF_ID_PACKET				if_id_packet_in,
@@ -265,9 +268,16 @@ module dispatch_stage(
 	
 	// // The take-branch signal must override stalling (otherwise it may be lost)
 	// assign PC_enable 						= id_packet_out.valid | ex_mem_take_branch;
-	
-	assign next_PC 							= rob_id.squash ? rob_id.target_pc 
+	`ifdef BRANCH_MODE
+		logic [`XLEN-1:0]		NPC_out;
+		assign next_PC 							= rob_id.squash ? rob_id.target_pc 
+															: NPC_out;
+	`else
+		assign next_PC 							= rob_id.squash ? rob_id.target_pc 
 															: PC_plus_4;
+	`endif
+	
+	
 	assign PC_enable 						= id_packet_out.valid || rob_id.squash;
 	
 	
@@ -331,6 +341,48 @@ module dispatch_stage(
 
 	assign id_packet_out.valid = valid_inst && Imem2proc_valid;
 
+	//Branch predictor
+	`ifdef BRANCH_MODE
+		logic ras_full;
+		//logic [4:0] ex_dirp_tag;
+		npc_control npc_control_0(
+    		//INPUT
+    		.clock(clock),
+    		.reset(reset),
+
+    		.is_return(0), //temporary disable RAS
+    		.is_branch(id_packet_out.cond_branch),
+    		.is_jump(id_packet_out.uncond_branch),
+
+    		.PC_in(PC_reg),
+    		.PC_plus_4(PC_plus_4),
+
+    		.ex_result_valid(fu_id.result_valid),
+    		.ex_branch_taken(fu_id.branch_taken),
+    		.ex_is_branch(fu_id.is_branch),
+    		.PC_ex(fu_id.PC),
+    		.ex_result(fu_id.targetPC),
+    		.ex_branch_idx(fu_id.dirp_tag),
+
+
+    		//OUTPUT
+			.dirp_tag(id_packet_out.dirp_tag),
+    		.branch_predict(id_packet_out.take_branch),
+    		.NPC_out(NPC_out),
+    		.ras_full(ras_full)
+		);
+
+		logic [31:0] cycle_count;
+		always_ff@(negedge clock) begin
+			if (reset) begin
+				cycle_count = 0;
+			end else begin
+				$display("DEBUG %4d: fu_result_valid = %b, fu_is_branch = %b", cycle_count, fu_id.result_valid, fu_id.is_branch);
+				cycle_count += 1;
+			end
+		end 
+	`endif
+
 	// mux to generate dest_reg_idx based on
 	// the dest_reg_select output from decoder
 	always_comb begin
@@ -369,7 +421,9 @@ module dispatch_stage(
 			end
 		endcase
 
-		id_packet_out.take_branch				= 1'b0;
+		`ifndef BRANCH_MODE	
+			id_packet_out.take_branch				= 1'b0;
+		`endif
 	end
 	
 	// synopsys sync_set_reset "reset"

@@ -263,6 +263,10 @@ module pipeline (
         end
     end
 
+	`ifdef BRANCH_MODE
+		FU_ID_PACKET fu_id;
+	`endif
+
 	dispatch_stage dispatch_stage_0 (
 		// Inputs
 		.clock(clock),
@@ -274,6 +278,9 @@ module pipeline (
 		.Imem2proc_data(Icache_data_out),
 		.Imem2proc_valid(Icache_valid_out),
 		.rob_id(rob_id),
+		`ifdef BRANCH_MODE
+			.fu_id(fu_id),
+		`endif
 		
 		// Outputs
 		.proc2Imem_addr(proc2Icache_addr),
@@ -299,7 +306,11 @@ module pipeline (
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
 		if (reset || rob_id.squash) begin
-			id_packet_out 	<= `SD '{	{`XLEN{1'b0}},
+			id_packet_out 	<= `SD '{	
+										`ifdef BRANCH_MODE
+											{`DIRP_IDX_LEN{1'b0}},
+										`endif
+										{`XLEN{1'b0}},
 										{`XLEN{1'b0}}, 
  
 										OPA_IS_RS1, 
@@ -342,7 +353,10 @@ module pipeline (
 						id_packet_out.halt
 					};
 	//ID TO RS
-	assign id_rs = {
+	assign id_rs = {	
+						`ifdef BRANCH_MODE
+							id_packet_out.dirp_tag,
+						`endif
 						id_packet_out.NPC,			
 						id_packet_out.PC,			                             
 						dispatch_enable,                    
@@ -421,7 +435,7 @@ module pipeline (
         //output
         .mt_rs(mt_rs)
     );
-
+	
 
 	rs rs_0(
 		// input
@@ -436,6 +450,9 @@ module pipeline (
 		.lsq_rs(lsq_rs),
 		.lsq_fu(lsq_fu),
 		// output
+		`ifdef BRANCH_MODE
+			.fu_id(fu_id),
+		`endif
 		.rs_mt(rs_mt),
 		.rs_cdb(rs_cdb),
 		.rs_reg(rs_reg),

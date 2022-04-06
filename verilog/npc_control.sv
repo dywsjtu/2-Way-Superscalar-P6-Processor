@@ -28,10 +28,11 @@ module npc_control (
     input ex_is_branch,
     input [`XLEN-1:0] PC_ex,
     input [`XLEN-1:0] ex_result,
-    input [4:0] ex_branch_idx,
+    input [`DIRP_IDX_LEN-1:0] ex_branch_idx,
 
 
     //OUTPUT
+    output logic [`DIRP_IDX_LEN-1:0] dirp_tag,
     output logic branch_predict,
     output logic [`XLEN-1:0] NPC_out,
     output logic ras_full
@@ -47,7 +48,7 @@ module npc_control (
         .clock(clock),
         .reset(reset),
 
-    //Branch History
+        //Branch History
         .branch_result_valid(ex_result_valid && ex_is_branch),
         .branch_result(ex_branch_taken), //1 for taken, 0 for not taken
         .ex_idx(ex_branch_idx), //the previous idx to update PHT
@@ -56,7 +57,8 @@ module npc_control (
         .is_branch(is_branch),
         .targetPC_in(PC_in),
 
-        .branch_taken(branch_predict)
+        .branch_taken(branch_predict),
+        .dirp_tag(dirp_tag)
     );
 
     //Branch Target Buffer

@@ -67,6 +67,8 @@ module btb (
             if (reset) begin
                 cycle_count = 0;
             end else begin
+                $display("DEBUG %4d: write_en = %b", cycle_count, write_en);
+                $display("DEBUG %4d: read_en = %b, PC_in=0x%x, tag = %4d, index = %4d", cycle_count, read_en, PC_in_r, current_tag_r, current_idx_r);
                 for (int i = 0; i < `BTB_SIZE; i += 1) begin
                     $display("DEBUG %4d: BTB_tag[%4d]=%d, BTB_addr[%4d]=0x%x, BTB_valid[%4d]=%b", cycle_count, i, btb_tags[i], i, btb_addr[i], i, btb_valid[i]);
                 end

@@ -20,6 +20,11 @@ module fu_mult(
 	RS_FU_PACKET					working_rs_fu;
 
 	// Pass-throughs
+	`ifdef BRANCH_MODE
+		assign fu_rs.is_branch 	= working_id_fu.cond_branch;
+		assign fu_rs.PC 		= working_id_fu.PC;
+		assign fu_rs.dirp_tag	= working_id_fu.dirp_tag;
+	`endif
 	assign fu_rs.NPC            = working_id_fu.NPC;
 	assign fu_rs.rs2_value      = working_rs_fu.rs_value[1];
 	assign fu_rs.rd_mem         = working_id_fu.rd_mem;

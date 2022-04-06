@@ -360,8 +360,13 @@ typedef union packed {
 // Data that is exchanged from ID to EX stage
 //
 //////////////////////////////////////////////
+//`define BRANCH_MODE
+`define DIRP_IDX_LEN 5
 
 typedef struct packed {
+	`ifdef BRANCH_MODE
+		logic [`DIRP_IDX_LEN-1:0]	dirp_tag;
+	`endif
 	logic 			[`XLEN-1:0] 	NPC;   			// PC + 4
 	logic 			[`XLEN-1:0] 	PC;    			// PC
 
@@ -400,14 +405,22 @@ typedef struct packed {
 // 	logic             halt, illegal, csr_op, valid;
 // 	logic [2:0]       mem_size; // byte, half-word or word
 // } EX_MEM_PACKET;
-`define BTB_IDX_LEN 3
-`define BTB_SIZE 8 //BTB_SIZE = 2^BTB_IDX_LEN
 
-typedef struct packed {
-    logic valid;
-    logic [29-`BTB_IDX_LEN-1:0] tag;
-    logic [31:0] data;
-} BTB_ENTRY;    
+`define BTB_IDX_LEN 3
+`define BTB_SIZE 8 
+
+
+`ifdef BRANCH_MODE
+	typedef struct packed {
+		logic 							result_valid;
+		logic 							branch_taken;
+		logic 							is_branch;
+		logic [`XLEN-1:0]				targetPC;
+		logic [`XLEN-1:0]				PC;
+		logic [`DIRP_IDX_LEN-1:0]		dirp_tag;
+	} FU_ID_PACKET;
+`endif
+
 
 typedef struct packed {
 	logic						valid;
@@ -427,7 +440,13 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			value;
 	logic						valid;
 	logic						take_branch;
+<<<<<<< HEAD
+	`ifdef BRANCH_MODE
+	logic						mis_pred;
+	`endif
+=======
 	logic	[`XLEN-1:0]			branch_target;
+>>>>>>> e5af2ca00900f21fa87a3a07855ebe077e0179ca
 } CDB_ENTRY;
 
 typedef struct packed {
@@ -498,6 +517,9 @@ typedef struct packed {
 // typedef enum logic [2:0] { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
 
 typedef struct packed {
+	`ifdef BRANCH_MODE
+		logic [`DIRP_IDX_LEN-1:0] dirp_tag;
+	`endif
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC                               
 	logic						dispatch_enable;// whether is enable to dispatch                             
@@ -607,6 +629,11 @@ typedef struct packed {
 	logic					rd_mem, wr_mem;
 	logic	[4:0]			dest_reg_idx;
 	logic					halt, illegal, csr_op;
+	`ifdef BRANCH_MODE
+		logic 				is_branch;
+		logic 				[`XLEN-1:0] PC;
+		logic 				[`DIRP_IDX_LEN-1:0] dirp_tag;
+	`endif
 	MEM_SIZE				mem_size; // byte, half-word or word
 } FU_RS_PACKET;
 
