@@ -116,7 +116,7 @@ module pipeline (
 	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
 	assign memory_error = (proc2mem_command != BUS_NONE) && (mem2proc_response==4'h0);
 	assign pipeline_error_status 	= 	halt			?	HALTED_ON_WFI :
-										memory_error 	? 	LOAD_ACCESS_FAULT :
+										// memory_error 	? 	LOAD_ACCESS_FAULT :
 	                                						NO_ERROR;
 	
 	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
@@ -138,9 +138,10 @@ module pipeline (
 	icache icache_0 (
 		.clock(clock),
 		.reset(reset),
+		.squash(squash),
 
 		// input
-	 	.Imem2proc_response(mem2proc_response),
+	 	.Imem2proc_response(do_Ifetch ? mem2proc_response : 4'b0),
 	    .Imem2proc_data(mem2proc_data),
 	    .Imem2proc_tag(mem2proc_tag),
 

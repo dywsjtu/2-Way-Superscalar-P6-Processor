@@ -5,6 +5,8 @@
 module icache(
     input clock,
     input reset,
+    input squash,
+
     input [3:0]  Imem2proc_response,
     input [63:0] Imem2proc_data,
     input [3:0]  Imem2proc_tag,
@@ -52,7 +54,7 @@ module icache(
     assign update_mem_tag    = changed_addr || miss_outstanding || data_write_enable;
 
     assign unanswered_miss   = changed_addr ? !Icache_valid_out :
-                                        miss_outstanding && (Imem2proc_response == 0);
+                                        miss_outstanding && (Imem2proc_response == 4'b0);
 
    // assign proc2Imem_addr    = {proc2Icache_addr[31:3], 3'b0};
     always @(negedge clock) begin
@@ -124,6 +126,11 @@ module icache(
                 MSHR_count_3     <= `SD 0;
             `endif
 
+        end else if (squash) begin
+            last_index              <= `SD -1;   // These are -1 to get ball rolling when
+            last_tag                <= `SD -1;   // reset goes low because addr "changes"
+            current_mem_tag         <= `SD 0;
+            miss_outstanding        <= `SD 0;
         end else begin
             last_index              <= `SD current_index;
             last_tag                <= `SD current_tag;
