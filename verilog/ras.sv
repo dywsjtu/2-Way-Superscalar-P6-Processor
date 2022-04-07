@@ -18,13 +18,13 @@ module ras (
     input reset,
     input is_jump,
     input is_return,
-    input [`XLEN-1] NPC,
+    input [`XLEN-1:0] NPC,
 
-    output [`XLEN-1] PC_return,
+    output [`XLEN-1:0] PC_return,
     output ras_full
 );
     logic [`RAS_SIZE-1:0][`XLEN-1:0] ras_stack;
-    logic [`XLEN-1]                  reg_used_in_empty;
+    logic [`XLEN-1:0]                  reg_used_in_empty;
     logic [2:0] ras_counter;
     logic [1:0] tosp, tosp_n;
 
