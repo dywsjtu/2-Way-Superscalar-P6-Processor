@@ -232,8 +232,8 @@ module dispatch_stage(
 	input 		  							stall,
 	// input         							ex_mem_take_branch,		// taken-branch signal
 	// input					[`XLEN-1:0]		ex_mem_target_pc,		// target pc: use if take_branch is TRUE
-	input					[63:0] 			Imem2proc_data,			// Data coming back from instruction-memory
-	input									Imem2proc_valid,
+	input					[63:0] 			Icache_data_out,			// Data coming back from instruction-memory
+	input									Icache_valid_out,
 	input	ROB_ID_PACKET       			rob_id,
 	`ifdef BRANCH_MODE
 		input 	FU_ID_PACKET				fu_id,
@@ -254,8 +254,8 @@ module dispatch_stage(
 	assign proc2Imem_addr 					= {PC_reg[`XLEN-1:3], 3'b0};
 	
 	// this mux is because the Imem gives us 64 bits not 32 bits
-	assign id_packet_out.inst 				= PC_reg[2]	? Imem2proc_data[63:32] 
-														: Imem2proc_data[31:0];
+	assign id_packet_out.inst 				= PC_reg[2]	? Icache_data_out[63:32] 
+														: Icache_data_out[31:0];
 	
 	// default next PC value
 	assign PC_plus_4 						= PC_reg + 4;
@@ -339,7 +339,7 @@ module dispatch_stage(
 		.valid_inst(valid_inst)
 	);
 
-	assign id_packet_out.valid = valid_inst && Imem2proc_valid;
+	assign id_packet_out.valid = valid_inst && Icache_valid_out;
 
 	//Branch predictor
 	`ifdef BRANCH_MODE

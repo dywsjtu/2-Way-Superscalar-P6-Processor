@@ -17,7 +17,7 @@ module fu_ls(
 	output							fu_result_valid,
 	output  FU_LSQ_PACKET			fu_lsq
 );
-	logic 	[`XLEN-1:0] 			opa_mux_out, opb_mux_out;
+	// logic 	[`XLEN-1:0] 			opa_mux_out, opb_mux_out;
 	logic	[`XLEN-1:0]				alu_result;
 	ID_RS_PACKET					working_id_fu;
 	RS_FU_PACKET					working_rs_fu;
@@ -39,6 +39,8 @@ module fu_ls(
 	assign fu_rs.illegal        = working_id_fu.illegal;
 	assign fu_rs.csr_op         = working_id_fu.csr_op;
 	assign fu_rs.mem_size       = MEM_SIZE'(working_id_fu.inst.r.funct3[1:0]);
+	logic	is_signed;
+	assign	is_signed = working_id_fu.inst.r.funct3[2]; // 0 is signed, 1 is unsigned.
 
 
 	assign alu_result 			= working_rs_fu.rs_value[0] + 
@@ -49,8 +51,9 @@ module fu_ls(
 
 	assign fu_lsq.load			= working_id_fu.rd_mem;
 	assign fu_lsq.store			= working_id_fu.wr_mem;
-	assign fu_lsq.valid			= ~working_rs_fu.selected &&
-								  working_id_fu.valid && working_rs_fu.rs_value_valid;
+	// assign fu_lsq.valid			= ~working_rs_fu.selected &&
+	// 							  working_id_fu.valid && working_rs_fu.rs_value_valid;
+	assign fu_lsq.valid			= working_id_fu.valid && working_rs_fu.rs_value_valid;
 	assign fu_lsq.addr			= alu_result;
 	assign fu_lsq.value			= working_rs_fu.rs_value[1];
 	// assign fu_lsq.lq_pos		= working_loadq_pos;
@@ -59,10 +62,36 @@ module fu_ls(
 	
 	// assign fu_result_valid		= ~reset && ~working_rs_fu.selected &&
 	// 							  working_id_fu.valid && working_rs_fu.rs_value_valid;
-	assign fu_result_valid		= ~reset && ~working_rs_fu.selected &&
-								  working_id_fu.valid && working_rs_fu.rs_value_valid &&
+	// assign fu_result_valid		= ~reset && ~working_rs_fu.selected &&
+	// 							  working_id_fu.valid && working_rs_fu.rs_value_valid &&
+	// 							  (working_id_fu.wr_mem ? fu_lsq.valid : lsq_fu.valid);
+	assign fu_result_valid		= ~reset && working_id_fu.valid && working_rs_fu.rs_value_valid &&
 								  (working_id_fu.wr_mem ? fu_lsq.valid : lsq_fu.valid);
-	assign fu_rs.alu_result	 	= working_id_fu.wr_mem ? `XLEN'b0 : lsq_fu.value;
+
+	// assign fu_rs.alu_result	 	= working_id_fu.wr_mem ? `XLEN'b0 : lsq_fu.value;
+	always_comb begin
+		if (working_id_fu.wr_mem) begin
+			fu_rs.alu_result = `XLEN'b0;
+		end else begin
+			if (~is_signed) begin //is this an signed/unsigned load?
+				if (fu_rs.mem_size == BYTE) begin
+					fu_rs.alu_result = {{(`XLEN-8){lsq_fu.value[7]}}, lsq_fu.value[7:0]};
+				end else if (fu_rs.mem_size == HALF) begin
+					fu_rs.alu_result = {{(`XLEN-16){lsq_fu.value[15]}}, lsq_fu.value[15:0]};
+				end else begin
+					fu_rs.alu_result = lsq_fu.value;
+				end
+			end else begin
+				if (fu_rs.mem_size == BYTE) begin
+					fu_rs.alu_result = {{(`XLEN-8){1'b0}}, lsq_fu.value[7:0]};
+				end else if (fu_rs.mem_size == HALF) begin
+					fu_rs.alu_result = {{(`XLEN-16){1'b0}}, lsq_fu.value[15:0]};
+				end else begin
+					fu_rs.alu_result = lsq_fu.value;
+				end
+			end
+		end
+	end
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin

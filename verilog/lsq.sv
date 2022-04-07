@@ -76,7 +76,7 @@ module lsq (
 
     logic                                                   sq_rob_valid;
     assign  lsq_rob.retire_valid    = sq_rob_valid;
-    assign  lsq_rob.halt_valid      = (sq_head == sq_tail) && dc_store_lsq.halt_valid;
+    assign  lsq_rob.halt_valid      = dc_store_lsq.halt_valid;
     // assign  lsq_rob.halt_valid      = (sq_head == sq_tail); // TODO: Change this
     // load queue
 
@@ -116,15 +116,24 @@ module lsq (
         next_lq_selection       = lq_selection;
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
-            if (fu_lsq[i].valid && fu_lsq[i].load && lq_entries[i].valid && ~lq_entries[i].filled) begin
-                next_lq_entries[i]              = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b1, 1'b1, fu_lsq[i].sq_pos};
-                next_lq_retire_valid[i]         = 1'b0;
+            if (rs_lsq.valid && rs_lsq.load && i == rs_lsq.idx) begin
+                if (fu_lsq[i].valid && fu_lsq[i].load) begin
+                    next_lq_entries[i]      = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b1, 1'b1, (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail};
+                end else begin
+                    next_lq_entries[i]      = {`XLEN'b0, 2'b00, 1'b1, 1'b0, (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail};
+                end
+                next_lq_retire_valid[i]     = 1'b0;
+            end else begin
+                if (fu_lsq[i].valid && fu_lsq[i].load && lq_entries[i].valid && ~lq_entries[i].filled) begin
+                    next_lq_entries[i]      = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b1, 1'b1, lq_entries[i].sq_pos};
+                    next_lq_retire_valid[i] = 1'b0;
+                end
             end
         end
 
         if (rob_lsq.sq_retire) begin
             for (int i = 0; i < `NUM_LS; i += 1) begin
-                if (lq_entries[i].sq_pos == sq_head) begin
+                if (next_lq_entries[i].sq_pos == sq_head) begin
                     next_lq_entries[i].sq_pos = `NO_SQ_POS;
                 end
             end
@@ -132,15 +141,15 @@ module lsq (
 
         temp_flag = 1'b1;
         for (int i = 0; i < `NUM_LS; i += 1) begin
-            if (lq_entries[i].filled && ~lq_retire_valid[i] && 
-                lq_entries[i].valid && ~(lq_entries[i].sq_pos == `NO_SQ_POS)) begin
-                if (lq_entries[i].sq_pos > sq_head) begin
+            if (next_lq_entries[i].filled && ~next_lq_retire_valid[i] && 
+                next_lq_entries[i].valid && ~(next_lq_entries[i].sq_pos == `NO_SQ_POS)) begin
+                if (next_lq_entries[i].sq_pos > sq_head) begin
                     temp_flag = 1'b1;
                     for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
-                        if (j < lq_entries[i].sq_pos && j >= sq_head && temp_flag) begin
+                        if (j < next_lq_entries[i].sq_pos && j >= sq_head && temp_flag) begin
                             if (~sq_valid[j]) begin
                                 temp_flag = 1'b0;
-                            end else if (sq_entries[j].addr == lq_entries[i].addr && sq_entries[j].mem_size == lq_entries[i].mem_size) begin
+                            end else if (sq_entries[j].addr == next_lq_entries[i].addr && sq_entries[j].mem_size == next_lq_entries[i].mem_size) begin
                                 temp_flag               = 1'b0;
                                 next_lq_retire_valid[i] = 1'b1;
                                 next_lq_value[i]        = sq_value[j];
@@ -153,10 +162,10 @@ module lsq (
                 end else begin
                     temp_flag = 1'b1;
                     for (int j = `STORE_QUEUE_SIZE - 1; j >= 0; j -= 1) begin
-                        if (j < lq_entries[i].sq_pos && temp_flag) begin
+                        if (j < next_lq_entries[i].sq_pos && temp_flag) begin
                             if (~sq_valid[j]) begin
                                 temp_flag = 1'b0;
-                            end else if (sq_entries[j].addr == lq_entries[i].addr && sq_entries[j].mem_size == lq_entries[i].mem_size) begin
+                            end else if (sq_entries[j].addr == next_lq_entries[i].addr && sq_entries[j].mem_size == next_lq_entries[i].mem_size) begin
                                 temp_flag               = 1'b0;
                                 next_lq_retire_valid[i] = 1'b1;
                                 next_lq_value[i]        = sq_value[j];
@@ -167,7 +176,7 @@ module lsq (
                         if (j >= sq_head && temp_flag) begin
                             if (~sq_valid[j]) begin
                                 temp_flag = 1'b0;
-                            end else if (sq_entries[j].addr == lq_entries[i].addr && sq_entries[j].mem_size == lq_entries[i].mem_size) begin
+                            end else if (sq_entries[j].addr == next_lq_entries[i].addr && sq_entries[j].mem_size == next_lq_entries[i].mem_size) begin
                                 temp_flag               = 1'b0;
                                 next_lq_retire_valid[i] = 1'b1;
                                 next_lq_value[i]        = sq_value[j];
@@ -185,21 +194,18 @@ module lsq (
             next_lq_retire_valid[lq_selection]  = 1'b1;
             next_lq_value[lq_selection]         = dc_load_lsq.value;
             update_selection                    = 1'b1;
-        end
-
-        if (rs_lsq.valid && rs_lsq.load) begin
-            next_lq_entries[rs_lsq.idx]         = {`XLEN'b0, 2'b00, 1'b1, 1'b0, `LSQ_IDX_LEN'b0};
-            next_lq_retire_valid[rs_lsq.idx]    = 1'b0;
+        end else if (~(next_lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[lq_selection].valid && next_lq_entries[lq_selection].filled && ~next_lq_retire_valid[lq_selection])) begin
+            update_selection                    = 1'b1;
         end
 
         if (update_selection) begin
-            if (next_lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[3].valid && ~next_lq_retire_valid[3]) begin
+            if          (next_lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[3].valid && next_lq_entries[3].filled && ~next_lq_retire_valid[3]) begin
                 next_lq_selection = 2'b11;
-            end else if (next_lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[2].valid && ~next_lq_retire_valid[2]) begin
+            end else if (next_lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[2].valid && next_lq_entries[2].filled && ~next_lq_retire_valid[2]) begin
                 next_lq_selection = 2'b10;
-            end else if (next_lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[1].valid && ~next_lq_retire_valid[1]) begin
+            end else if (next_lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[1].valid && next_lq_entries[1].filled && ~next_lq_retire_valid[1]) begin
                 next_lq_selection = 2'b01;
-            end else if (next_lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[0].valid && ~next_lq_retire_valid[0]) begin
+            end else if (next_lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[0].valid && next_lq_entries[0].filled && ~next_lq_retire_valid[0]) begin
                 next_lq_selection = 2'b00;
             end
         end
@@ -279,7 +285,7 @@ module lsq (
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
-        if (reset || squash) begin
+        if (reset || squash || rob_lsq.sq_halt) begin
             sq_head             <=  `SD `LSQ_IDX_LEN'b0;
             sq_tail             <=  `SD `LSQ_IDX_LEN'b0;
             sq_counter          <=  `SD `LSQ_IDX_LEN'b0;
@@ -300,11 +306,11 @@ module lsq (
 
     // assign lsq_rs.loadq_tail    =   lq_tail;
     // assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
-    assign lsq_rs.storeq_tail   =   (sq_counter == 0) ? `NO_SQ_POS : sq_tail;
+    assign lsq_rs.storeq_tail   =   (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail;
     assign lsq_rs.sq_tail       =   sq_tail;
     assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
 
-    assign lsq_load_dc  = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && ~lq_retire_valid[lq_selection],
+    assign lsq_load_dc  = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[lq_selection].valid && lq_entries[lq_selection].filled && ~lq_retire_valid[lq_selection],
                             lq_entries[lq_selection].addr,
                             lq_entries[lq_selection].mem_size   };
     assign lsq_store_dc = { sq_valid[sq_head] && rob_lsq.sq_retire && ~lsq_rob.retire_valid,

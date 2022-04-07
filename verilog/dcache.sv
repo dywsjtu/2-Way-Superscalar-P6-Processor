@@ -67,7 +67,7 @@ module dcache (
 
     logic                                   temp_valid;
     EXAMPLE_CACHE_BLOCK                     temp_value;
-    logic           [12:0]                  temp_addr;
+    logic           [13:0]                  temp_addr;
     logic           [1:0]                   temp_op;
     logic           [`CACHE_IDX_LEN-1:0]    temp_minus;
 
@@ -81,19 +81,26 @@ module dcache (
 
         temp_valid  = 1'b0;
         temp_minus  = `CACHE_IDX_LEN'b0;
-        temp_addr   = 12'b0;
+        temp_addr   = 14'b0;
         temp_value  = 64'b0;
         temp_op     = 2'b00;
 
+        for (int i = 0; i < `MISS_LINES; i += 1) begin
+            if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op[1]) begin
+                next_miss_entries[i] = 0;
+            end
+        end
+
         if (Dmem2proc_valid) begin
             for (int i = 0; i < `MISS_LINES; i += 1) begin
-                if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op[1]) begin
-                    next_miss_entries[i] = 0;
-                end else if (~temp_valid && miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].tag == Dmem2proc_tag) begin
+                // if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op[1]) begin
+                //     next_miss_entries[i] = 0;
+                // end else 
+                if (~temp_valid && next_miss_entries[i].valid && next_miss_entries[i].sent && next_miss_entries[i].tag == Dmem2proc_tag) begin
                     temp_valid  = 1'b1;
                     temp_value  = Dmem2proc_data;
-                    temp_addr   = miss_entries[i].addr[15:3];
-                    temp_op     = miss_entries[i].op;
+                    temp_addr   = {1'b1, next_miss_entries[i].addr[15:3]};
+                    temp_op     = next_miss_entries[i].op;
                     // if (miss_entries[i].op == 2'b01) begin
                     //     casez (miss_entries[i].mem_size)
                     //         BYTE: temp_value.byte_level[addr[2:0]]  = miss_entries[i].value[7:0];
@@ -114,14 +121,14 @@ module dcache (
             if (temp_valid && temp_op != 2'b10) begin
                 temp_valid = 1'b0;
                 for (int i = 0; i < `CACHE_LINES; i += 1) begin
-                    if (~temp_valid && dcache_entries[i].lru_counter == `CACHE_IDX_LEN'b0) begin
+                    if (~temp_valid && next_dcache_entries[i].lru_counter == `CACHE_IDX_LEN'b0) begin
                         temp_valid = 1'b1;
                         next_dcache_entries[i] = {  temp_value,
-                                                    temp_addr,
+                                                    temp_addr[12:0],
                                                     `CACHE_IDX_LEN'b011111,
                                                     1'b1    };
-                    end else if (dcache_entries[i].lru_counter != `CACHE_IDX_LEN'b0) begin
-                        next_dcache_entries[i].lru_counter = dcache_entries[i].lru_counter - 1;
+                    end else if (next_dcache_entries[i].lru_counter != `CACHE_IDX_LEN'b0) begin
+                        next_dcache_entries[i].lru_counter = next_dcache_entries[i].lru_counter - 1;
                     end
                 end
             end
@@ -172,7 +179,7 @@ module dcache (
         end
         
         dc_store_lsq.valid = 1'b0;
-        if (lsq_store_dc.valid && ~lsq_store_dc.halt) begin
+        if (lsq_store_dc.valid && ~lsq_store_dc.halt && (~temp_addr[13] || (lsq_store_dc.addr[15:3] != temp_addr[12:0]))) begin
             temp_valid = 1'b0;
             temp_minus = `CACHE_IDX_LEN'b100000;
             for (int i = 0; i < `CACHE_LINES; i += 1) begin
@@ -262,7 +269,7 @@ module dcache (
                 next_miss_entries[i].sent   = chosen2Mem && (Dmem2proc_response != 4'b0);
                 proc2Dmem_valid             = 1'b1;
                 proc2Dmem_data              = next_miss_entries[i].value;
-                proc2Dmem_command           = next_miss_entries[i].op == 2'b10 ? BUS_STORE : BUS_LOAD;
+                proc2Dmem_command           = BUS_LOAD;
                 proc2Dmem_addr              = {19'b0, next_miss_entries[i].addr[15:3], 3'b0};
                 next_miss_entries[i].tag    = Dmem2proc_response;
                 temp_valid                  = 1'b1;

@@ -47,9 +47,8 @@ module rob(
 
     assign rob_empty            = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full             = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
-    assign retire_valid         = (rob_entries[rob_head].ready && (~rob_empty) 
-                                     && (~rob_entries[rob_head].store || lsq_rob.retire_valid)) 
-                                  || rob_entries[rob_head].halt;
+    assign retire_valid         = rob_entries[rob_head].ready && (~rob_empty) && 
+                                  (~rob_entries[rob_head].store || lsq_rob.retire_valid);
     assign rob_lsq.sq_retire    = rob_entries[rob_head].ready && rob_entries[rob_head].store;
     assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
@@ -73,8 +72,8 @@ module rob(
     assign rob_mt.dest_valid    = rob_reg.dest_valid;
     assign rob_mt.dest_reg_idx  = rob_reg.dest_reg_idx;
     
-    assign rob_reg.valid        = retire_valid;
-    assign rob_reg.dest_valid   = (retire_valid && (rob_entries[rob_head].dest_reg_idx != `ZERO_REG));
+    assign rob_reg.valid        = retire_valid || halt;
+    assign rob_reg.dest_valid   = (rob_reg.valid && (rob_entries[rob_head].dest_reg_idx != `ZERO_REG));
     assign rob_reg.dest_reg_idx = rob_entries[rob_head].dest_reg_idx;
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
     assign rob_reg.OLD_PC_p_4   = rob_entries[rob_head].PC + 4;

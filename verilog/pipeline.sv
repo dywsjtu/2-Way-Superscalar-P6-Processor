@@ -276,8 +276,8 @@ module pipeline (
 		.stall(~dispatch_enable),
 		// .ex_mem_take_branch(ex_mem_take_branch),
 		// .ex_mem_target_pc(ex_mem_target_pc),
-		.Imem2proc_data(Icache_data_out),
-		.Imem2proc_valid(Icache_valid_out),
+		.Icache_data_out(Icache_data_out),
+		.Icache_valid_out(Icache_valid_out),
 		.rob_id(rob_id),
 		`ifdef BRANCH_MODE
 			.fu_id(fu_id),
@@ -423,7 +423,7 @@ module pipeline (
         .clock(clock),
  		.reset(reset),
 
-        .dispatch_enable(dispatch_enable),
+        .dispatch_enable(id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal),
         .rd_dispatch(id_packet_out.dest_reg_idx),
         .rob_mt(rob_mt),
 
