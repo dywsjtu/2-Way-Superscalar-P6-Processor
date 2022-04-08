@@ -2,7 +2,6 @@
 make nuke > /dev/null 2>&1
 rm output/*
 
-
 if [[ $1 == "test" ]]
 then
     for file in test_progs/*.s; do
