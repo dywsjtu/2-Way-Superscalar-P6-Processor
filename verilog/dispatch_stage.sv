@@ -250,7 +250,7 @@ module dispatch_stage(
     		.NPC_out(NPC_out),
     		.ras_full(ras_full)
 		);
-
+		`ifdef DEBUG
 		logic [31:0] cycle_count;
 		always_ff@(negedge clock) begin
 			if (reset) begin
@@ -260,6 +260,7 @@ module dispatch_stage(
 				cycle_count += 1;
 			end
 		end 
+		`endif
 	`endif
 
 	// mux to generate dest_reg_idx based on

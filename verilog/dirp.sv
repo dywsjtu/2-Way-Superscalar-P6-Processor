@@ -44,7 +44,6 @@ module dirp (
     always_comb begin
         PHT_g_next = PHT_g;
         if (branch_result_valid) begin
-            $display("Update PHT[%4d]", ex_idx);
             case(PHT_g[ex_idx])
             2'b00: begin
                 PHT_g_next[ex_idx] = (branch_result) ? 2'b01 : 2'b00;

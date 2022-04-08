@@ -28,6 +28,7 @@ then
             echo -e "$0: Test $(basename $file) writeback out \033[32m PASSED \033[0m"
         else
             echo -e "$0: Test $(basename $file) writeback out \033[31m FAILED \033[0m"
+            break
         fi
 
         diff ./output/$(basename $file)_program.out ./gt_output/$(basename $file)_program.out > /dev/null
@@ -36,6 +37,7 @@ then
             echo -e "$0: Test $(basename $file) program out \033[32m PASSED \033[0m"
         else
             echo -e "$0: Test $(basename $file) program out \033[31m FAILED \033[0m"
+            break
         fi
     done
     for file in test_progs/*.c; do
