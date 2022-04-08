@@ -1,6 +1,4 @@
-## milestone 2 submission
-
-Run mult_no_lsq
+## Run instruction
 
 ```
 make assembly   # to generate instructions
@@ -10,4 +8,11 @@ Or
 ```
 make assembly   # to generate instructions
 make syn        # to make synthesis
+```
+
+Run test script
+
+```
+sh test.sh test     # to test simulation
+sh test.sh syn      # to test synthsis
 ```
