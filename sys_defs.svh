@@ -362,7 +362,7 @@ typedef union packed {
 //
 //////////////////////////////////////////////
 //`define BRANCH_MODE
-`define DIRP_IDX_LEN 5
+`define DIRP_IDX_LEN 8
 
 typedef struct packed {
 	`ifdef BRANCH_MODE

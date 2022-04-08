@@ -1,6 +1,6 @@
 `ifndef __FU_BASE_BLOCK__
 `define __FU_BASE_BLOCK__
-
+`timescale 1ns/100ps
 //
 // The ALU
 //

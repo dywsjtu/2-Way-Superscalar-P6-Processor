@@ -6,7 +6,7 @@
 // NUM_LS = 12
 // NUM_MULT = 16
 // NUM_BEQ = 20
-
+`timescale 1ns/100ps
 module fu_selector (
     input                                           clock,
     input                                           reset,

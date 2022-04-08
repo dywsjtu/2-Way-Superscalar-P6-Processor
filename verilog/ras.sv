@@ -20,14 +20,16 @@ module ras (
     input is_return,
     input [`XLEN-1:0] NPC,
 
-    output [`XLEN-1:0] PC_return,
-    output ras_full
+    output logic [`XLEN-1:0] PC_return,
+    output logic ras_full,
+    output logic ras_valid
 );
     logic [`RAS_SIZE-1:0][`XLEN-1:0] ras_stack;
     logic [`XLEN-1:0]                  reg_used_in_empty;
     logic [2:0] ras_counter;
     logic [1:0] tosp, tosp_n;
 
+    assign ras_valid = is_return && ras_counter != 3'b000;
     assign ras_full = (ras_counter == 3'b100);
     assign PC_return = (is_return) ? ras_stack[tosp] : 32'b0;
     //assign PC_return = (~is_return) ? 32'b0 :
@@ -43,9 +45,9 @@ module ras (
             ras_counter         <= `SD 3'b000;
             tosp                <= `SD 2'b00;
         end else begin
-            if (is_jump && ras_counter != 3'b100) begin
+            if (is_jump) begin
                 ras_stack[tosp_n]   <= `SD NPC;
-                ras_counter         <= `SD ras_counter + 1;
+                ras_counter         <= `SD (ras_counter == 3'b100) ? 3'b100: ras_counter + 1;
                 tosp                <= `SD tosp_n;
                 tosp_n              <= `SD tosp_n + 1;
             end else if (is_return && ras_counter != 3'b000) begin

@@ -44,9 +44,9 @@
 
 );
     logic [`XLEN-1:0] PC_btb_out, PC_ras_out;
-    logic btb_hit;
+    logic btb_hit, ras_valid;
 
-    assign NPC_out = (is_return) ? PC_ras_out :
+    assign NPC_out = (is_return && ras_valid) ? PC_ras_out :
                      (branch_predict && btb_hit)? PC_btb_out : PC_plus_4; 
     //Branch Predictor
     dirp dirp_0(
@@ -95,7 +95,8 @@
         .NPC(PC_plus_4),
 
         .PC_return(PC_ras_out),
-        .ras_full(ras_full)
+        .ras_full(ras_full),
+		.ras_valid(ras_valid)
     );
 
 endmodule
@@ -228,9 +229,9 @@ module dispatch_stage(
     		.clock(clock),
     		.reset(reset),
 
-    		.is_return(0), //temporary disable RAS
+    		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP),
     		.is_branch(id_packet_out.cond_branch),
-    		.is_jump(id_packet_out.uncond_branch),
+    		.is_jump(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JAL_OP),
 
     		.PC_in(PC_reg),
     		.PC_plus_4(PC_plus_4),

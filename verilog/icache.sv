@@ -1,6 +1,6 @@
 `define CACHE_LINES 32
 `define CACHE_LINE_BITS $clog2(`CACHE_LINES)
-`define MSHR_SIZE 4
+`define MSHR_SIZE 2
 
 module icache(
     input clock,

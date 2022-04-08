@@ -1,3 +1,4 @@
+`timescale 1ns/100ps
 module ps2 (
     input        [1:0] req,
     input              en,

@@ -11,7 +11,7 @@
 
 `timescale 1ns/100ps
 
-`define PHT_SIZE 32
+`define PHT_SIZE 256
 `define BHR_SIZE $clog2(`PHT_SIZE)
 
 module dirp (
