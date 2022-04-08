@@ -57,10 +57,12 @@ module icache(
                                         miss_outstanding && (Imem2proc_response == 4'b0);
 
    // assign proc2Imem_addr    = {proc2Icache_addr[31:3], 3'b0};
+    `ifdef DEBUG
     always @(negedge clock) begin
         $display("icache debug: %h %h %h %h %h", proc2Icache_addr, current_index, last_index, current_tag, last_tag);
         $display("icache debug outstanding, changed_addr: %h %h", miss_outstanding, changed_addr);
     end
+    `endif
     
     
     //assign proc2Imem_command = (miss_outstanding && !changed_addr) ?  BUS_LOAD : BUS_NONE;

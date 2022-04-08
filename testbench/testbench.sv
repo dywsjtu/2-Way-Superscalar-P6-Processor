@@ -170,7 +170,7 @@ module testbench;
 	
 	
 	initial begin
-		$dumpvars;
+		// $dumpvars;
 	
 		clock = 1'b0;
 		reset = 1'b0;
