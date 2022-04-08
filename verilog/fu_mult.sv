@@ -21,7 +21,7 @@ module fu_mult(
 
 	// Pass-throughs
 	`ifdef BRANCH_MODE
-		assign fu_rs.is_branch 	= working_id_fu.cond_branch;
+		assign fu_rs.is_branch 	= 1'b0;
 		assign fu_rs.PC 		= working_id_fu.PC;
 		assign fu_rs.dirp_tag	= working_id_fu.dirp_tag;
 	`endif

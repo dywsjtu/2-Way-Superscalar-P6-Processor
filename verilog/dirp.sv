@@ -37,9 +37,8 @@ module dirp (
     logic [`PHT_SIZE-1:0][1:0] PHT_g, PHT_g_next;
     logic [`BHR_SIZE-1:0] idx;
 
-    assign branch_taken = (~is_branch || PHT_g[idx] == 2'b00 || PHT_g[idx] == 2'b01)? 1'b0: 1'b1;
-    assign idx = (is_branch) ? BHR_g ^ targetPC_in[`BHR_SIZE+1:2] : 5'b0;  
-    assign dirp_tag = idx;
+    assign branch_taken = (~is_branch || PHT_g[dirp_tag] == 2'b00 || PHT_g[dirp_tag] == 2'b01)? 1'b0: 1'b1; 
+    assign dirp_tag = (is_branch) ? BHR_g ^ targetPC_in[`BHR_SIZE+1:2] : 5'b0;
 
     always_comb begin
         PHT_g_next = PHT_g;

@@ -44,7 +44,8 @@
 
 );
     logic [`XLEN-1:0] PC_btb_out, PC_ras_out;
-    logic btb_hit, ras_valid;
+    logic btb_hit, ras_valid, branch_taken;
+	assign branch_predict = branch_taken && btb_hit;
 
     assign NPC_out = (is_return && ras_valid) ? PC_ras_out :
                      (branch_predict && btb_hit)? PC_btb_out : PC_plus_4; 
@@ -55,14 +56,14 @@
 
         //Branch History
         .branch_result_valid(ex_result_valid && ex_is_branch),
-        .branch_result(ex_branch_taken), //1 for taken, 0 for not taken
+        .branch_result(ex_branch_taken && ex_is_branch), //1 for taken, 0 for not taken
         .ex_idx(ex_branch_idx), //the previous idx to update PHT
 
         //Branch Prediction
         .is_branch(is_branch),
         .targetPC_in(PC_in),
 
-        .branch_taken(branch_predict),
+        .branch_taken(branch_taken),
         .dirp_tag(dirp_tag)
     );
 
@@ -229,12 +230,12 @@ module dispatch_stage(
     		.clock(clock),
     		.reset(reset),
 
-    		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP),
-    		.is_branch(id_packet_out.cond_branch),
-    		.is_jump(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JAL_OP),
+    		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP && id_packet_out.valid),
+    		.is_branch(id_packet_out.cond_branch && id_packet_out.valid),
+    		.is_jump(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JAL_OP && id_packet_out.valid),
 
-    		.PC_in(PC_reg),
-    		.PC_plus_4(PC_plus_4),
+    		.PC_in(id_packet_out.PC),
+    		.PC_plus_4(id_packet_out.NPC),
 
     		.ex_result_valid(fu_id.result_valid),
     		.ex_branch_taken(fu_id.branch_taken),
