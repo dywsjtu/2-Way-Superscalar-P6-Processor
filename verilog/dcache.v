@@ -147,6 +147,7 @@ module dcache(
 
     `ifdef DEBUG
         logic [31:0] cycle_count;
+        // synopsys sync_set_reset "reset"
         always_ff @(negedge clock) begin
             if (reset) begin
                 cycle_count = 0;
@@ -171,6 +172,7 @@ module dcache(
                 cycle_count += 1;
             end
         end
+        // synopsys sync_set_reset "reset"
         always_ff @(posedge clock) begin
             $display("DEBUG %4d: current_mem_tag = %d, Dmem2proc_tag = %d, Dmem2proc_response = %d", cycle_count, current_mem_tag, Dmem2proc_tag, Dmem2proc_response);
         end

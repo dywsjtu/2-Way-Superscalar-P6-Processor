@@ -1,3 +1,2 @@
-output
-gt_output
+*.sh
 test_prog

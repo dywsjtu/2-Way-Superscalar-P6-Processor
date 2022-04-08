@@ -12,7 +12,7 @@
 
 `timescale 1ns/100ps
 
-module rob(
+module rob (
     input                       clock,
     input                       reset,
 
@@ -78,7 +78,6 @@ module rob(
     assign rob_reg.dest_value   = rob_entries[rob_head].value;
     assign rob_reg.OLD_PC_p_4   = rob_entries[rob_head].PC + 4;
     
-    `endif
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if (reset || squash) begin
@@ -141,6 +140,7 @@ module rob(
             cycle_count += 1;
         end
     end
+    `endif
 endmodule
 
 `endif // `__ROB_V__

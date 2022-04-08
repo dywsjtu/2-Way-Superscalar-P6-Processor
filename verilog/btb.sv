@@ -63,6 +63,7 @@ module btb (
 
    `ifdef DEBUG
         logic [31:0] cycle_count;
+        // synopsys sync_set_reset "reset"
         always_ff @(negedge clock) begin
             if (reset) begin
                 cycle_count = 0;

@@ -256,6 +256,7 @@ module pipeline (
 
 	`ifdef DEBUG
 	logic [31:0] cycle_count;
+	// synopsys sync_set_reset "reset"
 	always_ff @(negedge clock) begin
         if(reset) begin
             cycle_count = 0;
@@ -266,9 +267,9 @@ module pipeline (
     end
 	`endif
 
-	`ifdef BRANCH_MODE
-		FU_ID_PACKET fu_id;
-	`endif
+	// `ifdef BRANCH_MODE
+	// 	FU_ID_PACKET fu_id;
+	// `endif
 
 	dispatch_stage dispatch_stage_0 (
 		// Inputs
@@ -281,9 +282,9 @@ module pipeline (
 		.Icache_data_out(Icache_data_out),
 		.Icache_valid_out(Icache_valid_out),
 		.rob_id(rob_id),
-		`ifdef BRANCH_MODE
-			.fu_id(fu_id),
-		`endif
+		// `ifdef BRANCH_MODE
+		// 	.fu_id(fu_id),
+		// `endif
 		
 		// Outputs
 		.proc2Imem_addr(proc2Icache_addr),
