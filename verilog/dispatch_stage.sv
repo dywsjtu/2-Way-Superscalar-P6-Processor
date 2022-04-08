@@ -8,7 +8,6 @@
 //                                                                     //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
-
 `timescale 1ns/100ps
 
   // Decode an instruction: given instruction bits IR produce the

@@ -13,7 +13,7 @@
 #
 #
 
-SOURCE = test_progs/rv32_mult_no_lsq.s
+SOURCE = test_progs/outer_product.c
 
 CRT = crt.s
 LINKERS = linker.lds
@@ -165,7 +165,7 @@ clean:
 	rm -rf dve* inter.vpd DVEfiles
 	rm -rf syn_simv syn_simv.daidir syn_program.out sim_program.out
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
-	# rm -f *.elf *.dump *.mem debug_bin
+	rm -f *.elf *.dump *.mem debug_bin
 	rm -rf simv.vdb
 
 nuke:	clean

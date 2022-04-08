@@ -5,7 +5,7 @@
 //  Description :  branch predictor                                    // 
 /////////////////////////////////////////////////////////////////////////
 
-`define DEBUG
+//`define DEBUG
 `ifndef __RAS_V__
 `define __RAS_V__
 

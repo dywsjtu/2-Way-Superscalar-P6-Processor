@@ -17,9 +17,9 @@ module regfile(
         input  [`XLEN-1:0] wr_data,            // write data
         input         wr_en, wr_clk,
 
-        output logic [`XLEN-1:0] rda_out, rdb_out,    // read data
+        output logic [`XLEN-1:0] rda_out, rdb_out    // read data
         `ifdef DEBUG
-        input logic reset
+        ,input logic reset
         `endif
           
       );

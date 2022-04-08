@@ -5,7 +5,7 @@
 //  Description :  npc predictor                                       // 
 /////////////////////////////////////////////////////////////////////////
 
-`define DEBUG
+//`define DEBUG
 `ifndef __NPC_CONTROL_V__
 `define __NPC_CONTROL_V__
 

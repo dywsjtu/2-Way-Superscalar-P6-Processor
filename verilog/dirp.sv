@@ -5,7 +5,7 @@
 //  Description :  branch predictor                                    // 
 /////////////////////////////////////////////////////////////////////////
 
-`define DEBUG
+//`define DEBUG
 `ifndef __BR_PREDICTOR_V__
 `define __BR_PREDICTOR_V__
 

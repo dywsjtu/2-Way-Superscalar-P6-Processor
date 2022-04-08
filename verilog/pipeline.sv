@@ -254,6 +254,7 @@ module pipeline (
 	// assign ex_mem_take_branch				= 1'b0;
 	// assign ex_mem_target_pc					= `XLEN'b0;
 
+	`ifdef DEBUG
 	logic [31:0] cycle_count;
 	always_ff @(negedge clock) begin
         if(reset) begin
@@ -263,6 +264,7 @@ module pipeline (
             cycle_count = cycle_count + 1;
         end
     end
+	`endif
 
 	`ifdef BRANCH_MODE
 		FU_ID_PACKET fu_id;
@@ -395,9 +397,9 @@ module pipeline (
 		.wr_clk(clock),
 		.wr_en(rob_reg.dest_valid),
 		.wr_idx(rob_reg.dest_reg_idx),
-		.wr_data(rob_reg.dest_value),
+		.wr_data(rob_reg.dest_value)
 		`ifdef DEBUG
-		.reset(reset)
+		, .reset(reset)
 		`endif
 	);
 

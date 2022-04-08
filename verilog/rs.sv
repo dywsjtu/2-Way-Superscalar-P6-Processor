@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////
 
 
-`define DEBUG
+//`define DEBUG
 `ifndef __RS_V__
 `define __RS_V__
 
@@ -84,7 +84,7 @@ module rs (
                                                                                 rob_rs.value[0];
             rs_fu[i].rs_value_valid =   ~fu_valid[i]                            ? ((rs_entries[i].rs_entry_info[1].V_ready || 
                                                                                     (cdb_rs.valid && rs_entries[i].rs_entry_info[1].tag == cdb_rs.tag)) && 
-                                                                                (rs_entries[i].rs_entry_info[0].V_ready || 
+                                                                                   (rs_entries[i].rs_entry_info[0].V_ready || 
                                                                                     (cdb_rs.valid && rs_entries[i].rs_entry_info[0].tag == cdb_rs.tag)))
                                                                                 : ((~id_rs.req_reg[1]       || mt_rs.rs_infos[1].tag == `ZERO_TAG || 
                                                                                     mt_rs.rs_infos[1].ready || (cdb_rs.valid && mt_rs.rs_infos[1].tag == cdb_rs.tag)) &&
@@ -462,7 +462,7 @@ module rs (
         if (cdb_rs.valid) begin
             for (int fu = 0; fu < `FU_SIZE; fu += 1) begin
                 for (int i = 0; i < 2; i += 1) begin
-                    if (next_rs_entries[fu].rs_entry_info[i].tag == cdb_rs.tag && next_busy[fu]) begin
+                    if (next_rs_entries[fu].rs_entry_info[i].tag == cdb_rs.tag && ~next_rs_entries[fu].rs_entry_info[i].V_ready && next_busy[fu]) begin
                         next_rs_entries[fu].rs_entry_info[i]     =  {   cdb_rs.tag, 
                                                                         cdb_rs.value, 
                                                                         1'b1    };

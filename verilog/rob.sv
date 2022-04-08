@@ -96,7 +96,7 @@ module rob(
                 rob_entries[rob_tail].value             <=  `SD `XLEN'b0;
                 rob_entries[rob_tail].store             <=  `SD id_rob.store;
                 rob_entries[rob_tail].mis_pred          <=  `SD 1'b0;
-                rob_entries[cdb_rob.tag].branch_target  <=  `SD `XLEN'b0;
+                rob_entries[rob_tail].branch_target     <=  `SD `XLEN'b0;
                 rob_entries[rob_tail].take_branch       <=  `SD id_rob.take_branch;
                 rob_entries[rob_tail].halt              <=  `SD id_rob.halt;
                 rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0

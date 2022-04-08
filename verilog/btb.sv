@@ -5,7 +5,7 @@
 //  Description :  branch target buffer;                               // 
 /////////////////////////////////////////////////////////////////////////
 
-`define DEBUG
+//`define DEBUG
 `ifndef __BTB_V__
 `define __BTB_V__
 

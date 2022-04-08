@@ -5,7 +5,7 @@
 //  Description :  load store queue;                                   // 
 /////////////////////////////////////////////////////////////////////////
 
-`define DEBUG
+//`define DEBUG
 `ifndef __LSQ_V__
 `define __LSQ_V__
 
@@ -117,11 +117,7 @@ module lsq (
 
         for (int i = 0; i < `NUM_LS; i += 1) begin
             if (rs_lsq.valid && rs_lsq.load && i == rs_lsq.idx) begin
-                if (fu_lsq[i].valid && fu_lsq[i].load) begin
-                    next_lq_entries[i]      = {fu_lsq[i].addr, fu_lsq[i].mem_size, 1'b1, 1'b1, (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail};
-                end else begin
-                    next_lq_entries[i]      = {`XLEN'b0, 2'b00, 1'b1, 1'b0, (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail};
-                end
+                next_lq_entries[i]          = {`XLEN'b0, 2'b00, 1'b1, 1'b0, (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail};
                 next_lq_retire_valid[i]     = 1'b0;
             end else begin
                 if (fu_lsq[i].valid && fu_lsq[i].load && lq_entries[i].valid && ~lq_entries[i].filled) begin
