@@ -20,18 +20,18 @@ module ps4(
     assign gnt[0] = ~req[3] && ~req[2] && ~req[1] &&  req[0];
 endmodule
 
-// module ps4_num(
-//     input        [3:0] req,
-//     output logic [1:0] num
-// );
-//     logic [3:0] gnt;
-//     assign gnt[3] =  req[3];
-//     assign gnt[2] = ~req[3] &&  req[2];
-//     assign gnt[1] = ~req[3] && ~req[2] &&  req[1];
-//     assign gnt[0] = ~req[3] && ~req[2] && ~req[1] &&  req[0];
-//     assign num[1] = gnt[3] || gnt[2];
-//     assign num[0] = gnt[3] || gnt[1];
-// endmodule
+module inv_ps4_num (
+    input        [3:0] req,
+    output logic [1:0] num
+);
+    logic [3:0] gnt;
+    assign gnt[0] =  req[0];
+    assign gnt[1] = ~req[0] &&  req[1];
+    assign gnt[2] = ~req[0] && ~req[1] &&  req[2];
+    assign gnt[3] = ~req[0] && ~req[1] && ~req[2] &&  req[3];
+    assign num[1] = ~req[0] && ~req[1];
+    assign num[0] = ~req[0] && ((~req[2] && req[3]) || req[1]);
+endmodule
 
 module counter2(
     input              clock,

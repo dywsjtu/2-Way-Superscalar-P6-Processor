@@ -259,7 +259,7 @@ module dcache (
                 proc2Dmem_valid             = 1'b1;
                 proc2Dmem_data              = next_miss_entries[i].value;
                 proc2Dmem_command           = BUS_STORE;
-                proc2Dmem_addr              = {19'b0, next_miss_entries[i].addr[15:3], 3'b0};
+                proc2Dmem_addr              = {16'b0, next_miss_entries[i].addr[15:3], 3'b0};
                 next_miss_entries[i].tag    = Dmem2proc_response;
                 temp_valid                  = 1'b1;
             end
@@ -270,7 +270,7 @@ module dcache (
                 proc2Dmem_valid             = 1'b1;
                 proc2Dmem_data              = next_miss_entries[i].value;
                 proc2Dmem_command           = BUS_LOAD;
-                proc2Dmem_addr              = {19'b0, next_miss_entries[i].addr[15:3], 3'b0};
+                proc2Dmem_addr              = {16'b0, next_miss_entries[i].addr[15:3], 3'b0};
                 next_miss_entries[i].tag    = Dmem2proc_response;
                 temp_valid                  = 1'b1;
             end
