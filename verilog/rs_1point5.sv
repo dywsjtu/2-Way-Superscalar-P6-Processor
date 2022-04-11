@@ -25,7 +25,8 @@ module rs_1point5 (
     input   LSQ_RS_PACKET                   lsq_rs,
     input   LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu,
 
-    output  RS_MT_PACKET                    rs_mt,
+    output  RS_MT_PACKET                    rs_mt_0,
+    output  RS_MT_PACKET                    rs_mt_1,
     output  CDB_ENTRY                       rs_cdb_0,
     output  CDB_ENTRY                       rs_cdb_1,
     output  RS_REG_PACKET                   rs_reg,
@@ -384,7 +385,8 @@ module rs_1point5 (
 
     assign rs_rob.entry_idx[0]      = mt_rs.rs_infos[0].tag;
     assign rs_rob.entry_idx[1]      = mt_rs.rs_infos[1].tag;
-    assign rs_mt.register_idxes     = id_rs.input_reg_idx;
+    assign rs_mt_0.register_idxes   = id_rs.input_reg_idx;
+    assign rs_mt_1.register_idxes   = 0;
     assign rs_reg.register_idxes    = id_rs.input_reg_idx;
 
     assign rs_lsq.load              = id_rs.rd_mem;

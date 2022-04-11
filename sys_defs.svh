@@ -30,6 +30,8 @@
 `define NUM_MEM_TAGS           15
 `define PREFETCH_MODE
 `define BRANCH_MODE
+// `define SS_1
+`define SS_1POINT5
 `define DIRP_IDX_LEN 8
 
 `define MEM_SIZE_IN_BYTES      (64*1024)
