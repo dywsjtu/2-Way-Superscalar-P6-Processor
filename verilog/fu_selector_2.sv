@@ -56,7 +56,7 @@ module fu_selector_2 (
             `HALF_FU_SIZE'b10000000      : fu_num_1 = 15;
             `HALF_FU_SIZE'b100000000     : fu_num_1 = 16;
             `HALF_FU_SIZE'b1000000000    : fu_num_1 = 18;
-        endcase_1
+        endcase
     end
 
     assign cat_valid_0  = { fu_result_valid[19] == 1'b1 || fu_result_valid[17] == 1'b1,

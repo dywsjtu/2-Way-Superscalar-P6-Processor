@@ -149,9 +149,11 @@ module dispatch_stage(
 		logic [`XLEN-1:0]		NPC_out;
 		assign next_PC 							= rob_id.squash ? rob_id.target_pc 
 															: NPC_out;
+		assign id_packet_out.NPC_out			= NPC_out;
 	`else
 		assign next_PC 							= rob_id.squash ? rob_id.target_pc 
 															: PC_plus_4;
+		assign id_packet_out.NPC_out			= PC_plus_4;
 	`endif
 	
 	
@@ -234,12 +236,12 @@ module dispatch_stage(
     		.PC_in(id_packet_out.PC),
     		.PC_plus_4(id_packet_out.NPC),
 
-    		.ex_result_valid(id_packet_out.result_valid),
-    		.ex_branch_taken(id_packet_out.branch_taken),
-    		.ex_is_branch(id_packet_out.is_branch),
-    		.PC_ex(id_packet_out.PC),
-    		.ex_result(id_packet_out.targetPC),
-    		.ex_branch_idx(id_packet_out.dirp_tag),
+    		.ex_result_valid(rob_id.result_valid),
+    		.ex_branch_taken(rob_id.branch_taken),
+    		.ex_is_branch(rob_id.is_branch),
+    		.PC_ex(rob_id.PC),
+    		.ex_result(rob_id.targetPC),
+    		.ex_branch_idx(rob_id.dirp_tag),
 
 
     		//OUTPUT

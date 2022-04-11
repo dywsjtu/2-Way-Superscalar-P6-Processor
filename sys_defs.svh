@@ -369,6 +369,7 @@ typedef struct packed {
 		logic [`DIRP_IDX_LEN-1:0]	dirp_tag;
 	`endif
 	logic 			[`XLEN-1:0] 	NPC;   			// PC + 4
+	logic 			[`XLEN-1:0] 	NPC_out;   		// predicted NPC
 	logic 			[`XLEN-1:0] 	PC;    			// PC
 
 	// logic 		[`XLEN-1:0] 	rs1_value;    	// reg A value                                  
@@ -424,6 +425,7 @@ typedef struct packed {
 
 typedef struct packed {
 	logic 						valid;
+	logic	[`XLEN-1:0]			NPC_out;
 	logic	[`XLEN-1:0]			PC;
 	logic						dispatch_enable;// whether is enable to dispatch
 	logic	[4:0]				dest_reg_idx;	// destination register
@@ -438,6 +440,7 @@ typedef struct packed {
 
 typedef struct packed {
 	logic						valid;
+	logic	[`XLEN-1:0]			NPC_out;
 	logic	[`XLEN-1:0]			PC;				// alu result
 	logic						ready;			// is value ready
 	logic	[4:0]				dest_reg_idx;	// dest reg index

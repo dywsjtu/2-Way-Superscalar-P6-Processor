@@ -308,6 +308,7 @@ module pipeline (
 											{`DIRP_IDX_LEN{1'b0}},
 										`endif
 										{`XLEN{1'b0}},
+										{`XLEN{1'b0}},
 										{`XLEN{1'b0}}, 
  
 										OPA_IS_RS1, 
@@ -342,11 +343,12 @@ module pipeline (
 	//ID TO ROB
 	assign id_rob = {	
 						id_packet_out.valid && ~id_packet_out.illegal,
+						id_packet_out.NPC_out,
 						id_packet_out.PC,
 						dispatch_enable,
 						id_packet_out.dest_reg_idx,
 						id_packet_out.wr_mem,
-						id_packet_out.cond_branch || id_packet_out.uncond_branch,
+						id_packet_out.cond_branch,
 						id_packet_out.take_branch,
 						id_packet_out.halt
 						`ifdef BRANCH_MODE

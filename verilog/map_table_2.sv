@@ -147,7 +147,7 @@ module map_table_2 (
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
-        if (reset | rob_mt.squash) begin 
+        if (reset) begin 
             //All from reg file
             Tag[`REG_SIZE-1:0]  <=  `SD '{`REG_SIZE{`ZERO_TAG}};
             ready_in_ROB        <=  `SD 0;

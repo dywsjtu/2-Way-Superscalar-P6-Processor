@@ -50,7 +50,7 @@ module rob (
     assign retire_valid         = rob_entries[rob_head].ready && (~rob_empty) && 
                                   (~rob_entries[rob_head].store || lsq_rob.retire_valid);
     assign rob_lsq.sq_retire    = rob_entries[rob_head].ready && rob_entries[rob_head].store;
-    assign squash               = (rob_entries[rob_head].mis_pred && retire_valid);
+    assign squash               = ((rob_entries[rob_head].mis_pred) || (rob_entries[rob_head].is_branch && rob_entries[rob_head].NPC_out != rob_entries[rob_head].branch_target)) && retire_valid;
     assign valid                = id_rob.dispatch_enable && id_rob.valid;
 
     assign rob_id.squash        = squash;
@@ -60,9 +60,9 @@ module rob (
     assign rob_id.target_pc     = rob_entries[rob_head].branch_target;   
 `ifdef BRANCH_MODE
     assign rob_id.result_valid  = retire_valid;
-    assign rob_id.branch_taken  = rob_entries[rob_head].take_branch;
+    assign rob_id.branch_taken  = (rob_entries[rob_head].take_branch != rob_entries[rob_head].mis_pred);
     assign rob_id.is_branch     = rob_entries[rob_head].is_branch;
-    assign rob_id.targetPC      = rob_entries[rob_head].value;
+    assign rob_id.targetPC      = rob_entries[rob_head].branch_target;
     assign rob_id.PC            = rob_entries[rob_head].PC;
     assign rob_id.dirp_tag      = rob_entries[rob_head].dirp_tag;
 `endif
@@ -97,6 +97,7 @@ module rob (
             if (valid) begin
                 // initalize rob entry
                 rob_entries[rob_tail].valid             <=  `SD 1'b1;
+                rob_entries[rob_tail].NPC_out           <=  `SD id_rob.NPC_out;
                 rob_entries[rob_tail].PC                <=  `SD id_rob.PC;
                 rob_entries[rob_tail].ready             <=  `SD 1'b0;
                 rob_entries[rob_tail].dest_reg_idx      <=  `SD id_rob.dest_reg_idx;
@@ -110,7 +111,7 @@ module rob (
                 rob_tail                                <=  `SD (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
                                                                                             : rob_tail + 1;
                 `ifdef BRANCH_MODE
-                    rob_entries[rob_tail]               <=  `SD id_rob.dirp_tag;
+                    rob_entries[rob_tail].dirp_tag      <=  `SD id_rob.dirp_tag;
                 `endif
             end
             if (retire_valid) begin
