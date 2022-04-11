@@ -411,17 +411,30 @@ typedef struct packed {
 `define BTB_SIZE 8 
 
 
-`ifdef BRANCH_MODE
-	typedef struct packed {
-		logic 							result_valid;
-		logic 							branch_taken;
-		logic 							is_branch;
-		logic [`XLEN-1:0]				targetPC;
-		logic [`XLEN-1:0]				PC;
-		logic [`DIRP_IDX_LEN-1:0]		dirp_tag;
-	} FU_ID_PACKET;
-`endif
+// `ifdef BRANCH_MODE
+// 	typedef struct packed {
+// 		logic 							result_valid;
+// 		logic 							branch_taken;
+// 		logic 							is_branch;
+// 		logic [`XLEN-1:0]				targetPC;
+// 		logic [`XLEN-1:0]				PC;
+// 		logic [`DIRP_IDX_LEN-1:0]		dirp_tag;
+// 	} FU_ID_PACKET;
+// `endif
 
+typedef struct packed {
+	logic 						valid;
+	logic	[`XLEN-1:0]			PC;
+	logic						dispatch_enable;// whether is enable to dispatch
+	logic	[4:0]				dest_reg_idx;	// destination register
+	logic						store;
+	logic 						is_branch;
+	logic						take_branch;	// whether dispatch stage will take branch or not
+	logic						halt;			// whether is a halt instruction
+	`ifdef BRANCH_MODE
+		logic [`DIRP_IDX_LEN-1:0] dirp_tag;
+	`endif
+} ID_ROB_PACKET;
 
 typedef struct packed {
 	logic						valid;
@@ -430,20 +443,34 @@ typedef struct packed {
 	logic	[4:0]				dest_reg_idx;	// dest reg index
 	logic	[`XLEN-1:0]			value;			// value
 	logic						store;
+	logic 						is_branch;
 	logic						mis_pred;  		// is mispredicted 
 	logic	[`XLEN-1:0]			branch_target;
 	logic						take_branch;	// whether is predicted to take branch
 	logic						halt;			// whether it's a halt
+`ifdef BRANCH_MODE
+	logic [`DIRP_IDX_LEN-1:0]	dirp_tag;
+`endif
 } ROB_ENTRY;
+
+typedef struct packed {
+	`ifdef BRANCH_MODE
+		logic 							result_valid;
+		logic 							branch_taken;
+		logic 							is_branch;
+		logic [`XLEN-1:0]				targetPC;
+		logic [`XLEN-1:0]				PC;
+		logic [`DIRP_IDX_LEN-1:0]		dirp_tag;
+	`endif
+	logic						squash;
+	logic	[`XLEN-1:0]			target_pc;
+} ROB_ID_PACKET;
 
 typedef struct packed {
 	logic	[`ROB_IDX_LEN:0] 	tag;
 	logic	[`XLEN-1:0]			value;
 	logic						valid;
 	logic						take_branch;
-	`ifdef BRANCH_MODE
-	logic						mis_pred;
-	`endif
 	logic	[`XLEN-1:0]			branch_target;
 } CDB_ENTRY;
 
@@ -480,10 +507,6 @@ typedef struct packed {
 	logic	[`XLEN-1:0]			OLD_PC_p_4;
 } ROB_REG_PACKET;
 
-typedef struct packed {
-	logic						squash;
-	logic	[`XLEN-1:0]			target_pc;
-} ROB_ID_PACKET;
 
 typedef struct packed {
 	logic [1:0][`XLEN-1:0]  rs_values;
@@ -515,9 +538,6 @@ typedef struct packed {
 // typedef enum logic [2:0] { FU_ALU, FU_LOAD, FU_STORE, FU_FP, FU_COUNT} FU_TAG;
 
 typedef struct packed {
-	`ifdef BRANCH_MODE
-		logic [`DIRP_IDX_LEN-1:0] dirp_tag;
-	`endif
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
 	logic	[`XLEN-1:0]			PC;				// PC                               
 	logic						dispatch_enable;// whether is enable to dispatch                             
@@ -553,16 +573,6 @@ typedef struct packed {
 	RS_ENTRY_INFO 	[1:0] 					rs_entry_info;
 	// logic ready_execute;
 } RS_ENTRY;
-
-typedef struct packed {
-	logic 						valid;
-	logic	[`XLEN-1:0]			PC;
-	logic						dispatch_enable;// whether is enable to dispatch
-	logic	[4:0]				dest_reg_idx;	// destination register
-	logic						store;
-	logic						take_branch;	// whether dispatch stage will take branch or not
-	logic						halt;			// whether is a halt instruction
-} ID_ROB_PACKET;
 
 typedef struct packed {
 	logic dispatch_enable; 
@@ -627,11 +637,6 @@ typedef struct packed {
 	logic					rd_mem, wr_mem;
 	logic	[4:0]			dest_reg_idx;
 	logic					halt, illegal, csr_op;
-	`ifdef BRANCH_MODE
-		logic 				is_branch;
-		logic 				[`XLEN-1:0] PC;
-		logic 				[`DIRP_IDX_LEN-1:0] dirp_tag;
-	`endif
 	MEM_SIZE				mem_size; // byte, half-word or word
 } FU_RS_PACKET;
 

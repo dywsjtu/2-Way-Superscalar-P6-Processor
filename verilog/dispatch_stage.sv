@@ -16,7 +16,7 @@
   // This is a *combinational* module (basically a PLA).
   //
 `ifdef BRANCH_MODE 
-	module npc_control (
+module npc_control (
     //INPUT
     input clock,
     input reset,
@@ -115,9 +115,6 @@ module dispatch_stage(
 	input					[63:0] 			Icache_data_out,			// Data coming back from instruction-memory
 	input									Icache_valid_out,
 	input	ROB_ID_PACKET       			rob_id,
-	`ifdef BRANCH_MODE
-		input 	FU_ID_PACKET				fu_id,
-	`endif
 
 	// output	IF_ID_PACKET 				if_packet_out			// Output data packet from IF going to ID, see sys_defs for signal information 
 	// input	IF_ID_PACKET				if_id_packet_in,
@@ -237,12 +234,12 @@ module dispatch_stage(
     		.PC_in(id_packet_out.PC),
     		.PC_plus_4(id_packet_out.NPC),
 
-    		.ex_result_valid(fu_id.result_valid),
-    		.ex_branch_taken(fu_id.branch_taken),
-    		.ex_is_branch(fu_id.is_branch),
-    		.PC_ex(fu_id.PC),
-    		.ex_result(fu_id.targetPC),
-    		.ex_branch_idx(fu_id.dirp_tag),
+    		.ex_result_valid(id_packet_out.result_valid),
+    		.ex_branch_taken(id_packet_out.branch_taken),
+    		.ex_is_branch(id_packet_out.is_branch),
+    		.PC_ex(id_packet_out.PC),
+    		.ex_result(id_packet_out.targetPC),
+    		.ex_branch_idx(id_packet_out.dirp_tag),
 
 
     		//OUTPUT
@@ -257,7 +254,7 @@ module dispatch_stage(
 			if (reset) begin
 				cycle_count = 0;
 			end else begin
-				$display("DEBUG %4d: fu_result_valid = %b, fu_is_branch = %b", cycle_count, fu_id.result_valid, fu_id.is_branch);
+				$display("DEBUG %4d: fu_result_valid = %b, fu_is_branch = %b", cycle_count, id_packet_out.result_valid, id_packet_out.is_branch);
 				cycle_count += 1;
 			end
 		end 

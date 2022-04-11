@@ -12,13 +12,14 @@
 
 `timescale 1ns/100ps
 
-module rob (
+module rob_1point5 (
     input                       clock,
     input                       reset,
 
     input   ID_ROB_PACKET       id_rob,
     input   RS_ROB_PACKET       rs_rob,
-    input   CDB_ENTRY           cdb_rob,
+    input   CDB_ENTRY           cdb_rob_0,
+    input   CDB_ENTRY           cdb_rob_1,
     input   LSQ_ROB_PACKET      lsq_rob,
     // input   logic               sq_rob_valid,
 
@@ -57,7 +58,7 @@ module rob (
     // rob_entries[rob_head].take_branch stores whether the dispatch use the unusual target pc.
     // i.e. when take_branch is true, dispatch didn't use PC+4
     // rob_id.target_pc store the correct PC if the branch prediction is wrong
-    assign rob_id.target_pc     = rob_entries[rob_head].branch_target;   
+    assign rob_id.target_pc     = rob_entries[rob_head].branch_target;    
 `ifdef BRANCH_MODE
     assign rob_id.result_valid  = retire_valid;
     assign rob_id.branch_taken  = rob_entries[rob_head].take_branch;
@@ -118,12 +119,21 @@ module rob (
                 rob_head                                <=  `SD (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0
                                                                                             : rob_head + 1;
             end 
-            if (cdb_rob.valid && rob_entries[cdb_rob.tag].valid) begin
-                rob_entries[cdb_rob.tag].ready          <=  `SD 1'b1;
-                rob_entries[cdb_rob.tag].value          <=  `SD cdb_rob.value;
-                rob_entries[cdb_rob.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob.tag].take_branch == cdb_rob.take_branch);
-                rob_entries[cdb_rob.tag].branch_target  <=  `SD cdb_rob.branch_target;
+
+            if (cdb_rob_0.valid && rob_entries[cdb_rob_0.tag].valid) begin
+                rob_entries[cdb_rob_0.tag].ready          <=  `SD 1'b1;
+                rob_entries[cdb_rob_0.tag].value          <=  `SD cdb_rob_0.value;
+                rob_entries[cdb_rob_0.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob_0.tag].take_branch == cdb_rob_0.take_branch);
+                rob_entries[cdb_rob_0.tag].branch_target  <=  `SD cdb_rob_0.branch_target;
             end
+
+            if (cdb_rob_1.valid && rob_entries[cdb_rob_1.tag].valid) begin
+                rob_entries[cdb_rob_1.tag].ready          <=  `SD 1'b1;
+                rob_entries[cdb_rob_1.tag].value          <=  `SD cdb_rob_1.value;
+                rob_entries[cdb_rob_1.tag].mis_pred       <=  `SD ~(rob_entries[cdb_rob_1.tag].take_branch == cdb_rob_1.take_branch);
+                rob_entries[cdb_rob_1.tag].branch_target  <=  `SD cdb_rob_1.branch_target;
+            end
+
             rob_counter <=  `SD valid   ? (retire_valid ?  rob_counter
                                                         : (rob_counter + 1))
                                         : (retire_valid ? (rob_counter - 1)
@@ -142,7 +152,7 @@ module rob (
             $display("DEBUG %4d: rob_head = %d, rob_tail = %d, rob_counter = %d", cycle_count, rob_head, rob_tail, rob_counter);
             $display("DEBUG %4d: rob_reg = %p", cycle_count, rob_reg);
             $display("DEBUG %4d: rob_full = %d", cycle_count, rob_full);
-            // TODO print only 8 for now
+            // print only 8 for now
             for(int i = 0; i < 8; i += 1) begin
                 // For some reason pretty printing doesn't work if I index directly
                 ROB_ENTRY rob_entry;

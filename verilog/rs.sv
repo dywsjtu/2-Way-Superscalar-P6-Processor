@@ -24,10 +24,6 @@ module rs (
     input   LSQ_RS_PACKET                   lsq_rs,
     input   LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu,
 
-    `ifdef  BRANCH_MODE
-        output FU_ID_PACKET                 fu_id,    
-    `endif
-
     output  RS_MT_PACKET                    rs_mt,
     output  CDB_ENTRY                       rs_cdb,
     output  RS_REG_PACKET                   rs_reg, // TODO
@@ -355,15 +351,15 @@ module rs (
         .cat_select(cat_select)
     );
 
-    //Output fo branch predictor
-    `ifdef BRANCH_MODE
-        assign fu_id.result_valid   = fu_result_valid[fu_num];
-		assign fu_id.branch_taken   = fu_rs[fu_num].take_branch;
-		assign fu_id.is_branch      = fu_rs[fu_num].is_branch;
-		assign fu_id.targetPC       = fu_rs[fu_num].alu_result;
-        assign fu_id.PC             = fu_rs[fu_num].PC;
-        assign fu_id.dirp_tag       = fu_rs[fu_num].dirp_tag;
-    `endif
+    // //Output fo branch predictor
+    // `ifdef BRANCH_MODE
+    //     assign fu_id.result_valid   = fu_result_valid[fu_num];
+	// 	assign fu_id.branch_taken   = fu_rs[fu_num].take_branch;
+	// 	assign fu_id.is_branch      = fu_rs[fu_num].is_branch;
+	// 	assign fu_id.targetPC       = fu_rs[fu_num].alu_result;
+    //     assign fu_id.PC             = fu_rs[fu_num].PC;
+    //     assign fu_id.dirp_tag       = fu_rs[fu_num].dirp_tag;
+    // `endif
 
     assign rs_cdb.tag               = rs_entries[fu_num].T_dest;
     assign rs_cdb.value             = fu_rs[fu_num].take_branch ? fu_rs[fu_num].NPC : fu_rs[fu_num].alu_result;

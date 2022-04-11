@@ -267,10 +267,6 @@ module pipeline (
     end
 	`endif
 
-	`ifdef BRANCH_MODE
-		FU_ID_PACKET fu_id;
-	`endif
-
 	dispatch_stage dispatch_stage_0 (
 		// Inputs
 		.clock(clock),
@@ -282,9 +278,6 @@ module pipeline (
 		.Icache_data_out(Icache_data_out),
 		.Icache_valid_out(Icache_valid_out),
 		.rob_id(rob_id),
-		`ifdef BRANCH_MODE
-			.fu_id(fu_id),
-		`endif
 		
 		// Outputs
 		.proc2Imem_addr(proc2Icache_addr),
@@ -353,14 +346,15 @@ module pipeline (
 						dispatch_enable,
 						id_packet_out.dest_reg_idx,
 						id_packet_out.wr_mem,
+						id_packet_out.cond_branch || id_packet_out.uncond_branch,
 						id_packet_out.take_branch,
 						id_packet_out.halt
+						`ifdef BRANCH_MODE
+							, id_packet_out.dirp_tag
+						`endif
 					};
 	//ID TO RS
 	assign id_rs = {	
-						`ifdef BRANCH_MODE
-							id_packet_out.dirp_tag,
-						`endif
 						id_packet_out.NPC,			
 						id_packet_out.PC,			                             
 						dispatch_enable,                    
@@ -453,10 +447,8 @@ module pipeline (
 		.rob_rs(rob_rs),
 		.lsq_rs(lsq_rs),
 		.lsq_fu(lsq_fu),
+
 		// output
-		`ifdef BRANCH_MODE
-			.fu_id(fu_id),
-		`endif
 		.rs_mt(rs_mt),
 		.rs_cdb(rs_cdb),
 		.rs_reg(rs_reg),

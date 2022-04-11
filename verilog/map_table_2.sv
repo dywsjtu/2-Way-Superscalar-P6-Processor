@@ -11,7 +11,7 @@
 
 `timescale 1ns/100ps
 
-module map_table (
+module map_table_2 (
     //INPUT
     input logic                             clock,
     input logic                             reset,
@@ -52,10 +52,10 @@ module map_table (
     logic   mt_rs_0_1_match_rob_mt;
     logic   mt_rs_0_0_match_rob_mt;
 
-    logic   mt_rs_1_1_match_cdb_in;
-    logic   mt_rs_1_0_match_cdb_in;
-    logic   mt_rs_0_1_match_cdb_in;
-    logic   mt_rs_0_0_match_cdb_in;
+    // logic   mt_rs_1_1_match_cdb_in;
+    // logic   mt_rs_1_0_match_cdb_in;
+    // logic   mt_rs_0_1_match_cdb_in;
+    // logic   mt_rs_0_0_match_cdb_in;
 
     assign  rob_mt_0_clear_valid = rob_mt_0.dest_valid && Tag[rob_mt_0.dest_reg_idx] == rob_mt_0.rob_head;
     assign  rob_mt_1_clear_valid = rob_mt_1.dest_valid && Tag[rob_mt_1.dest_reg_idx] == rob_mt_1.rob_head;
@@ -69,34 +69,34 @@ module map_table (
     assign  mt_rs_0_0_match_rob_mt      =   (rob_mt_0_clear_valid && rob_mt_0.dest_reg_idx == rs_mt_0.register_idxes[0]) ||
                                             (rob_mt_1_clear_valid && rob_mt_1.dest_reg_idx == rs_mt_0.register_idxes[0]);
     
-    assign  mt_rs_1_1_match_cdb_in      =   (Tag[rs_mt_1.register_idxes[1]] == cdb_in_0.tag && cdb_in_0.valid) ||
-                                            (Tag[rs_mt_1.register_idxes[1]] == cdb_in_1.tag && cdb_in_1.valid);
-    assign  mt_rs_1_0_match_cdb_in      =   (Tag[rs_mt_1.register_idxes[0]] == cdb_in_0.tag && cdb_in_0.valid) ||
-                                            (Tag[rs_mt_1.register_idxes[0]] == cdb_in_1.tag && cdb_in_1.valid);
-    assign  mt_rs_0_1_match_cdb_in      =   (Tag[rs_mt_0.register_idxes[1]] == cdb_in_0.tag && cdb_in_0.valid) ||
-                                            (Tag[rs_mt_0.register_idxes[1]] == cdb_in_1.tag && cdb_in_1.valid);
-    assign  mt_rs_0_0_match_cdb_in      =   (Tag[rs_mt_0.register_idxes[0]] == cdb_in_0.tag && cdb_in_0.valid) ||
-                                            (Tag[rs_mt_0.register_idxes[0]] == cdb_in_1.tag && cdb_in_1.valid);
+    // assign  mt_rs_1_1_match_cdb_in      =   (Tag[rs_mt_1.register_idxes[1]] == cdb_in_0.tag && cdb_in_0.valid) ||
+    //                                         (Tag[rs_mt_1.register_idxes[1]] == cdb_in_1.tag && cdb_in_1.valid);
+    // assign  mt_rs_1_0_match_cdb_in      =   (Tag[rs_mt_1.register_idxes[0]] == cdb_in_0.tag && cdb_in_0.valid) ||
+    //                                         (Tag[rs_mt_1.register_idxes[0]] == cdb_in_1.tag && cdb_in_1.valid);
+    // assign  mt_rs_0_1_match_cdb_in      =   (Tag[rs_mt_0.register_idxes[1]] == cdb_in_0.tag && cdb_in_0.valid) ||
+    //                                         (Tag[rs_mt_0.register_idxes[1]] == cdb_in_1.tag && cdb_in_1.valid);
+    // assign  mt_rs_0_0_match_cdb_in      =   (Tag[rs_mt_0.register_idxes[0]] == cdb_in_0.tag && cdb_in_0.valid) ||
+    //                                         (Tag[rs_mt_0.register_idxes[0]] == cdb_in_1.tag && cdb_in_1.valid);
 
     assign  mt_rs_1.rs_infos[1].tag   = mt_rs_1_1_match_rob_mt  ?   `ZERO_TAG   :
                                                                     Tag[rs_mt_1.register_idxes[1]];
     assign  mt_rs_1.rs_infos[1].ready = mt_rs_1_1_match_rob_mt  ?   1'b0        :    
-                                        mt_rs_1_1_match_cdb_in  ?   1'b1        :
+                                        // mt_rs_1_1_match_cdb_in  ?   1'b1        :
                                                                     ready_in_ROB[rs_mt_1.register_idxes[1]];
     assign  mt_rs_1.rs_infos[0].tag   = mt_rs_1_0_match_rob_mt  ?   `ZERO_TAG   :
                                                                     Tag[rs_mt_1.register_idxes[0]];
     assign  mt_rs_1.rs_infos[0].ready = mt_rs_1_0_match_rob_mt  ?   1'b0        :    
-                                        mt_rs_1_0_match_cdb_in  ?   1'b1        :
+                                        // mt_rs_1_0_match_cdb_in  ?   1'b1        :
                                                                     ready_in_ROB[rs_mt_1.register_idxes[0]];
     assign  mt_rs_0.rs_infos[1].tag   = mt_rs_0_1_match_rob_mt  ?   `ZERO_TAG   :
                                                                     Tag[rs_mt_0.register_idxes[1]];
     assign  mt_rs_0.rs_infos[1].ready = mt_rs_0_1_match_rob_mt  ?   1'b0        :    
-                                        mt_rs_0_1_match_cdb_in  ?   1'b1        :
+                                        // mt_rs_0_1_match_cdb_in  ?   1'b1        :
                                                                     ready_in_ROB[rs_mt_0.register_idxes[1]];
     assign  mt_rs_0.rs_infos[0].tag   = mt_rs_0_0_match_rob_mt  ?   `ZERO_TAG   :
                                                                     Tag[rs_mt_0.register_idxes[0]];
     assign  mt_rs_0.rs_infos[0].ready = mt_rs_0_0_match_rob_mt  ?   1'b0        :    
-                                        mt_rs_0_0_match_cdb_in  ?   1'b1        :
+                                        // mt_rs_0_0_match_cdb_in  ?   1'b1        :
                                                                     ready_in_ROB[rs_mt_0.register_idxes[0]];
 
     always_comb begin

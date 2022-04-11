@@ -66,7 +66,7 @@ module dirp (
     always_ff @(posedge clock) begin
         if (reset) begin
             BHR_g <= `SD 0;
-            PHT_g <= '{`PHT_SIZE{2'b01}};
+            PHT_g <= `SD '{`PHT_SIZE{2'b01}};
         end else begin
             PHT_g <= `SD PHT_g_next;
             if (branch_result_valid) begin

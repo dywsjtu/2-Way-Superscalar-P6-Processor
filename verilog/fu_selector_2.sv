@@ -10,7 +10,7 @@
 // seperation 0: 0 2 4 6 9 11 12 14 17 19
 // seperation 1: 1 3 5 7 8 10 13 15 16 18
 
-module fu_selector (
+module fu_selector_2 (
     input                                           clock,
     input                                           reset,
 
