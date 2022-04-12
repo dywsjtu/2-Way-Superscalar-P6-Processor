@@ -32,7 +32,7 @@
 `define BRANCH_MODE
 // `define SS_1
 `define SS_1POINT5
-`define DIRP_IDX_LEN 8
+`define DIRP_IDX_LEN 5
 
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
@@ -544,7 +544,7 @@ typedef struct packed {
 
 typedef struct packed {
 	logic	[`XLEN-1:0]			NPC;			// PC + 4
-	logic	[`XLEN-1:0]			PC;				// PC                               
+	logic	[`XLEN-1:0]			PC;				// PC                             
 	logic						dispatch_enable;// whether is enable to dispatch                             
 	ALU_OPA_SELECT				opa_select;		// ALU opa mux select (ALU_OPA_xxx *)
 	ALU_OPB_SELECT				opb_select;		// ALU opb mux select (ALU_OPB_xxx *)

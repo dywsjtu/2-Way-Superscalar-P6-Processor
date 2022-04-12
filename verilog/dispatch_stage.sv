@@ -20,6 +20,7 @@ module npc_control (
     //INPUT
     input clock,
     input reset,
+	input squash,
 
     input is_return,
     input is_branch,
@@ -39,8 +40,8 @@ module npc_control (
     //OUTPUT
     output logic [`DIRP_IDX_LEN-1:0] dirp_tag,
     output logic branch_predict,
-    output logic [`XLEN-1:0] NPC_out,
-    output logic ras_full
+    output logic [`XLEN-1:0] NPC_out
+    //output logic ras_full
 
 );
     logic [`XLEN-1:0] PC_btb_out, PC_ras_out;
@@ -48,9 +49,12 @@ module npc_control (
 	assign branch_predict = branch_taken && btb_hit;
 
     assign NPC_out = (is_return && ras_valid) ? PC_ras_out :
-                     (branch_predict && btb_hit)? PC_btb_out : PC_plus_4; 
+                     branch_predict? PC_btb_out : PC_plus_4;
+
+	// assign NPC_out = branch_predict ? PC_btb_out : PC_plus_4;  
+
     //Branch Predictor
-    dirp dirp_0(
+    dirp_local dirp_0(
         .clock(clock),
         .reset(reset),
 
@@ -91,12 +95,13 @@ module npc_control (
     ras ras_0(
         .clock(clock),
         .reset(reset),
+		.squash(squash),
         .is_jump(is_jump),
         .is_return(is_return),
         .NPC(PC_plus_4),
 
         .PC_return(PC_ras_out),
-        .ras_full(ras_full),
+        //.ras_full(ras_full),
 		.ras_valid(ras_valid)
     );
 
@@ -228,7 +233,9 @@ module dispatch_stage(
     		//INPUT
     		.clock(clock),
     		.reset(reset),
+			.squash(rob_id.squash),
 
+			//.is_return(1'b0),
     		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP && id_packet_out.valid),
     		.is_branch(id_packet_out.cond_branch && id_packet_out.valid),
     		.is_jump(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JAL_OP && id_packet_out.valid),
@@ -247,8 +254,8 @@ module dispatch_stage(
     		//OUTPUT
 			.dirp_tag(id_packet_out.dirp_tag),
     		.branch_predict(id_packet_out.take_branch),
-    		.NPC_out(NPC_out),
-    		.ras_full(ras_full)
+    		.NPC_out(NPC_out)
+    		//.ras_full(ras_full)
 		);
 		`ifdef DEBUG
 		logic [31:0] cycle_count;

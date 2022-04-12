@@ -6,15 +6,16 @@
 /////////////////////////////////////////////////////////////////////////
 
 //`define DEBUG
-`ifndef __BR_PREDICTOR_V__
-`define __BR_PREDICTOR_V__
+`ifndef __BR_PREDICTOR_PAG_V__
+`define __BR_PREDICTOR_PAG_V__
 
 `timescale 1ns/100ps
 
-`define PHT_SIZE 256
+`define PHT_SIZE 16
+`define BHT_SIZE 32
 `define BHR_SIZE $clog2(`PHT_SIZE)
 
-module dirp (
+module dirp_pag (
     input clock,
     input reset,
 
@@ -28,17 +29,18 @@ module dirp (
     input [`XLEN-1:0] targetPC_in,
 
     output logic branch_taken,
-    output logic [`DIRP_IDX_LEN-1:0] dirp_tag
+    output logic [`BHR_SIZE-1:0] dirp_tag
 );
-    //Global BHR
-    logic [`BHR_SIZE-1:0] BHR_g;
+    //Local BHT
+    logic [`BHT_SIZE-1:0][`BHR_SIZE-1:0] BHT_p;
+    
 
     //Global PHT
     logic [`PHT_SIZE-1:0][1:0] PHT_g, PHT_g_next;
-    logic [`BHR_SIZE-1:0] idx;
+    
 
     assign branch_taken = (~is_branch || PHT_g[dirp_tag] == 2'b00 || PHT_g[dirp_tag] == 2'b01)? 1'b0: 1'b1; 
-    assign dirp_tag = (is_branch) ? BHR_g ^ targetPC_in[`BHR_SIZE+1:2] : 5'b0;
+    assign dirp_tag = BHT_p[targetPC_in[$clog2(`BHT_SIZE)+1:2]];
 
     always_comb begin
         PHT_g_next = PHT_g;
@@ -65,32 +67,32 @@ module dirp (
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
         if (reset) begin
-            BHR_g <= `SD 0;
-            PHT_g <= `SD '{`PHT_SIZE{2'b01}};
+            BHT_p <= `SD '{`BHT_SIZE{4'b0000}};
+            PHT_g <= `SD '{`PHT_SIZE{2'b10}};
         end else begin
             PHT_g <= `SD PHT_g_next;
             if (branch_result_valid) begin
-                BHR_g <= `SD {BHR_g[`BHR_SIZE-2:0],branch_result};
+                BHT_p[targetPC_in[$clog2(`BHT_SIZE)+1:2]] <= `SD {BHT_p[targetPC_in[$clog2(`BHT_SIZE)+1:2]][`BHR_SIZE-2:0],branch_result};
             end
         end
     end
 
-    `ifdef DEBUG
-        logic [31:0] cycle_count;
-        // synopsys sync_set_reset "reset"
-        always_ff @(negedge clock) begin
-            if (reset) begin
-                cycle_count = 0;
-            end else begin
-                $display("DEBUG %4d: BHR_g = %b", cycle_count, BHR_g);
-                $display("DEBUG %4d: dirp_tag = %b", cycle_count, dirp_tag);
-                for (int i = 0; i < `PHT_SIZE; i += 1) begin
-                    $display("DEBUG %4d: PHT[%4d]=%b", cycle_count, i, PHT_g[i]);
-                end
-                cycle_count += 1;
-            end  
-        end
-   `endif
+//     `ifdef DEBUG
+//         logic [31:0] cycle_count;
+//         // synopsys sync_set_reset "reset"
+//         always_ff @(negedge clock) begin
+//             if (reset) begin
+//                 cycle_count = 0;
+//             end else begin
+//                 $display("DEBUG %4d: BHR_g = %b", cycle_count, BHR_g);
+//                 $display("DEBUG %4d: dirp_tag = %b", cycle_count, dirp_tag);
+//                 for (int i = 0; i < `PHT_SIZE; i += 1) begin
+//                     $display("DEBUG %4d: PHT[%4d]=%b", cycle_count, i, PHT_g[i]);
+//                 end
+//                 cycle_count += 1;
+//             end  
+//         end
+//    `endif
 
 endmodule
 
