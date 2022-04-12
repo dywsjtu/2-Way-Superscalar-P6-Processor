@@ -304,7 +304,7 @@ module lsq (
     // assign lsq_rs.loadq_full    =   lq_head == lq_tail && lq_counter == `LOAD_QUEUE_SIZE;
     assign lsq_rs.storeq_tail   =   (sq_counter == `LSQ_IDX_LEN'b0) ? `NO_SQ_POS : sq_tail;
     assign lsq_rs.sq_tail       =   sq_tail;
-    assign lsq_rs.storeq_full   =   sq_counter == `STORE_QUEUE_SIZE && sq_tail == sq_head;
+    assign lsq_rs.storeq_full   =   sq_counter == (`STORE_QUEUE_SIZE - 1);
 
     assign lsq_load_dc  = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[lq_selection].valid && lq_entries[lq_selection].filled && ~lq_retire_valid[lq_selection],
                             lq_entries[lq_selection].addr,

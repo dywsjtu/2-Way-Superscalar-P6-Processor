@@ -7,8 +7,8 @@
 
 
 //`define DEBUG
-`ifndef __RS_V__
-`define __RS_V__
+`ifndef __RS_1POINT5_V__
+`define __RS_1POINT5_V__
 
 `timescale 1ns/100ps
 
@@ -89,14 +89,14 @@ module rs_1point5 (
                                         (cdb_rs_0.valid &&
                                         mt_rs.rs_infos[0].tag == cdb_rs_0.tag)  ? cdb_rs_0.value                        :
                                         (cdb_rs_1.valid &&
-                                        mt_rs.rs_infos[0].tag == cdb_rs_0.tag)  ? cdb_rs_1.value                        :
+                                        mt_rs.rs_infos[0].tag == cdb_rs_1.tag)  ? cdb_rs_1.value                        :
                                                                                   rob_rs.value[0];
             rs_fu[i].rs_value_valid =   ~fu_valid[i]                            ? ((rs_entries[i].rs_entry_info[1].V_ready || 
                                                                                     (cdb_rs_0.valid && rs_entries[i].rs_entry_info[1].tag == cdb_rs_0.tag) ||
                                                                                     (cdb_rs_1.valid && rs_entries[i].rs_entry_info[1].tag == cdb_rs_1.tag)) &&
                                                                                    (rs_entries[i].rs_entry_info[0].V_ready || 
                                                                                     (cdb_rs_0.valid && rs_entries[i].rs_entry_info[0].tag == cdb_rs_0.tag) ||
-                                                                                    (cdb_rs_1.valid && rs_entries[i].rs_entry_info[0].tag == cdb_rs_1.tag)) &&
+                                                                                    (cdb_rs_1.valid && rs_entries[i].rs_entry_info[0].tag == cdb_rs_1.tag)))
                                                                                 : ((~id_rs.req_reg[1]       || mt_rs.rs_infos[1].tag == `ZERO_TAG || mt_rs.rs_infos[1].ready || 
                                                                                     (cdb_rs_0.valid && mt_rs.rs_infos[1].tag == cdb_rs_0.tag) || 
                                                                                     (cdb_rs_1.valid && mt_rs.rs_infos[1].tag == cdb_rs_1.tag)) &&
@@ -424,12 +424,11 @@ module rs_1point5 (
         endcase
     end
 
-    assign rs_entry_full = rs_entry_full_indicator  ? (~busy[fu_num_0] || ~fu_result_valid[fu_num_0] || 
-                                                       (fu_num_0 < fu_type) || ~(fu_num_0 < fu_end)) || 
-                                                      (~busy[fu_num_1] || ~fu_result_valid[fu_num_1] || 
-                                                       (fu_num_1 < fu_type) || ~(fu_num_1 < fu_end)) || 
-                                                      (id_rs.wr_mem && lsq_rs.storeq_full)
-                                                    : 1'b0;
+    assign rs_entry_full = (id_rs.wr_mem && lsq_rs.storeq_full) || (rs_entry_full_indicator ? ((~busy[fu_num_0] || ~fu_result_valid[fu_num_0]  || 
+                                                                                                (fu_num_0 < fu_type) || ~(fu_num_0 < fu_end))  && 
+                                                                                               (~busy[fu_num_1] || ~fu_result_valid[fu_num_1]  || 
+                                                                                                (fu_num_1 < fu_type) || ~(fu_num_1 < fu_end)))
+                                                                                            : 1'b0);
 
     logic               temp_logic;
 
@@ -530,4 +529,4 @@ module rs_1point5 (
     `endif
 
 endmodule
-`endif // `__RS_V__
+`endif // `__RS_1POINT5_V__

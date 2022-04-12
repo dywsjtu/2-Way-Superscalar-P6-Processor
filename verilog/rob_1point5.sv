@@ -7,8 +7,8 @@
 
 
 //`define DEBUG
-`ifndef __ROB_V__
-`define __ROB_V__
+`ifndef __ROB_1point5_V__
+`define __ROB_1point5_V__
 
 `timescale 1ns/100ps
 
@@ -166,4 +166,4 @@ module rob_1point5 (
     `endif
 endmodule
 
-`endif // `__ROB_V__
+`endif // `__ROB_1point5_V__

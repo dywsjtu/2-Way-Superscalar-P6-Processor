@@ -32,11 +32,11 @@ module cdb (
     //CDB_ENTRY cdb_list = '{`ZERO_REG,0};
 
     //assign full          = (FU_tag != `ZERO_TAG & ~reset & ~squash);
-    assign cdb_out.tag          = rs_cdb.tag;
-    assign cdb_out.value        = rs_cdb.value;
-    assign cdb_out.valid        = rs_cdb.valid;
-    assign cdb_out.take_branch  = rs_cdb.take_branch;
-    assign cdb_out.branch_target= rs_cdb.branch_target;
+    assign cdb_out.tag              = rs_cdb.tag;
+    assign cdb_out.value            = rs_cdb.value;
+    assign cdb_out.valid            = rs_cdb.valid;
+    assign cdb_out.take_branch      = rs_cdb.take_branch;
+    assign cdb_out.branch_target    = rs_cdb.branch_target;
 
     
     `ifdef DEBUG

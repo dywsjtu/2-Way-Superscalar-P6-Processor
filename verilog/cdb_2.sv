@@ -7,8 +7,8 @@
 
 
 //`define DEBUG
-`ifndef __CDB_V__
-`define __CDB_V__
+`ifndef __CDB_2_V__
+`define __CDB_2_V__
 
 `timescale 1ns/100ps
 
@@ -29,11 +29,13 @@ module cdb_2 (
     assign cdb_out_0.value          = rs_cdb_0.value;
     assign cdb_out_0.valid          = rs_cdb_0.valid;
     assign cdb_out_0.take_branch    = rs_cdb_0.take_branch;
+    assign cdb_out_0.branch_target  = rs_cdb_0.branch_target;
 
     assign cdb_out_1.tag            = rs_cdb_1.tag;
     assign cdb_out_1.value          = rs_cdb_1.value;
     assign cdb_out_1.valid          = rs_cdb_1.valid;
     assign cdb_out_1.take_branch    = rs_cdb_1.take_branch;
+    assign cdb_out_1.branch_target  = rs_cdb_1.branch_target;
 
     `ifdef DEBUG
         logic [31:0] cycle_count;
@@ -50,4 +52,4 @@ module cdb_2 (
     `endif
     
 endmodule
-`endif // `__CDB_V__
+`endif // `__CDB_2_V__

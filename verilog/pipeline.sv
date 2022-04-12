@@ -542,7 +542,6 @@ module pipeline (
 	RS_ROB_PACKET       rs_rob;
 	RS_MT_PACKET        rs_mt_0;
 	RS_MT_PACKET        rs_mt_1;
-    RS_FU_PACKET        rs_fu;
 	RS_REG_PACKET    	rs_reg;
 	RS_LSQ_PACKET		rs_lsq;
 	FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq;
@@ -567,7 +566,7 @@ module pipeline (
 //////////////////////////////////////////////////
 
 	// Pipeline register enables
-	logic   if_id_enable, dispatch_enable;//id_ex_enable, ex_mem_enable, mem_wb_enable;
+	logic	dispatch_enable;//id_ex_enable, ex_mem_enable, mem_wb_enable;
 	
 	// Outputs from IF-Stage
 	logic [`XLEN-1:0] proc2Imem_addr;
@@ -582,10 +581,6 @@ module pipeline (
 
 	// Outputs from ID/EX Pipeline Register
 	ID_EX_PACKET id_packet_out;
-	logic [`XLEN-1:0] wb_reg_wr_data_out;
-	logic  [4:0] wb_reg_wr_idx_out;
-	logic        wb_reg_wr_en_out;
-	logic [`XLEN-1:0] mem_wb_NPC;
 
 	logic halt;
 	logic squash;
@@ -877,12 +872,6 @@ module pipeline (
 		`endif
 	);
 
-
-	//temporary input from fu
-	logic FU_valid;
-	logic [`ROB_IDX_LEN:0] FU_tag;
-	logic [`XLEN-1:0] FU_value;
-
 	cdb_2 cdb_0(
         //input
         .clock(clock),
@@ -904,9 +893,9 @@ module pipeline (
         .dispatch_enable_0(id_rs.dispatch_enable && id_rs.valid && ~id_rs.halt && ~id_rs.illegal),
         .rd_dispatch_0(id_packet_out.dest_reg_idx),
         .dispatch_enable_1(1'b0),
-        .rd_dispatch_1($clog2(`REG_SIZE)'b0),
-        .rob_mt_0(rob_mt_0),
-		.rob_mt_1(rob_mt_1),
+        .rd_dispatch_1(id_packet_out.dest_reg_idx),
+        .rob_mt_0(rob_mt),
+		.rob_mt_1(rob_mt),
 
         .cdb_in_0(cdb_out_0),
 		.cdb_in_1(cdb_out_1),
@@ -928,7 +917,7 @@ module pipeline (
 		.reset(reset),
 
 		.id_rs(id_rs),
-		.mt_rs(mt_rs),
+		.mt_rs(mt_rs_0),
 		.reg_rs(reg_rs),
 		.cdb_rs_0(cdb_out_0),
 		.cdb_rs_1(cdb_out_1),
@@ -964,6 +953,7 @@ module pipeline (
 		.rob_full(rob_full),
 		.halt(halt),
 		.squash(squash),
+
 		.rob_id(rob_id),
 		.rob_rs(rob_rs),
 		.rob_mt(rob_mt),

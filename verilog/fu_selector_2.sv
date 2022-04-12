@@ -104,43 +104,43 @@ module fu_selector_2 (
 
     rps2 ls_select_0 (
         .cnt(cnt[0]),
-        .req({fu_result_valid[9], fu_result_valid[11]}),
+        .req({fu_result_valid[11], fu_result_valid[9]}),
         .en(cat_select_0[1]),
         .gnt(selection_0[(`LS_OFFSET/2-1)   :`ALU_OFFSET/2])
     );
 
     rps2 ls_select_1 (
         .cnt(cnt[0]),
-        .req({fu_result_valid[8], fu_result_valid[10]}),
+        .req({fu_result_valid[10], fu_result_valid[8]}),
         .en(cat_select_1[1]),
         .gnt(selection_1[(`LS_OFFSET/2-1)   :`ALU_OFFSET/2])
     );
 
     rps2 mult_select_0 (
         .cnt(cnt[0]),
-        .req({fu_result_valid[12], fu_result_valid[14]}),
-        .en(cat_select_0[1]),
+        .req({fu_result_valid[14], fu_result_valid[12]}),
+        .en(cat_select_0[2]),
         .gnt(selection_0[(`MULT_OFFSET/2-1) :`LS_OFFSET/2])
     );
 
     rps2 mult_select_1 (
         .cnt(cnt[0]),
-        .req({fu_result_valid[13], fu_result_valid[15]}),
-        .en(cat_select_1[1]),
+        .req({fu_result_valid[15], fu_result_valid[13]}),
+        .en(cat_select_1[2]),
         .gnt(selection_1[(`MULT_OFFSET/2-1) :`LS_OFFSET/2])
     );
 
     rps2 beq_select_0 (
         .cnt(cnt[0]),
-        .req({fu_result_valid[17], fu_result_valid[19]}),
-        .en(cat_select_0[1]),
+        .req({fu_result_valid[19], fu_result_valid[17]}),
+        .en(cat_select_0[3]),
         .gnt(selection_0[(`BEQ_OFFSET/2-1)  :`MULT_OFFSET/2])
     );
 
     rps2 beq_select_1 (
         .cnt(cnt[0]),
-        .req({fu_result_valid[16], fu_result_valid[18]}),
-        .en(cat_select_1[1]),
+        .req({fu_result_valid[18], fu_result_valid[16]}),
+        .en(cat_select_1[3]),
         .gnt(selection_1[(`BEQ_OFFSET/2-1)  :`MULT_OFFSET/2])
     );
 
