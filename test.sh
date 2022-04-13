@@ -119,7 +119,7 @@ then
         # make clean
         echo "Assemble $(basename $file)"
         type=$(echo $file | cut -d'.' -f2)
-        exit
+        #exit
         export SOURCE=$file
         # if [ $type = "s" ]; then
         #     make assembly > /dev/null 2>&1
@@ -133,7 +133,7 @@ then
         # cp writeback.out ./example_output/$(basename $file)_writeback.out
         # cp program.out ./example_output/$(basename $file)_program.out
         mv writeback.out ./output/$(basename $file)_writeback.out
-        cat program.out | grep "@@@" > ./output/$(basename $file)_program.out
+        cat syn_program.out | grep "@@@" > ./output/$(basename $file)_program.out
         diff ./output/$(basename $file)_writeback.out ./gt_output/$(basename $file)_writeback.out > /dev/null
         status=$? # 0 -> no difference
         if [[ "$status" -eq "0" ]]; then
