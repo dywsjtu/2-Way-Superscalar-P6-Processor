@@ -73,7 +73,6 @@ module dcache_control (
             temp_valid = 1'b0;
             for (int i = 0; i < `MISS_LINES; i += 1) begin
                 if (~temp_valid && Dmem2proc_tag != 0 && mshr_entries[i].valid && mshr_entries[i].sent && mshr_entries[i].tag == Dmem2proc_tag) begin
-                    $display("Get from Dmem");
                     mem_en = 1'b1;
                     temp_valid = 1'b1;
                     mem_addr_out = mshr_entries[i].addr;

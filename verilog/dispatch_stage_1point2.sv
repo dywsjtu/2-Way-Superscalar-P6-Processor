@@ -134,11 +134,11 @@ module dispatch_stage_1point2 (
 	`ifdef BRANCH_MODE
 		logic ras_full;
 		//logic [4:0] ex_dirp_tag;
-		npc_control npc_control_0(
+		npc_control_1point2 npc_control_0(
     		//INPUT
     		.clock(clock),
     		.reset(reset),
-			.squash(rob_id_0.squash),
+			.squash(rob_id_0.squash || rob_id_1.squash),
 
 			//.is_return(1'b0),
     		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP && id_packet_out.valid),
@@ -148,12 +148,19 @@ module dispatch_stage_1point2 (
     		.PC_in(id_packet_out.PC),
     		.PC_plus_4(id_packet_out.NPC),
 
-    		.ex_result_valid(rob_id_0.result_valid),
-    		.ex_branch_taken(rob_id_0.branch_taken),
-    		.ex_is_branch(rob_id_0.is_branch),
-    		.PC_ex(rob_id_0.PC),
-    		.ex_result(rob_id_0.targetPC),
-    		.ex_branch_idx(rob_id_0.dirp_tag),
+    		.ex_result_valid_0(rob_id_0.result_valid),
+    		.ex_branch_taken_0(rob_id_0.branch_taken),
+    		.ex_is_branch_0(rob_id_0.is_branch),
+    		.PC_ex_0(rob_id_0.PC),
+    		.ex_result_0(rob_id_0.targetPC),
+    		.ex_branch_idx_0(rob_id_0.dirp_tag),
+
+			.ex_result_valid_1(rob_id_1.result_valid),
+    		.ex_branch_taken_1(rob_id_1.branch_taken),
+    		.ex_is_branch_1(rob_id_1.is_branch),
+    		.PC_ex_1(rob_id_1.PC),
+    		.ex_result_1(rob_id_1.targetPC),
+    		.ex_branch_idx_1(rob_id_1.dirp_tag),
 
 
     		//OUTPUT

@@ -7,6 +7,7 @@
 
 `ifndef __DCACHE_V__
 `define __DCACHE_V__
+`define DEBUG_D
 
 `timescale 1ns/100ps
 
@@ -41,6 +42,19 @@ module dcache (
     logic [63:0] mem_data;
     EXAMPLE_CACHE_BLOCK store_data_in, read_data_out;
 
+    `ifdef DEBUG_D
+        logic [31:0] cycle_count;
+        always_ff @(negedge clock) begin
+            if (reset) begin
+                cycle_count = 0;
+            end else begin
+                $display("DEBUG %4d: LOAD_DC=%p, STORE_DC=%p", cycle_count, lsq_load_dc, lsq_store_dc);
+                $display("DEBUG %4d: DC_LOAD=%p, DC_STORE=%p", cycle_count, dc_load_lsq, dc_store_lsq);
+                cycle_count += 1;
+            end    
+        end
+    `endif
+
     dcache_control dcache_control_0(
         .clock(clock),
         .reset(reset),  
@@ -52,11 +66,11 @@ module dcache (
         .Dmem2proc_tag(Dmem2proc_tag),
  
         //From LSQ
-        //.load_en(lsq_load_dc.valid && (~lsq_store_dc.halt || ~lsq_store_dc.valid)),
-        .load_en(lsq_load_dc.valid),
+        .load_en(lsq_load_dc.valid && (~lsq_store_dc.halt || ~lsq_store_dc.valid)),
+        //.load_en(lsq_load_dc.valid),
         .load_addr(lsq_load_dc.addr),
-        //.store_en(lsq_store_dc.valid && ~lsq_store_dc.halt),
-        .store_en(lsq_store_dc.valid),
+        .store_en(lsq_store_dc.valid && ~lsq_store_dc.halt),
+        //.store_en(lsq_store_dc.valid),
         .store_addr(lsq_store_dc.addr),
 
 
