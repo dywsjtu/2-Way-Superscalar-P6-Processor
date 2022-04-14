@@ -22,6 +22,7 @@ then
         # cp program.out ./example_output/$(basename $file)_program.out
         mv writeback.out ./output/$(basename $file)_writeback.out
         cat program.out | grep "@@@" > ./output/$(basename $file)_program.out
+        grep 'CPI' program.out >> CPI_result.txt
         diff ./output/$(basename $file)_writeback.out ./gt_output/$(basename $file)_writeback.out > /dev/null
         status=$? # 0 -> no difference
         if [[ "$status" -eq "0" ]]; then
@@ -58,6 +59,7 @@ then
         # cp program.out ./example_output/$(basename $file)_program.out
         mv writeback.out ./output/$(basename $file)_writeback.out
         cat program.out | grep "@@@" > ./output/$(basename $file)_program.out
+        grep 'CPI' program.out >> CPI_result.txt
         diff ./output/$(basename $file)_writeback.out ./gt_output/$(basename $file)_writeback.out > /dev/null
         status=$? # 0 -> no difference
         if [[ "$status" -eq "0" ]]; then

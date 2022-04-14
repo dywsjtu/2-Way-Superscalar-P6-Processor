@@ -55,8 +55,9 @@ module dispatch_stage_1point2 (
 	// assign PC_enable 						= id_packet_out.valid | ex_mem_take_branch;
 	`ifdef BRANCH_MODE
 		logic [`XLEN-1:0]		NPC_out;
-		assign next_PC 							= rob_id_0.squash ? rob_id_0.target_pc 
-															: NPC_out;
+		assign next_PC 							= rob_id_0.squash ? rob_id_0.target_pc :
+												  rob_id_1.squash ? rob_id_1.target_pc : 
+												  					NPC_out;
 		assign id_packet_out.NPC_out			= NPC_out;
 	`else
 		assign next_PC 							= rob_id_0.squash ? rob_id_0.target_pc : 

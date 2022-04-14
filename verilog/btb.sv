@@ -41,9 +41,10 @@ module btb (
    assign {current_tag_r,current_idx_r} = PC_in_r[15:2];
    assign {current_tag_w,current_idx_w} = PC_in_w[15:2];
 
-   assign targetPC_out = (read_en && btb_valid[current_idx_r] && btb_tags[current_idx_r]==current_tag_r) ? 
-                            btb_addr[current_idx_r] : 32'b0;
+   assign targetPC_out = (read_en && btb_valid[current_idx_r] && btb_tags[current_idx_r]==current_tag_r) ?  
+                                btb_addr[current_idx_r] : 32'b0;
    assign hit = read_en && btb_valid[current_idx_r] && btb_tags[current_idx_r]==current_tag_r;
+
 
 
    // synopsys sync_set_reset "reset"
