@@ -736,6 +736,21 @@ typedef struct packed {
 	logic							valid;
 } DCACHE_ENTRY;
 
+`define D_CACHE_LINES 32
+typedef struct packed {
+	EXAMPLE_CACHE_BLOCK				data;
+	logic	[8:0]					tag;
+	//logic	[`CACHE_IDX_LEN-1:0]	lru_counter;
+	logic							valid;
+} DCACHE_ENTRY_NEW;
+
+typedef struct packed {
+	logic							valid;
+	logic							sent; // whether the message has been sent to memory
+	logic	[3:0]					tag;
+	logic	[31:0]					addr;
+} MISS_ENTRY_NEW;
+
 typedef struct packed {
 	logic							valid;
 	logic							sent; // whether the message has been sent to memory
