@@ -14,6 +14,7 @@
 
 `timescale 1ns/100ps
 
+`ifdef SS_1
 module pipeline (
 
 	input         clock,                    // System clock
@@ -40,8 +41,6 @@ module pipeline (
 	
 
 );
-
-`ifdef SS_1
 //////////////////////////////////////////////////
 //                                              //
 //       ROB RS MT balabala packet def          //
@@ -514,6 +513,35 @@ module pipeline (
 
 
 `ifdef SS_1POINT5
+module pipeline (
+
+	input         clock,                    // System clock
+	input         reset,                    // System reset
+	input [3:0]   mem2proc_response,        // Tag from memory about current request
+	input [63:0]  mem2proc_data,            // Data coming back from memory
+	input [3:0]   mem2proc_tag,              // Tag from memory about current reply
+	
+	output logic [1:0]  proc2mem_command,    // command sent to memory
+	output logic [`XLEN-1:0] proc2mem_addr,      // Address sent to memory
+	output logic [63:0] proc2mem_data,      // Data sent to memory
+	`ifndef CACHE_MODE
+		output MEM_SIZE proc2mem_size,          // data size sent to memory
+	`endif
+	output logic [3:0]  		pipeline_completed_insts,
+	output EXCEPTION_CODE   	pipeline_error_status,
+	output logic [4:0]  		pipeline_commit_wr_idx_0,
+	output logic [`XLEN-1:0] 	pipeline_commit_wr_data_0,
+	output logic        		pipeline_commit_wr_en_0,
+	output logic [`XLEN-1:0] 	pipeline_commit_NPC_0,
+	output logic [4:0]  		pipeline_commit_wr_idx_1,
+	output logic [`XLEN-1:0] 	pipeline_commit_wr_data_1,
+	output logic        		pipeline_commit_wr_en_1,
+	output logic [`XLEN-1:0] 	pipeline_commit_NPC_1,
+	output logic [`XLEN-1:0] 	id_ex_NPC,
+	output logic [31:0] 		id_ex_IR,
+	output logic        		id_ex_valid_inst
+	
+);
 //////////////////////////////////////////////////
 //                                              //
 //       ROB RS MT balabala packet def          //
@@ -539,10 +567,12 @@ module pipeline (
 
 	// RS
 	logic 				rs_entry_full;
-	RS_ROB_PACKET       rs_rob;
+	RS_ROB_PACKET       rs_rob_0;
+	RS_ROB_PACKET       rs_rob_1;
 	RS_MT_PACKET        rs_mt_0;
 	RS_MT_PACKET        rs_mt_1;
-	RS_REG_PACKET    	rs_reg;
+	RS_REG_PACKET    	rs_reg_0;
+	RS_REG_PACKET    	rs_reg_1;
 	RS_LSQ_PACKET		rs_lsq;
 	FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq;
 	LSQ_RS_PACKET                   lsq_rs;
@@ -550,14 +580,19 @@ module pipeline (
 
 	// ROB
 	logic 				rob_full;
-    ROB_RS_PACKET       rob_rs;
-    ROB_MT_PACKET       rob_mt;
-    ROB_REG_PACKET      rob_reg;
-	ROB_ID_PACKET       rob_id;
+    ROB_RS_PACKET       rob_rs_0;
+    ROB_RS_PACKET       rob_rs_1;
+    ROB_MT_PACKET       rob_mt_0;
+    ROB_MT_PACKET       rob_mt_1;
+    ROB_REG_PACKET      rob_reg_0;
+    ROB_REG_PACKET      rob_reg_1;
+	ROB_ID_PACKET       rob_id_0;
+	ROB_ID_PACKET       rob_id_1;
 	ROB_LSQ_PACKET		rob_lsq;
 	LSQ_ROB_PACKET		lsq_rob;
 
-	REG_RS_PACKET       reg_rs;
+	REG_RS_PACKET       reg_rs_0;
+	REG_RS_PACKET       reg_rs_1;
 
 //////////////////////////////////////////////////
 //                                              //
@@ -585,16 +620,20 @@ module pipeline (
 	logic halt;
 	logic squash;
 
-	assign pipeline_completed_insts = {3'b0, rob_reg.valid};
 	assign memory_error = (proc2mem_command != BUS_NONE) && (mem2proc_response==4'h0);
 	assign pipeline_error_status 	= 	halt			?	HALTED_ON_WFI :
 										// memory_error 	? 	LOAD_ACCESS_FAULT :
 	                                						NO_ERROR;
-	
-	assign pipeline_commit_wr_idx 	= rob_reg.dest_reg_idx;
-	assign pipeline_commit_wr_data 	= rob_reg.dest_value;
-	assign pipeline_commit_wr_en 	= rob_reg.dest_valid;
-	assign pipeline_commit_NPC 		= rob_reg.OLD_PC_p_4;
+	assign pipeline_completed_insts = {2'b0, rob_reg_0.valid && rob_reg_1.valid, ~(rob_reg_0.valid == rob_reg_1.valid)};
+
+	assign pipeline_commit_wr_idx_0 	= rob_reg_0.dest_reg_idx;
+	assign pipeline_commit_wr_data_0 	= rob_reg_0.dest_value;
+	assign pipeline_commit_wr_en_0		= rob_reg_0.dest_valid;
+	assign pipeline_commit_NPC_0 		= rob_reg_0.OLD_PC_p_4;
+	assign pipeline_commit_wr_idx_1 	= rob_reg_1.dest_reg_idx;
+	assign pipeline_commit_wr_data_1 	= rob_reg_1.dest_value;
+	assign pipeline_commit_wr_en_1		= rob_reg_1.dest_valid;
+	assign pipeline_commit_NPC_1		= rob_reg_1.OLD_PC_p_4;
 	
 //////////////////////////////////////////////////
 //                                              //
@@ -607,7 +646,7 @@ module pipeline (
     logic [63:0]					Icache_data_out; 		// value is memory[proc2Icache_addr]
     logic 							Icache_valid_out;      	// when this is high
 
-	icache icache_0 (
+	icache_l2 icache_0 (
 		.clock(clock),
 		.reset(reset),
 		.squash(squash),
@@ -739,7 +778,7 @@ module pipeline (
     end
 	`endif
 
-	dispatch_stage dispatch_stage_0 (
+	dispatch_stage_1point2 dispatch_stage_0 (
 		// Inputs
 		.clock(clock),
 		.reset(reset),
@@ -749,7 +788,8 @@ module pipeline (
 		// .ex_mem_target_pc(ex_mem_target_pc),
 		.Icache_data_out(Icache_data_out),
 		.Icache_valid_out(Icache_valid_out),
-		.rob_id(rob_id),
+		.rob_id_0(rob_id_0),
+		.rob_id_1(rob_id_1),
 		
 		// Outputs
 		.proc2Imem_addr(proc2Icache_addr),
@@ -759,7 +799,6 @@ module pipeline (
 	// always @(posedge clock) begin
 	// 	$display("DEBUG pipeline I addr", proc2Imem_addr);
 	// end
-
 
 //////////////////////////////////////////////////
 //                                              //
@@ -774,7 +813,7 @@ module pipeline (
 	assign id_ex_enable 	= 1'b1; // always enabled
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
-		if (reset || rob_id.squash) begin
+		if (reset || rob_id_0.squash || rob_id_1.squash) begin
 			id_packet_out 	<= `SD '{	
 										`ifdef BRANCH_MODE
 											{`DIRP_IDX_LEN{1'b0}},
@@ -854,19 +893,29 @@ module pipeline (
 	assign rd_dispatch = id_packet_out.dest_reg_idx;
 
 
-	regfile regf_0 (
-		/*RS TO REG*/
-		.rda_idx(rs_reg.register_idxes[0]),
-		.rda_out(reg_rs.rs_values[0]), 
+	regfile_2 regf_0 (
+		.clock(clock),
 
-		.rdb_idx(rs_reg.register_idxes[1]),
-		.rdb_out(reg_rs.rs_values[1]),
+		/*RS TO REG*/
+		.rda_idx_0(rs_reg_0.register_idxes[0]),
+		.rda_out_0(reg_rs_0.rs_values[0]),
+		.rdb_idx_0(rs_reg_0.register_idxes[1]),
+		.rdb_out_0(reg_rs_0.rs_values[1]),
+		
+		.rda_idx_1(rs_reg_1.register_idxes[0]),
+		.rda_out_1(reg_rs_1.rs_values[0]),
+		.rdb_idx_1(rs_reg_1.register_idxes[1]),
+		.rdb_out_1(reg_rs_1.rs_values[1]),
 
 		/*ROB TO REG*/
-		.wr_clk(clock),
-		.wr_en(rob_reg.dest_valid),
-		.wr_idx(rob_reg.dest_reg_idx),
-		.wr_data(rob_reg.dest_value)
+		.wr_en_0(rob_reg_0.dest_valid),
+		.wr_idx_0(rob_reg_0.dest_reg_idx),
+		.wr_data_0(rob_reg_0.dest_value),
+
+		.wr_en_1(rob_reg_1.dest_valid),
+		.wr_idx_1(rob_reg_1.dest_reg_idx),
+		.wr_data_1(rob_reg_1.dest_value)
+
 		`ifdef DEBUG
 		, .reset(reset)
 		`endif
@@ -894,8 +943,8 @@ module pipeline (
         .rd_dispatch_0(id_packet_out.dest_reg_idx),
         .dispatch_enable_1(1'b0),
         .rd_dispatch_1(id_packet_out.dest_reg_idx),
-        .rob_mt_0(rob_mt),
-		.rob_mt_1(rob_mt),
+        .rob_mt_0(rob_mt_0),
+		.rob_mt_1(rob_mt_1),
 
         .cdb_in_0(cdb_out_0),
 		.cdb_in_1(cdb_out_1),
@@ -918,10 +967,10 @@ module pipeline (
 
 		.id_rs(id_rs),
 		.mt_rs(mt_rs_0),
-		.reg_rs(reg_rs),
+		.reg_rs(reg_rs_0),
 		.cdb_rs_0(cdb_out_0),
 		.cdb_rs_1(cdb_out_1),
-		.rob_rs(rob_rs),
+		.rob_rs(rob_rs_0),
 		.lsq_rs(lsq_rs),
 		.lsq_fu(lsq_fu),
 
@@ -930,21 +979,24 @@ module pipeline (
 		.rs_mt_1(rs_mt_1),
 		.rs_cdb_0(rs_cdb_0),
 		.rs_cdb_1(rs_cdb_1),
-		.rs_reg(rs_reg),
+		.rs_reg(rs_reg_0),
 		//.rs_fu(rs_fu),
-		.rs_rob(rs_rob),
+		.rs_rob(rs_rob_0),
 		.rs_lsq(rs_lsq),
 		.rs_entry_full(rs_entry_full),
 		.fu_lsq(fu_lsq)
 	);
 
-	rob_1point5 rob_0(
+	assign rs_rob_1 = 0;
+
+	rob_1point8 rob_0(
 		// input
 		.clock(clock),
 		.reset(reset),
 
 		.id_rob(id_rob),
-		.rs_rob(rs_rob),
+		.rs_rob_0(rs_rob_0),
+		.rs_rob_1(rs_rob_1),
 		.cdb_rob_0(cdb_out_0),
 		.cdb_rob_1(cdb_out_1),
 		.lsq_rob(lsq_rob),
@@ -954,10 +1006,14 @@ module pipeline (
 		.halt(halt),
 		.squash(squash),
 
-		.rob_id(rob_id),
-		.rob_rs(rob_rs),
-		.rob_mt(rob_mt),
-		.rob_reg(rob_reg),
+		.rob_id_0(rob_id_0),
+		.rob_id_1(rob_id_1),
+		.rob_rs_0(rob_rs_0),
+		.rob_rs_1(rob_rs_1),
+		.rob_mt_0(rob_mt_0),
+		.rob_mt_1(rob_mt_1),
+		.rob_reg_0(rob_reg_0),
+		.rob_reg_1(rob_reg_1),
 		.rob_lsq(rob_lsq)
 		// .sq_retire(sq_retire)
 	);

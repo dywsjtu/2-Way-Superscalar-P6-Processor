@@ -29,7 +29,7 @@
 `define CACHE_MODE //removes the byte-level interface from the memory mode, DO NOT MODIFY!
 `define NUM_MEM_TAGS           15
 `define PREFETCH_MODE
-`define BRANCH_MODE
+// `define BRANCH_MODE
 // `define SS_1
 `define SS_1POINT5
 `define DIRP_IDX_LEN 5

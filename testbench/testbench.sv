@@ -11,6 +11,8 @@
 `timescale 1ns/100ps
 
 import "DPI-C" function void print_header(string str);
+`ifdef SS_1POINT5
+`else
 import "DPI-C" function void print_cycles();
 import "DPI-C" function void print_stage(string div, int inst, int npc, int valid_inst);
 import "DPI-C" function void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,
@@ -18,8 +20,8 @@ import "DPI-C" function void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_
 import "DPI-C" function void print_membus(int proc2mem_command, int mem2proc_response,
                                           int proc2mem_addr_hi, int proc2mem_addr_lo,
 						 			     int proc2mem_data_hi, int proc2mem_data_lo);
+`endif
 import "DPI-C" function void print_close();
-
 
 module testbench;
 
@@ -41,11 +43,22 @@ module testbench;
 `endif
 	logic  [3:0] pipeline_completed_insts;
 	EXCEPTION_CODE   pipeline_error_status;
+
+`ifdef SS_1POINT5
+	logic	[4:0] 			pipeline_commit_wr_idx_0;
+	logic	[`XLEN-1:0] 	pipeline_commit_wr_data_0;
+	logic        			pipeline_commit_wr_en_0;
+	logic	[`XLEN-1:0] 	pipeline_commit_NPC_0;
+	logic	[4:0] 			pipeline_commit_wr_idx_1;
+	logic	[`XLEN-1:0] 	pipeline_commit_wr_data_1;
+	logic        			pipeline_commit_wr_en_1;
+	logic	[`XLEN-1:0] 	pipeline_commit_NPC_1;
+`else
 	logic  [4:0] pipeline_commit_wr_idx;
 	logic [`XLEN-1:0] pipeline_commit_wr_data;
 	logic        pipeline_commit_wr_en;
 	logic [`XLEN-1:0] pipeline_commit_NPC;
-	
+`endif
 	
 	// logic [`XLEN-1:0] if_NPC_out;
 	// logic [31:0] if_IR_out;
@@ -85,10 +98,22 @@ module testbench;
 		
 		.pipeline_completed_insts(pipeline_completed_insts),
 		.pipeline_error_status(pipeline_error_status),
+
+`ifdef SS_1POINT5
+		.pipeline_commit_wr_data_0(pipeline_commit_wr_data_0),
+		.pipeline_commit_wr_idx_0(pipeline_commit_wr_idx_0),
+		.pipeline_commit_wr_en_0(pipeline_commit_wr_en_0),
+		.pipeline_commit_NPC_0(pipeline_commit_NPC_0),
+		.pipeline_commit_wr_data_1(pipeline_commit_wr_data_1),
+		.pipeline_commit_wr_idx_1(pipeline_commit_wr_idx_1),
+		.pipeline_commit_wr_en_1(pipeline_commit_wr_en_1),
+		.pipeline_commit_NPC_1(pipeline_commit_NPC_1),
+`else
 		.pipeline_commit_wr_data(pipeline_commit_wr_data),
 		.pipeline_commit_wr_idx(pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en(pipeline_commit_wr_en),
 		.pipeline_commit_NPC(pipeline_commit_NPC),
+`endif
 		
 		// .if_NPC_out(if_NPC_out),
 		// .if_IR_out(if_IR_out),
@@ -222,7 +247,28 @@ module testbench;
         end else begin
 			`SD;
 			`SD;
-			
+
+`ifdef SS_1POINT5
+			// print the writeback information to writeback.out
+			if (pipeline_completed_insts > 0) begin
+				if(pipeline_commit_wr_en_0)
+					$fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+						pipeline_commit_NPC_0-4,
+						pipeline_commit_wr_idx_0,
+						pipeline_commit_wr_data_0);
+				else
+					$fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC_0-4);
+			end
+			if (pipeline_completed_insts > 1) begin
+				if(pipeline_commit_wr_en_1)
+					$fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+						pipeline_commit_NPC_1-4,
+						pipeline_commit_wr_idx_1,
+						pipeline_commit_wr_data_1);
+				else
+					$fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC_1-4);
+			end
+`else
 			 // print the piepline stuff via c code to the pipeline.out
 			 print_cycles();
 			//  print_stage(" ", if_IR_out, if_NPC_out[31:0], {31'b0,if_valid_inst_out});
@@ -235,8 +281,7 @@ module testbench;
 			 print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
 				32'b0, proc2mem_addr[31:0],
 				proc2mem_data[63:32], proc2mem_data[31:0]);
-			
-			
+
 			// print the writeback information to writeback.out
 			if(pipeline_completed_insts>0) begin
 				if(pipeline_commit_wr_en)
@@ -247,6 +292,7 @@ module testbench;
 				else
 					$fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
 			end
+`endif
 			
 			// deal with any halting conditions
 			if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin

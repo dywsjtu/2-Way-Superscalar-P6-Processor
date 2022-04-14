@@ -11,7 +11,7 @@
 `timescale 1ns/100ps
 
 
-module dispatch_stage(
+module dispatch_stage_1point2 (
 	input         							clock,                  // system clock
 	input         							reset,                  // system reset
 	// input         						mem_wb_valid_inst,      // only go to next instruction when true
@@ -21,7 +21,8 @@ module dispatch_stage(
 	// input					[`XLEN-1:0]		ex_mem_target_pc,		// target pc: use if take_branch is TRUE
 	input					[63:0] 			Icache_data_out,			// Data coming back from instruction-memory
 	input									Icache_valid_out,
-	input	ROB_ID_PACKET       			rob_id,
+	input	ROB_ID_PACKET       			rob_id_0,
+	input	ROB_ID_PACKET       			rob_id_1,
 
 	// output	IF_ID_PACKET 				if_packet_out			// Output data packet from IF going to ID, see sys_defs for signal information 
 	// input	IF_ID_PACKET				if_id_packet_in,
@@ -54,17 +55,18 @@ module dispatch_stage(
 	// assign PC_enable 						= id_packet_out.valid | ex_mem_take_branch;
 	`ifdef BRANCH_MODE
 		logic [`XLEN-1:0]		NPC_out;
-		assign next_PC 							= rob_id.squash ? rob_id.target_pc 
+		assign next_PC 							= rob_id_0.squash ? rob_id_0.target_pc 
 															: NPC_out;
 		assign id_packet_out.NPC_out			= NPC_out;
 	`else
-		assign next_PC 							= rob_id.squash ? rob_id.target_pc 
-															: PC_plus_4;
+		assign next_PC 							= rob_id_0.squash ? rob_id_0.target_pc : 
+												  rob_id_1.squash ? rob_id_1.target_pc : 
+												  					PC_plus_4;
 		assign id_packet_out.NPC_out			= PC_plus_4;
 	`endif
 	
 	
-	assign PC_enable 						= id_packet_out.valid || rob_id.squash;
+	assign PC_enable 						= id_packet_out.valid || rob_id_0.squash || rob_id_1.squash;
 	
 	
 	// Pass PC+4 down pipeline w/instruction
@@ -135,7 +137,7 @@ module dispatch_stage(
     		//INPUT
     		.clock(clock),
     		.reset(reset),
-			.squash(rob_id.squash),
+			.squash(rob_id_0.squash),
 
 			//.is_return(1'b0),
     		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP && id_packet_out.valid),
@@ -145,12 +147,12 @@ module dispatch_stage(
     		.PC_in(id_packet_out.PC),
     		.PC_plus_4(id_packet_out.NPC),
 
-    		.ex_result_valid(rob_id.result_valid),
-    		.ex_branch_taken(rob_id.branch_taken),
-    		.ex_is_branch(rob_id.is_branch),
-    		.PC_ex(rob_id.PC),
-    		.ex_result(rob_id.targetPC),
-    		.ex_branch_idx(rob_id.dirp_tag),
+    		.ex_result_valid(rob_id_0.result_valid),
+    		.ex_branch_taken(rob_id_0.branch_taken),
+    		.ex_is_branch(rob_id_0.is_branch),
+    		.PC_ex(rob_id_0.PC),
+    		.ex_result(rob_id_0.targetPC),
+    		.ex_branch_idx(rob_id_0.dirp_tag),
 
 
     		//OUTPUT

@@ -1,10 +1,10 @@
 `ifndef __ICACHE_L2__
 `define __ICACHE_L2__
 
-`define CACHE_LINES     16
-`define CACHE_LINE_BITS $clog2(`CACHE_LINES)
-`define CACHE_LINE_SIZE 2
-`define FETCH_SIZE      4
+`define CACHE_LINES_L2      16
+`define CACHE_LINE_BITS_L2  $clog2(`CACHE_LINES_L2)
+`define CACHE_LINE_SIZE_L2  2
+`define FETCH_SIZE_L2       4
 
 module icache_l2(
     input clock,
@@ -23,16 +23,16 @@ module icache_l2(
     output logic [63:0] Icache_data_out, // value is memory[proc2Icache_addr]
     output logic Icache_valid_out      // when this is high
 );
-    logic   [`CACHE_LINE_BITS - 1:0]      current_index, last_index;
-    logic   [12 - `CACHE_LINE_BITS:0]     current_tag, last_tag;
+    logic   [`CACHE_LINE_BITS_L2 - 1:0]      current_index, last_index;
+    logic   [12 - `CACHE_LINE_BITS_L2:0]     current_tag, last_tag;
 
 
     assign  {current_tag, current_index} = proc2Icache_addr[15:3];
 
     //Cache memory
-    logic   [`CACHE_LINE_SIZE-1:0] [`CACHE_LINES-1:0] [63:0]                     data;
-    logic   [`CACHE_LINE_SIZE-1:0] [`CACHE_LINES-1:0] [12 - `CACHE_LINE_BITS:0]  tags;
-    logic   [`CACHE_LINE_SIZE-1:0] [`CACHE_LINES-1:0]                            valids;
+    logic   [`CACHE_LINE_SIZE_L2-1:0] [`CACHE_LINES_L2-1:0] [63:0]                     data;
+    logic   [`CACHE_LINE_SIZE_L2-1:0] [`CACHE_LINES_L2-1:0] [12 - `CACHE_LINE_BITS_L2:0]  tags;
+    logic   [`CACHE_LINE_SIZE_L2-1:0] [`CACHE_LINES_L2-1:0]                            valids;
 
     logic   match_0, match_1;
     assign  match_0          =  valids[0][current_index] && (tags[0][current_index] == current_tag);
@@ -42,28 +42,28 @@ module icache_l2(
     assign  Icache_valid_out =  match_0 || match_1;
 
 
-    logic   [`FETCH_SIZE-1:0]           not_in_cache;
-    logic   [`FETCH_SIZE-1:0]           to_fetch;
+    logic   [`FETCH_SIZE_L2-1:0]           not_in_cache;
+    logic   [`FETCH_SIZE_L2-1:0]           to_fetch;
 
-    logic   [`FETCH_SIZE-1:0][12:0]     mem_addr;
-    logic   [`FETCH_SIZE-1:0][3:0]      mem_tag;
-    logic   [`FETCH_SIZE-1:0][12:0]     last_mem_addr;
-    logic   [`FETCH_SIZE-1:0][3:0]      last_mem_tag;
+    logic   [`FETCH_SIZE_L2-1:0][12:0]     mem_addr;
+    logic   [`FETCH_SIZE_L2-1:0][3:0]      mem_tag;
+    logic   [`FETCH_SIZE_L2-1:0][12:0]     last_mem_addr;
+    logic   [`FETCH_SIZE_L2-1:0][3:0]      last_mem_tag;
 
-    logic   [$clog2(`FETCH_SIZE)-1:0]   fetch_idx;
-    logic   [`FETCH_SIZE-1:0]           tag_match;
+    logic   [$clog2(`FETCH_SIZE_L2)-1:0]   fetch_idx;
+    logic   [`FETCH_SIZE_L2-1:0]           tag_match;
 
     always_comb begin
-        for (int i = 0; i < `FETCH_SIZE; i += 1) begin
+        for (int i = 0; i < `FETCH_SIZE_L2; i += 1) begin
             mem_addr[i]     = proc2Icache_addr[15:3] + i;
             mem_tag[i]      = 4'b0;
-            for (int j = 0; j < `FETCH_SIZE; j += 1) begin
+            for (int j = 0; j < `FETCH_SIZE_L2; j += 1) begin
                 if (mem_addr[i] == last_mem_addr[j]) begin
                     mem_tag[i] = last_mem_tag[j];
                 end
             end
-            not_in_cache[i] = (~valids[0][mem_addr[i][`CACHE_LINE_BITS-1:0]] || ~(tags[0][mem_addr[i][`CACHE_LINE_BITS-1:0]] == mem_addr[i][12:`CACHE_LINE_BITS])) &&
-                              (~valids[1][mem_addr[i][`CACHE_LINE_BITS-1:0]] || ~(tags[1][mem_addr[i][`CACHE_LINE_BITS-1:0]] == mem_addr[i][12:`CACHE_LINE_BITS]));
+            not_in_cache[i] = (~valids[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]] || ~(tags[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]] == mem_addr[i][12:`CACHE_LINE_BITS_L2])) &&
+                              (~valids[1][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]] || ~(tags[1][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]] == mem_addr[i][12:`CACHE_LINE_BITS_L2]));
             to_fetch[i]     = not_in_cache[i] && (mem_tag[i] == 4'b0);
         end
     end
@@ -74,7 +74,7 @@ module icache_l2(
     );
 
     always_comb begin
-        for (int i = 0; i < `FETCH_SIZE; i += 1) begin
+        for (int i = 0; i < `FETCH_SIZE_L2; i += 1) begin
             tag_match[i]    = (mem_tag[i] == Imem2proc_tag) && (mem_tag[i] != 4'b0);
         end
     end
@@ -107,17 +107,17 @@ module icache_l2(
 
             last_mem_addr           <= `SD mem_addr; 
 
-            for (int i = 0; i < `FETCH_SIZE; i += 1) begin
+            for (int i = 0; i < `FETCH_SIZE_L2; i += 1) begin
                 if (i == fetch_idx && to_fetch[i]) begin
                     last_mem_tag[i] <= `SD Imem2proc_response;
                 end else begin
                     if (tag_match[i]) begin
-                        data[0][mem_addr[i][`CACHE_LINE_BITS-1:0]]      <= `SD Imem2proc_data;
-                        tags[0][mem_addr[i][`CACHE_LINE_BITS-1:0]]      <= `SD mem_addr[i][12:`CACHE_LINE_BITS];
-                        valids[0][mem_addr[i][`CACHE_LINE_BITS-1:0]]    <= `SD 1;
-                        data[1][mem_addr[i][`CACHE_LINE_BITS-1:0]]      <= `SD data[0][mem_addr[i][`CACHE_LINE_BITS-1:0]];
-                        tags[1][mem_addr[i][`CACHE_LINE_BITS-1:0]]      <= `SD tags[0][mem_addr[i][`CACHE_LINE_BITS-1:0]];
-                        valids[1][mem_addr[i][`CACHE_LINE_BITS-1:0]]    <= `SD valids[0][mem_addr[i][`CACHE_LINE_BITS-1:0]];
+                        data[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]]      <= `SD Imem2proc_data;
+                        tags[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]]      <= `SD mem_addr[i][12:`CACHE_LINE_BITS_L2];
+                        valids[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]]    <= `SD 1;
+                        data[1][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]]      <= `SD data[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]];
+                        tags[1][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]]      <= `SD tags[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]];
+                        valids[1][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]]    <= `SD valids[0][mem_addr[i][`CACHE_LINE_BITS_L2-1:0]];
                         last_mem_tag[i]                                 <= `SD 4'b0;
                     end else begin
                         last_mem_tag[i]                                 <= `SD mem_tag[i];
@@ -144,7 +144,7 @@ module icache_l2(
         if(reset) begin
             cycle_count = 0;
         end else begin
-            for(int i = 0; i < `CACHE_LINES; i += 1) begin
+            for(int i = 0; i < `CACHE_LINES_L2; i += 1) begin
                 $display("DEBUG %4d: icache[%2d]: valids = %h, tags = %h, data = %h", cycle_count, i, valids[i], tags[i], data[i]);
             end
             cycle_count = cycle_count + 1;

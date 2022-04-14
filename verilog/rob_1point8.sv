@@ -66,12 +66,12 @@ module rob_1point8 (
 
     assign retire_valid_0           = rob_entries[rob_head].ready && (~rob_empty) && 
                                       (~rob_entries[rob_head].store || lsq_rob.retire_valid);
-    assign retire_valid_1           = retire_valid_0 && rob_entries[rob_head_plus_1].ready && ~rob_entries[rob_head_plus_1].halt
-                                      (~rob_entries[rob_head_plus_1].store || lsq_rob.retire_valid);
+    assign retire_valid_1           = retire_valid_0 && ~squash_0 && ~rob_entries[rob_head].halt &&
+                                      rob_entries[rob_head_plus_1].valid && rob_entries[rob_head_plus_1].ready && 
+                                      (~rob_entries[rob_head_plus_1].halt) && (~rob_entries[rob_head_plus_1].store);
     
     assign rob_lsq.sq_halt          = rob_entries[rob_head].halt;
-    assign rob_lsq.sq_retire        = rob_entries[rob_head].ready && 
-                                      (rob_entries[rob_head].store || (rob_entries[rob_head_plus_1].ready && rob_entries[rob_head_plus_1].store));
+    assign rob_lsq.sq_retire        = rob_entries[rob_head].ready && rob_entries[rob_head].store;
 
     assign squash_0                 = ((rob_entries[rob_head].mis_pred) || (rob_entries[rob_head].is_branch && rob_entries[rob_head].NPC_out != rob_entries[rob_head].branch_target)) && retire_valid_0;
     assign squash_1                 = ((rob_entries[rob_head_plus_1].mis_pred) || (rob_entries[rob_head_plus_1].is_branch && rob_entries[rob_head_plus_1].NPC_out != rob_entries[rob_head_plus_1].branch_target)) && retire_valid_1;
@@ -111,11 +111,11 @@ module rob_1point8 (
     assign rob_mt_0.dest_valid      = rob_reg_0.dest_valid;
     assign rob_mt_0.dest_reg_idx    = rob_reg_0.dest_reg_idx;
 
-    assign rob_mt_0.rob_head        = rob_head_plus_1;
-    assign rob_mt_0.rob_tail        = rob_tail_plus_1;
-    assign rob_mt_0.squash          = squash;
-    assign rob_mt_0.dest_valid      = rob_reg_1.dest_valid;
-    assign rob_mt_0.dest_reg_idx    = rob_reg_1.dest_reg_idx;
+    assign rob_mt_1.rob_head        = rob_head_plus_1;
+    assign rob_mt_1.rob_tail        = rob_tail_plus_1;
+    assign rob_mt_1.squash          = squash;
+    assign rob_mt_1.dest_valid      = rob_reg_1.dest_valid;
+    assign rob_mt_1.dest_reg_idx    = rob_reg_1.dest_reg_idx;
     
     assign rob_reg_0.valid          = retire_valid_0 || halt;
     assign rob_reg_0.dest_valid     = rob_reg_0.valid && (rob_entries[rob_head].dest_reg_idx != `ZERO_REG);
