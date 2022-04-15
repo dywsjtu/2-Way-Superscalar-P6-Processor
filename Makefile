@@ -77,7 +77,7 @@ SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD   = 15		# TODO: You will need to make match SYNTH_CLOCK_PERIOD in sys_defs
+export CLOCK_PERIOD   = 17		# TODO: You will need to make match SYNTH_CLOCK_PERIOD in sys_defs
                                 #       and make this more aggressive
 
 ################################################################################

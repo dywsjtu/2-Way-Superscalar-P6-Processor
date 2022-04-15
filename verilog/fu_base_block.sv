@@ -143,7 +143,7 @@ module mlu (
 	output logic    [`XLEN-1:0]     result
 );
 	
-	logic			[`XLEN-1:0]		out_result;
+	logic			[2*`XLEN-1:0]		out_result;
 
 	logic [1:0] sign;
 	always_comb begin
