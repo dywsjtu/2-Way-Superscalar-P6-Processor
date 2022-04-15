@@ -410,8 +410,11 @@ typedef struct packed {
 // 	logic [2:0]       mem_size; // byte, half-word or word
 // } EX_MEM_PACKET;
 
-`define BTB_IDX_LEN 3
-`define BTB_SIZE 8 
+`define BTB_IDX_LEN 5
+`define BTB_SIZE 32
+`define BTB_IDX_LEN_2 4
+`define BTB_SIZE_2 16
+
 
 
 // `ifdef BRANCH_MODE
