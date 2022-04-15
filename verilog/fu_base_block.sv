@@ -142,33 +142,8 @@ module mlu (
     output logic                    valid,
 	output logic    [`XLEN-1:0]     result
 );
-	logic							out_valid;
-	logic			[2*`XLEN-1:0]		out_result;
-
-	logic							out_valid;
+	
 	logic			[`XLEN-1:0]		out_result;
-
-	wire signed 	[`XLEN-1:0]     signed_opa, signed_opb;
-	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
-	wire        	[2*`XLEN-1:0]   unsigned_mul;
-
-	// assign signed_opa   = opa;
-	// assign signed_opb   = opb;
-	// assign signed_mul   = signed_opa * signed_opb;
-	// assign unsigned_mul = opa * opb;
-	// assign mixed_mul    = signed_opa * opb;
-
-	// always_comb begin
-	// 	case (func)
-	// 		ALU_MUL:      out_result = signed_mul[`XLEN-1:0];
-	// 		ALU_MULH:     out_result = signed_mul[2*`XLEN-1:`XLEN];
-	// 		ALU_MULHSU:   out_result = mixed_mul[2*`XLEN-1:`XLEN];
-	// 		ALU_MULHU:    out_result = unsigned_mul[2*`XLEN-1:`XLEN];
-
-	// 		default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
-	// 	endcase
-	// 	out_valid = val_valid;
-	// end
 
 	logic [1:0] sign;
 	always_comb begin
@@ -205,20 +180,5 @@ module mlu (
 		.done(valid)
 	);
 
-		// // synopsys sync_set_reset "reset"
-	// always_ff @(posedge clock) begin
-	// 	if (reset || ~val_valid) begin
-	// 		valid		<=	`SD	1'b0;
-	// 		result		<=	`SD	`XLEN'b0;
-	// 	// end else if (refresh) begin
-	// 	// 	valid		<=	`SD	out_valid;
-	// 	// 	result		<=	`SD out_result;
-	// 	// // 	// clear intermediate values
-	// 	end else begin
-	// 		valid		<=	`SD	out_valid;
-	// 		result		<=	`SD out_result;
-	// 	end
-	// end
 
-	
 endmodule // mlu
