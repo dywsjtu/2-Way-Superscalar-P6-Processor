@@ -690,7 +690,7 @@ module pipeline (
 	LSQ_LOAD_DCACHE_PACKET          lsq_load_dc;
 	LSQ_STORE_DCACHE_PACKET         lsq_store_dc;
 
-	dcache dcache_0 (
+	dcache_l2 dcache_0 (
 		.clock(clock),
 		.reset(reset),
 

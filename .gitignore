@@ -42,3 +42,5 @@ synth/*.mr
 synth/*.pvl
 syn_simv.vdb
 output/*
+testout.txt
+CPI_result.txt

@@ -758,7 +758,7 @@ typedef struct packed {
 	logic	[15:0]					addr;
 	logic	[63:0]					value;
 	MEM_SIZE						mem_size;
-	logic	[1:0]					op; // 0 for just load, 1 for load for store, 2 for store
+	logic							op; // 0 for load, 1 for store
 } MISS_ENTRY;
 
 

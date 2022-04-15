@@ -68,7 +68,7 @@ module dcache (
     logic                                   temp_valid;
     EXAMPLE_CACHE_BLOCK                     temp_value;
     logic           [13:0]                  temp_addr;
-    logic           [1:0]                   temp_op;
+    logic                                   temp_op;
     logic           [`CACHE_IDX_LEN-1:0]    temp_minus;
 
     always_comb begin
@@ -83,17 +83,17 @@ module dcache (
         temp_minus  = `CACHE_IDX_LEN'b0;
         temp_addr   = 14'b0;
         temp_value  = 64'b0;
-        temp_op     = 2'b00;
+        temp_op     = 1'b0;
 
         for (int i = 0; i < `MISS_LINES; i += 1) begin
-            if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op[1]) begin
+            if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op) begin
                 next_miss_entries[i] = 0;
             end
         end
 
         if (Dmem2proc_valid) begin
             for (int i = 0; i < `MISS_LINES; i += 1) begin
-                // if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op[1]) begin
+                // if (miss_entries[i].valid && miss_entries[i].sent && miss_entries[i].op) begin
                 //     next_miss_entries[i] = 0;
                 // end else 
                 if (~temp_valid && next_miss_entries[i].valid && next_miss_entries[i].sent && next_miss_entries[i].tag == Dmem2proc_tag) begin
@@ -101,24 +101,10 @@ module dcache (
                     temp_value  = Dmem2proc_data;
                     temp_addr   = {1'b1, next_miss_entries[i].addr[15:3]};
                     temp_op     = next_miss_entries[i].op;
-                    // if (miss_entries[i].op == 2'b01) begin
-                    //     casez (miss_entries[i].mem_size)
-                    //         BYTE: temp_value.byte_level[addr[2:0]]  = miss_entries[i].value[7:0];
-                    //         HALF: temp_value.half_level[addr[2:1]]  = miss_entries[i].value[15:0];
-                    //         WORD: temp_value.word_level[addr[2]]    = miss_entries[i].value[31:0];
-                    //     endcase
-                    //     next_miss_entries[i].valid  = 1'b1;
-                    //     next_miss_entries[i].sent   = 1'b0;
-                    //     next_miss_entries[i].tag    = 4'b0;
-                    //     next_miss_entries[i].value  = temp_value.double_level;
-                    //     next_miss_entries[i].op     = 2'b10;
-                    // end else
-                    //     next_miss_entries[i].valid  = 1'b0;
-                    // end
                     next_miss_entries[i].valid  = 1'b0;
                 end
             end
-            if (temp_valid && temp_op != 2'b10) begin
+            if (temp_valid && ~temp_op) begin
                 temp_valid = 1'b0;
                 for (int i = 0; i < `CACHE_LINES; i += 1) begin
                     if (~temp_valid && next_dcache_entries[i].lru_counter == `CACHE_IDX_LEN'b0) begin
@@ -157,7 +143,7 @@ module dcache (
             end
             if (~temp_valid) begin
                 for (int i = 0; i < `MISS_LINES; i += 1) begin
-                    if (next_miss_entries[i].valid && next_miss_entries[i].addr[15:3] == lsq_load_dc.addr[15:3] && ~next_miss_entries[i].op[1]) begin
+                    if (next_miss_entries[i].valid && next_miss_entries[i].addr[15:3] == lsq_load_dc.addr[15:3] && ~next_miss_entries[i].op) begin
                         temp_valid      = 1'b1;
                     end
                 end
@@ -171,7 +157,7 @@ module dcache (
                                                         lsq_load_dc.addr[15:0],
                                                         64'b0,
                                                         lsq_load_dc.mem_size,
-                                                        2'b00   };
+                                                        1'b0   };
                         end
                     end
                 end
@@ -204,7 +190,7 @@ module dcache (
                 temp_valid = 1'b0;
                 for (int i = 0; i < `MISS_LINES; i += 1) begin
                     if (~temp_valid && next_miss_entries[i].valid == 1'b1 && next_miss_entries[i].sent == 1'b0 && 
-                        next_miss_entries[i].addr[15:3] == lsq_store_dc.addr[15:3] && next_miss_entries[i].op[1]) begin
+                        next_miss_entries[i].addr[15:3] == lsq_store_dc.addr[15:3] && next_miss_entries[i].op) begin
                         next_miss_entries[i].value = temp_value.double_level;
                         temp_valid = 1'b1;
                         dc_store_lsq.valid = 1'b1;
@@ -219,14 +205,14 @@ module dcache (
                                                     lsq_store_dc.addr[15:0],
                                                     temp_value.double_level,
                                                     lsq_store_dc.mem_size,
-                                                    2'b10   };
+                                                    1'b1    };
                         dc_store_lsq.valid = 1'b1;
                     end
                 end
 
             end else begin
                 for (int i = 0; i < `MISS_LINES; i += 1) begin
-                    if (next_miss_entries[i].valid && next_miss_entries[i].addr[15:3] == lsq_store_dc.addr[15:3] && ~next_miss_entries[i].op[1]) begin
+                    if (next_miss_entries[i].valid && next_miss_entries[i].addr[15:3] == lsq_store_dc.addr[15:3] && ~next_miss_entries[i].op) begin
                         temp_valid      = 1'b1;
                     end
                 end
@@ -240,7 +226,7 @@ module dcache (
                                                         lsq_store_dc.addr[15:0],
                                                         64'b0,
                                                         lsq_store_dc.mem_size,
-                                                        2'b01   };
+                                                        1'b0    };
                         end
                     end
                 end
@@ -254,7 +240,7 @@ module dcache (
 
         temp_valid = 1'b0;
         for (int i = 0; i < `MISS_LINES; i += 1) begin
-            if (~temp_valid && next_miss_entries[i].valid && ~next_miss_entries[i].sent && next_miss_entries[i].op[1]) begin
+            if (~temp_valid && next_miss_entries[i].valid && ~next_miss_entries[i].sent && next_miss_entries[i].op) begin
                 next_miss_entries[i].sent   = chosen2Mem && (Dmem2proc_response != 4'b0);
                 proc2Dmem_valid             = 1'b1;
                 proc2Dmem_data              = next_miss_entries[i].value;
@@ -278,7 +264,7 @@ module dcache (
 
         dc_store_lsq.halt_valid = 1'b1;
         for (int i = 0; i < `MISS_LINES; i += 1) begin
-            if (next_miss_entries[i].valid && next_miss_entries[i].op[1] && ~next_miss_entries[i].sent) begin
+            if (next_miss_entries[i].valid && next_miss_entries[i].op && ~next_miss_entries[i].sent) begin
                 dc_store_lsq.halt_valid = 1'b0;
                 dc_store_lsq.valid = 1'b0;
             end

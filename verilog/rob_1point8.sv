@@ -54,7 +54,7 @@ module rob_1point8 (
     logic                           rob_empty;
     logic                           retire_valid_0, retire_valid_1;
     logic                           squash_0, squash_1;
-    logic                           valid_0, valid_1;
+    // logic                           valid_0, valid_1;
 
     assign rob_empty                = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full                 = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
