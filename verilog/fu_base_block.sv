@@ -143,42 +143,82 @@ module mlu (
 	output logic    [`XLEN-1:0]     result
 );
 	logic							out_valid;
+	logic			[2*`XLEN-1:0]		out_result;
+
+	logic							out_valid;
 	logic			[`XLEN-1:0]		out_result;
 
 	wire signed 	[`XLEN-1:0]     signed_opa, signed_opb;
 	wire signed 	[2*`XLEN-1:0]   signed_mul, mixed_mul;
 	wire        	[2*`XLEN-1:0]   unsigned_mul;
 
-	assign signed_opa   = opa;
-	assign signed_opb   = opb;
-	assign signed_mul   = signed_opa * signed_opb;
-	assign unsigned_mul = opa * opb;
-	assign mixed_mul    = signed_opa * opb;
+	// assign signed_opa   = opa;
+	// assign signed_opb   = opb;
+	// assign signed_mul   = signed_opa * signed_opb;
+	// assign unsigned_mul = opa * opb;
+	// assign mixed_mul    = signed_opa * opb;
+
+	// always_comb begin
+	// 	case (func)
+	// 		ALU_MUL:      out_result = signed_mul[`XLEN-1:0];
+	// 		ALU_MULH:     out_result = signed_mul[2*`XLEN-1:`XLEN];
+	// 		ALU_MULHSU:   out_result = mixed_mul[2*`XLEN-1:`XLEN];
+	// 		ALU_MULHU:    out_result = unsigned_mul[2*`XLEN-1:`XLEN];
+
+	// 		default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
+	// 	endcase
+	// 	out_valid = val_valid;
+	// end
+
+	logic [1:0] sign;
+	always_comb begin
+		case (func)
+			ALU_MUL:      sign = 2'b11;
+			ALU_MULH:     sign = 2'b11;
+			ALU_MULHSU:   sign = 2'b01;
+			ALU_MULHU:    sign = 2'b00;
+
+			default:      sign = 2'b11;  // here to prevent latches
+		endcase
+	end
 
 	always_comb begin
 		case (func)
-			ALU_MUL:      out_result = signed_mul[`XLEN-1:0];
-			ALU_MULH:     out_result = signed_mul[2*`XLEN-1:`XLEN];
-			ALU_MULHSU:   out_result = mixed_mul[2*`XLEN-1:`XLEN];
-			ALU_MULHU:    out_result = unsigned_mul[2*`XLEN-1:`XLEN];
+			ALU_MUL:      result = out_result[`XLEN-1:0];
+			ALU_MULH:     result = out_result[2*`XLEN-1:`XLEN];
+			ALU_MULHSU:   result = out_result[2*`XLEN-1:`XLEN];
+			ALU_MULHU:    result = out_result[2*`XLEN-1:`XLEN];
 
-			default:      out_result = `XLEN'hfacebeec;  // here to prevent latches
+			default:      result = `XLEN'h0;  // here to prevent latches
 		endcase
-		out_valid = val_valid;
 	end
 
-	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset || ~val_valid) begin
-			valid		<=	`SD	1'b0;
-			result		<=	`SD	`XLEN'b0;
-		// end else if (refresh) begin
-		// 	valid		<=	`SD	out_valid;
-		// 	result		<=	`SD out_result;
-		// // 	// clear intermediate values
-		end else begin
-			valid		<=	`SD	out_valid;
-			result		<=	`SD out_result;
-		end
-	end
+	mult mult_0 (
+		.clock(clock),
+		.reset(reset || refresh),
+		.start(val_valid),
+		.sign(sign),
+		.mcand(opa),
+		.mplier(opb),
+
+		.product(out_result),
+		.done(valid)
+	);
+
+		// // synopsys sync_set_reset "reset"
+	// always_ff @(posedge clock) begin
+	// 	if (reset || ~val_valid) begin
+	// 		valid		<=	`SD	1'b0;
+	// 		result		<=	`SD	`XLEN'b0;
+	// 	// end else if (refresh) begin
+	// 	// 	valid		<=	`SD	out_valid;
+	// 	// 	result		<=	`SD out_result;
+	// 	// // 	// clear intermediate values
+	// 	end else begin
+	// 		valid		<=	`SD	out_valid;
+	// 		result		<=	`SD out_result;
+	// 	end
+	// end
+
+	
 endmodule // mlu

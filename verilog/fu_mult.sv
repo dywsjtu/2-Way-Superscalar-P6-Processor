@@ -47,9 +47,9 @@ module fu_mult(
 	//
 	mlu mlu_0 (// Inputs
 		.clock(clock),
-		.reset(reset),
+		.reset(reset || working_rs_fu.squash),
 
-		.refresh(working_rs_fu.squash || working_rs_fu.selected),
+		.refresh(working_rs_fu.selected),
 		.val_valid(working_rs_fu.rs_value_valid),
 		.opa(opa_mux_out),
 		.opb(opb_mux_out),
