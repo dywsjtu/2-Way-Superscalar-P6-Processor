@@ -59,7 +59,7 @@ module rob_1point8 (
     assign rob_empty                = (rob_counter == `ROB_IDX_LEN'b0);
     assign rob_full                 = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
     assign valid                    = id_rob.dispatch_enable && id_rob.valid;
-    assign halt                     = rob_entries[rob_head].halt && lsq_rob.halt_valid;
+    assign halt                     = rob_entries[rob_head].halt;
 
     assign rob_head_plus_1          = (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0 : rob_head + 1;
     assign rob_tail_plus_1          = (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0 : rob_tail + 1;
@@ -70,7 +70,6 @@ module rob_1point8 (
                                       rob_entries[rob_head_plus_1].valid && rob_entries[rob_head_plus_1].ready && 
                                       (~rob_entries[rob_head_plus_1].halt) && (~rob_entries[rob_head_plus_1].store);
     
-    assign rob_lsq.sq_halt          = rob_entries[rob_head].halt;
     assign rob_lsq.sq_retire        = rob_entries[rob_head].ready && rob_entries[rob_head].store;
 
     assign squash_0                 = ((rob_entries[rob_head].mis_pred) || (rob_entries[rob_head].is_branch && rob_entries[rob_head].NPC_out != rob_entries[rob_head].branch_target)) && retire_valid_0;

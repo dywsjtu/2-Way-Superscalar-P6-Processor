@@ -76,8 +76,7 @@ module lsq (
 
     logic                                                   sq_rob_valid;
     assign  lsq_rob.retire_valid    = sq_rob_valid;
-    assign  lsq_rob.halt_valid      = dc_store_lsq.halt_valid;
-    // assign  lsq_rob.halt_valid      = (sq_head == sq_tail); // TODO: Change this
+    
     // load queue
 
     logic [1:0]    lq_selection;
@@ -281,7 +280,7 @@ module lsq (
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
-        if (reset || squash || rob_lsq.sq_halt) begin
+        if (reset || squash) begin
             sq_head             <=  `SD `LSQ_IDX_LEN'b0;
             sq_tail             <=  `SD `LSQ_IDX_LEN'b0;
             sq_counter          <=  `SD `LSQ_IDX_LEN'b0;
@@ -313,7 +312,7 @@ module lsq (
                             sq_entries[sq_head].addr,
                             sq_entries[sq_head].mem_size,
                             sq_value[sq_head],
-                            rob_lsq.sq_halt };
+                            1'b0 };
 
     // // synopsys sync_set_reset "reset"
     // always_ff @(posedge clock) begin

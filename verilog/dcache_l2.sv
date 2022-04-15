@@ -77,7 +77,6 @@ module dcache_l2 (
         dc_load_lsq.valid       = 1'b0;
         dc_load_lsq.value       = `XLEN'b0;
         dc_store_lsq.valid      = 1'b0;
-        dc_store_lsq.halt_valid = 1'b0;
         next_miss_entries       = miss_entries;
         next_data               = data;
         next_tags               = tags;
@@ -131,7 +130,7 @@ module dcache_l2 (
             end
         end
 
-        if (lsq_load_dc.valid && (~lsq_store_dc.valid || ~lsq_store_dc.halt)) begin
+        if (lsq_load_dc.valid) begin
             temp_valid  = 1'b0;
             temp_tag    = lsq_load_dc.addr[15:`DCACHE_LINE_BITS_L2+3];
             temp_idx    = lsq_load_dc.addr[`DCACHE_LINE_BITS_L2+2:3];
@@ -191,7 +190,7 @@ module dcache_l2 (
         end
         
         dc_store_lsq.valid = 1'b0;
-        if (lsq_store_dc.valid && ~lsq_store_dc.halt && (~temp_addr[13] || (lsq_store_dc.addr[15:3] != temp_addr[12:0]))) begin
+        if (lsq_store_dc.valid && (~temp_addr[13] || (lsq_store_dc.addr[15:3] != temp_addr[12:0]))) begin
             temp_valid  = 1'b0;
             temp_tag    = lsq_store_dc.addr[15:`DCACHE_LINE_BITS_L2+3];
             temp_idx    = lsq_store_dc.addr[`DCACHE_LINE_BITS_L2+2:3];
@@ -312,10 +311,8 @@ module dcache_l2 (
             end
         end
 
-        dc_store_lsq.halt_valid = 1'b1;
         for (int i = 0; i < `MISS_LINES; i += 1) begin
             if (next_miss_entries[i].valid && next_miss_entries[i].op && ~next_miss_entries[i].sent) begin
-                dc_store_lsq.halt_valid = 1'b0;
                 dc_store_lsq.valid = 1'b0;
             end
         end

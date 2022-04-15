@@ -38,8 +38,8 @@
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
 //you can change the clock period to whatever, 10 is just fine
-`define VERILOG_CLOCK_PERIOD   50.0
-`define SYNTH_CLOCK_PERIOD     50.0 // Clock period for synth and memory latency
+`define VERILOG_CLOCK_PERIOD   15.0
+`define SYNTH_CLOCK_PERIOD     15.0 // Clock period for synth and memory latency
 
 //`define MEM_LATENCY_IN_CYCLES 0.4
 `define MEM_LATENCY_IN_CYCLES (100.0/`SYNTH_CLOCK_PERIOD+0.49999)
