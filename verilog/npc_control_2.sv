@@ -42,6 +42,8 @@ module npc_control_2 (
     input [`XLEN-1:0] ex_result_1,
     input [`DIRP_IDX_LEN-1:0] ex_branch_idx_1,
 
+    input FU_ID_PACKET fu_id_0,
+    input FU_ID_PACKET fu_id_1,
 
     //OUTPUT
     output logic [`DIRP_IDX_LEN-1:0] dirp_tag_0,
@@ -59,11 +61,15 @@ module npc_control_2 (
 	assign branch_predict_0 = branch_taken_0 && btb_hit_0;
     assign branch_predict_1 = branch_taken_1 && btb_hit_1;
 
+    // assign NPC_out_0 = (is_return_0 && ras_valid) ? PC_ras_out :
+    //                  branch_predict_0? PC_btb_out_0 : PC_plus_4_0;
+    // assign NPC_out_1 = (~is_return_0 && is_return_1 && ras_valid) ? PC_ras_out :
+    //                  branch_predict_1? PC_btb_out_1 : PC_plus_4_1;
     assign NPC_out_0 = (is_return_0 && ras_valid) ? PC_ras_out :
-                     branch_predict_0? PC_btb_out_0 : PC_plus_4_0;
+                     ((is_jump_0 && btb_hit_0) ||branch_predict_0) ? PC_btb_out_0 : PC_plus_4_0;
     assign NPC_out_1 = (~is_return_0 && is_return_1 && ras_valid) ? PC_ras_out :
-                     branch_predict_1? PC_btb_out_1 : PC_plus_4_1;
-
+                     ((is_jump_1 && btb_hit_1) ||branch_predict_1) ? PC_btb_out_1 : PC_plus_4_1;
+                     
 	
     //Branch Predictor
     dirp_local_2 dirp_0(
@@ -97,9 +103,9 @@ module npc_control_2 (
         .reset(reset),
 
         //Read from BTB
-        .read_en_0(is_branch_0),
+        .read_en_0(is_branch_0 || is_jump_0),
         .PC_in_r_0(PC_in_0),
-        .read_en_1(is_branch_1),
+        .read_en_1(is_branch_1 || is_jump_1),
         .PC_in_r_1(PC_in_1),
 
         //Write into BTB

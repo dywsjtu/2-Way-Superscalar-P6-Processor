@@ -486,6 +486,13 @@ typedef struct packed {
 	logic	[1:0][`ROB_IDX_LEN-1:0]	entry_idx; // query index from RS to ROB
 } RS_ROB_PACKET;
 
+typedef struct packed {
+	logic is_branch;
+	logic is_valid;
+	logic [`XLEN-1:0] PC;
+	logic [`XLEN-1:0] targetPC;
+} FU_ID_PACKET;
+
 // typedef struct packed {
 // 	logic						completed;	// whether an instruction is completed or not
 // 	logic	[`ROB_IDX_LEN-1:0]	entry_idx;	// which ROB entry is completed
@@ -639,6 +646,8 @@ typedef struct packed {
 typedef struct packed {
 	logic	[`XLEN-1:0]		alu_result; // alu_result
 	logic	[`XLEN-1:0]		NPC; //pc + 4
+	logic 	[`XLEN-1:0]		PC;
+	logic 					is_branch;
 	logic					take_branch; // is this a taken branch?
 	//pass throughs from decode stage
 	logic	[`XLEN-1:0]		rs2_value;

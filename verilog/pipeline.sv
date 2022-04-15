@@ -577,6 +577,8 @@ module pipeline (
 	FU_LSQ_PACKET   [`NUM_LS-1:0]   fu_lsq;
 	LSQ_RS_PACKET                   lsq_rs;
 	LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu;
+	FU_ID_PACKET	    fu_id_0;
+	FU_ID_PACKET		fu_id_1;
 
 	// ROB
 	logic 				rob_full;
@@ -790,6 +792,8 @@ module pipeline (
 		.Icache_valid_out(Icache_valid_out),
 		.rob_id_0(rob_id_0),
 		.rob_id_1(rob_id_1),
+		.fu_id_0(fu_id_0),
+		.fu_id_1(fu_id_1),
 		
 		// Outputs
 		.proc2Imem_addr(proc2Icache_addr),
@@ -980,6 +984,8 @@ module pipeline (
 		.rs_cdb_0(rs_cdb_0),
 		.rs_cdb_1(rs_cdb_1),
 		.rs_reg(rs_reg_0),
+		.fu_id_0(fu_id_0),
+		.fu_id_1(fu_id_1),
 		//.rs_fu(rs_fu),
 		.rs_rob(rs_rob_0),
 		.rs_lsq(rs_lsq),

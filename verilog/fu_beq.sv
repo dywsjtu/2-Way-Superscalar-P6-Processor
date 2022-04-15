@@ -80,6 +80,8 @@ module fu_beq(
 	assign fu_rs.take_branch = working_id_fu.uncond_branch || 
 							   (working_id_fu.cond_branch & brcond_result);
 	assign fu_rs.alu_result	 = alu_result;
+	assign fu_rs.PC 		 = working_id_fu.PC;
+	assign fu_rs.is_branch	 = working_id_fu.uncond_branch || working_id_fu.cond_branch ; 
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin

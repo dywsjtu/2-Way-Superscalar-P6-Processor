@@ -82,6 +82,8 @@ module fu_alu(
 	 //	unconditional, or conditional and the condition is true
 	assign fu_rs.take_branch = 1'b0;
 	assign fu_rs.alu_result	 = alu_result;
+	assign fu_rs.PC 		 = working_id_fu.PC;
+	assign fu_rs.is_branch	 = 1'b0; 
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin

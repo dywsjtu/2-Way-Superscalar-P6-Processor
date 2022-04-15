@@ -24,6 +24,9 @@ module dispatch_stage_1point2 (
 	input	ROB_ID_PACKET       			rob_id_0,
 	input	ROB_ID_PACKET       			rob_id_1,
 
+	input 	FU_ID_PACKET					fu_id_0,
+	input 	FU_ID_PACKET					fu_id_1,
+
 	// output	IF_ID_PACKET 				if_packet_out			// Output data packet from IF going to ID, see sys_defs for signal information 
 	// input	IF_ID_PACKET				if_id_packet_in,
 	
@@ -140,7 +143,6 @@ module dispatch_stage_1point2 (
     		.reset(reset),
 			.squash(rob_id_0.squash || rob_id_1.squash),
 
-			//.is_return(1'b0),
     		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP && id_packet_out.valid),
     		.is_branch(id_packet_out.cond_branch && id_packet_out.valid),
     		.is_jump(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JAL_OP && id_packet_out.valid),
@@ -161,6 +163,9 @@ module dispatch_stage_1point2 (
     		.PC_ex_1(rob_id_1.PC),
     		.ex_result_1(rob_id_1.targetPC),
     		.ex_branch_idx_1(rob_id_1.dirp_tag),
+
+			.fu_id_0(fu_id_0),
+			.fu_id_1(fu_id_1),
 
 
     		//OUTPUT

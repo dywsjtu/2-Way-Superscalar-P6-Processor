@@ -41,6 +41,8 @@ module fu_ls(
 								  ((working_id_fu.opb_select == OPB_IS_I_IMM)	? `RV32_signext_Iimm(working_id_fu.inst)
 																				: `RV32_signext_Simm(working_id_fu.inst));
 	assign fu_rs.take_branch 	= 1'b0;
+	assign fu_rs.PC 		 = working_id_fu.PC;
+	assign fu_rs.is_branch	 = 1'b0; 
 
 
 	assign fu_lsq.load			= working_id_fu.rd_mem;

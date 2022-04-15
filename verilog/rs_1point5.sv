@@ -25,6 +25,8 @@ module rs_1point5 (
     input   LSQ_RS_PACKET                   lsq_rs,
     input   LSQ_FU_PACKET   [`NUM_LS-1:0]   lsq_fu,
 
+    output  FU_ID_PACKET                    fu_id_0,
+    output  FU_ID_PACKET                    fu_id_1,    
     output  RS_MT_PACKET                    rs_mt_0,
     output  RS_MT_PACKET                    rs_mt_1,
     output  CDB_ENTRY                       rs_cdb_0,
@@ -381,6 +383,17 @@ module rs_1point5 (
     assign rs_cdb_1.valid             = fu_result_valid[fu_num_1];
     assign rs_cdb_1.take_branch       = fu_rs[fu_num_1].take_branch;
     assign rs_cdb_1.branch_target     = fu_rs[fu_num_1].take_branch ? fu_rs[fu_num_1].alu_result : fu_rs[fu_num_1].NPC;
+
+
+    assign fu_id_0.is_branch          = fu_rs[fu_num_0].is_branch;
+    assign fu_id_0.is_valid           = fu_result_valid[fu_num_0];
+    assign fu_id_0.PC                 = fu_rs[fu_num_0].PC;
+    assign fu_id_0.targetPC           = fu_rs[fu_num_0].alu_result;
+
+    assign fu_id_1.is_branch          = fu_rs[fu_num_1].is_branch;
+    assign fu_id_1.is_valid           = fu_result_valid[fu_num_1];
+    assign fu_id_1.PC                 = fu_rs[fu_num_1].PC;
+    assign fu_id_1.targetPC           = fu_rs[fu_num_1].alu_result;
 
 
     assign rs_rob.entry_idx[0]      = mt_rs.rs_infos[0].tag;
