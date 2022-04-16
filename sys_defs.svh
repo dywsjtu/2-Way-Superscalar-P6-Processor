@@ -415,19 +415,6 @@ typedef struct packed {
 `define BTB_IDX_LEN_2 4
 `define BTB_SIZE_2 16
 
-
-
-// `ifdef BRANCH_MODE
-// 	typedef struct packed {
-// 		logic 							result_valid;
-// 		logic 							branch_taken;
-// 		logic 							is_branch;
-// 		logic [`XLEN-1:0]				targetPC;
-// 		logic [`XLEN-1:0]				PC;
-// 		logic [`DIRP_IDX_LEN-1:0]		dirp_tag;
-// 	} FU_ID_PACKET;
-// `endif
-
 typedef struct packed {
 	logic 						valid;
 	logic	[`XLEN-1:0]			NPC_out;
@@ -654,7 +641,6 @@ typedef struct packed {
 	logic 	[`XLEN-1:0]		PC;
 	logic 					is_branch;
 	logic					take_branch; // is this a taken branch?
-	logic  					cond_branch;
 	//pass throughs from decode stage
 	logic	[`XLEN-1:0]		rs2_value;
 	logic					rd_mem, wr_mem;

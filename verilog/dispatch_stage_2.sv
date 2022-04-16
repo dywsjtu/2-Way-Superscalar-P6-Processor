@@ -56,11 +56,13 @@ module dispatch_stage_2 (
 	
 
 	`ifdef BRANCH_MODE
-		logic [`XLEN-1:0]		NPC_out;
+		logic [`XLEN-1:0]		NPC_out_0, NPC_out_1;
 		assign next_PC 						= rob_id_0.squash ? rob_id_0.target_pc :
 											  rob_id_1.squash ? rob_id_1.target_pc : 
-											  					NPC_out;
-		assign id_packet_out.NPC_out		= NPC_out;
+											  					NPC_out_0; //NOT sure about the logic here
+		assign id_packet_out_0.NPC_out		= NPC_out_0;
+		assign id_packet_out_1.NPC_out		= NPC_out_1;
+
 	`else
 		assign next_PC 						= rob_id_0.squash ? rob_id_0.target_pc : 
 											  rob_id_1.squash ? rob_id_1.target_pc : 
@@ -136,20 +138,25 @@ module dispatch_stage_2 (
 
 	//Branch predictor
 	`ifdef BRANCH_MODE
-		logic ras_full;
-		//logic [4:0] ex_dirp_tag;
-		npc_control_1point2 npc_control_0(
+		npc_control_2 npc_control_0(
     		//INPUT
     		.clock(clock),
     		.reset(reset),
 			.squash(rob_id_0.squash || rob_id_1.squash),
 
-    		.is_return(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JALR_OP && id_packet_out.valid),
-    		.is_branch(id_packet_out.cond_branch && id_packet_out.valid),
-    		.is_jump(id_packet_out.uncond_branch && id_packet_out.inst[6:0] == `RV32_JAL_OP && id_packet_out.valid),
+    		.is_return_0(id_packet_out_0.uncond_branch && id_packet_out_0.inst[6:0] == `RV32_JALR_OP && id_packet_out_0.valid),
+    		.is_branch_0(id_packet_out_0.cond_branch && id_packet_out_0.valid),
+    		.is_jump_0(id_packet_out_0.uncond_branch && id_packet_out_0.inst[6:0] == `RV32_JAL_OP && id_packet_out_0.valid),
 
-    		.PC_in(id_packet_out.PC),
-    		.PC_plus_4(id_packet_out.NPC),
+			.is_return_1(id_packet_out_1.uncond_branch && id_packet_out_1.inst[6:0] == `RV32_JALR_OP && id_packet_out_1.valid),
+    		.is_branch_1(id_packet_out_1.cond_branch && id_packet_out_1.valid),
+    		.is_jump_1(id_packet_out_1.uncond_branch && id_packet_out_1.inst[6:0] == `RV32_JAL_OP && id_packet_out_1.valid),
+
+    		.PC_in_0(id_packet_out_0.PC),
+    		.PC_plus_4_0(id_packet_out_0.NPC),
+
+			.PC_in_1(id_packet_out_1.PC),
+    		.PC_plus_4_1(id_packet_out_1.NPC),
 
     		.ex_result_valid_0(rob_id_0.result_valid),
     		.ex_branch_taken_0(rob_id_0.branch_taken),
@@ -170,10 +177,13 @@ module dispatch_stage_2 (
 
 
     		//OUTPUT
-			.dirp_tag(id_packet_out.dirp_tag),
-    		.branch_predict(id_packet_out.take_branch),
-    		.NPC_out(NPC_out)
-    		//.ras_full(ras_full)
+			.dirp_tag_0(id_packet_out_0.dirp_tag),
+    		.branch_predict_0(id_packet_out_0.take_branch),
+    		.NPC_out_0(NPC_out_0),
+
+			.dirp_tag_1(id_packet_out_1.dirp_tag),
+    		.branch_predict_1(id_packet_out_1.take_branch),
+    		.NPC_out_1(NPC_out_1)
 		);
 		`ifdef DEBUG
 		logic [31:0] cycle_count;

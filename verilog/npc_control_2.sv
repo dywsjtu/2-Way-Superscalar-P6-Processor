@@ -20,6 +20,7 @@ module npc_control_2 (
     input is_return_0,
     input is_branch_0,
     input is_jump_0,
+    
     input is_return_1,
     input is_branch_1,
     input is_jump_1,
@@ -52,8 +53,6 @@ module npc_control_2 (
     output logic [`DIRP_IDX_LEN-1:0] dirp_tag_1,
     output logic branch_predict_1,
     output logic [`XLEN-1:0] NPC_out_1
-
-
 );
     logic [`XLEN-1:0] PC_btb_out_0, PC_btb_out_1, PC_ras_out;
     logic btb_hit_0, btb_hit_1, ras_valid, branch_taken_0, branch_taken_1;
@@ -61,10 +60,6 @@ module npc_control_2 (
 	assign branch_predict_0 = branch_taken_0 && btb_hit_0;
     assign branch_predict_1 = branch_taken_1 && btb_hit_1;
 
-    // assign NPC_out_0 = (is_return_0 && ras_valid) ? PC_ras_out :
-    //                  branch_predict_0? PC_btb_out_0 : PC_plus_4_0;
-    // assign NPC_out_1 = (~is_return_0 && is_return_1 && ras_valid) ? PC_ras_out :
-    //                  branch_predict_1? PC_btb_out_1 : PC_plus_4_1;
     assign NPC_out_0 = (is_return_0 && ras_valid) ? PC_ras_out :
                      ((is_jump_0 && btb_hit_0) ||branch_predict_0) ? PC_btb_out_0 : PC_plus_4_0;
     assign NPC_out_1 = (~is_return_0 && is_return_1 && ras_valid) ? PC_ras_out :
@@ -108,15 +103,16 @@ module npc_control_2 (
         .read_en_1(is_branch_1 || is_jump_1),
         .PC_in_r_1(PC_in_1),
 
-        //Write into BTB
-        .write_en_0(ex_is_branch_0 && ex_result_valid_0),       
-        .targetPC_in_0(ex_result_0),
-        .PC_in_w_0(PC_ex_0),
-        .write_en_1(ex_is_branch_1 && ex_result_valid_1),       
-        .targetPC_in_1(ex_result_1),
-        .PC_in_w_1(PC_ex_1),
+         //Write into BTB
+        .write_en_0(fu_id_0.is_valid && fu_id_0.is_branch),       
+        .targetPC_in_0(fu_id_0.targetPC),
+        .PC_in_w_0(fu_id_0.PC),
 
-    //OUTPUT
+        .write_en_1(fu_id_1.is_valid && fu_id_1.is_branch),       
+        .targetPC_in_1(fu_id_1.targetPC),
+        .PC_in_w_1(fu_id_1.PC),
+
+        //OUTPUT
         .targetPC_out_0(PC_btb_out_0),
         .hit_0(btb_hit_0),
         .targetPC_out_1(PC_btb_out_1),

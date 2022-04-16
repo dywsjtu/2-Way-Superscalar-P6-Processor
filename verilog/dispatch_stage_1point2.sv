@@ -136,7 +136,6 @@ module dispatch_stage_1point2 (
 	//Branch predictor
 	`ifdef BRANCH_MODE
 		logic ras_full;
-		//logic [4:0] ex_dirp_tag;
 		npc_control_1point2 npc_control_0(
     		//INPUT
     		.clock(clock),
