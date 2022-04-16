@@ -82,6 +82,7 @@ module fu_beq(
 	assign fu_rs.alu_result	 = alu_result;
 	assign fu_rs.PC 		 = working_id_fu.PC;
 	assign fu_rs.is_branch	 = working_id_fu.uncond_branch || working_id_fu.cond_branch ; 
+	assign fu_rs.cond_branch = ~(working_id_fu.opa_select == OPA_IS_RS1);
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin

@@ -385,12 +385,12 @@ module rs_1point5 (
     assign rs_cdb_1.branch_target     = fu_rs[fu_num_1].take_branch ? fu_rs[fu_num_1].alu_result : fu_rs[fu_num_1].NPC;
 
 
-    assign fu_id_0.is_branch          = fu_rs[fu_num_0].is_branch;
+    assign fu_id_0.is_branch          = fu_rs[fu_num_0].cond_branch;
     assign fu_id_0.is_valid           = fu_result_valid[fu_num_0];
     assign fu_id_0.PC                 = fu_rs[fu_num_0].PC;
     assign fu_id_0.targetPC           = fu_rs[fu_num_0].alu_result;
 
-    assign fu_id_1.is_branch          = fu_rs[fu_num_1].is_branch;
+    assign fu_id_1.is_branch          = fu_rs[fu_num_1].cond_branch;
     assign fu_id_1.is_valid           = fu_result_valid[fu_num_1];
     assign fu_id_1.PC                 = fu_rs[fu_num_1].PC;
     assign fu_id_1.targetPC           = fu_rs[fu_num_1].alu_result;

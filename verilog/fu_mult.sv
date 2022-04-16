@@ -63,6 +63,7 @@ module fu_mult(
 	 // ultimate "take branch" signal:
 	 //	unconditional, or conditional and the condition is true
 	assign fu_rs.take_branch = 1'b0;
+	assign fu_rs.cond_branch = 1'b0;
 	assign fu_rs.alu_result	 = alu_result;
 	assign fu_rs.PC 		 = working_id_fu.PC;
 	assign fu_rs.is_branch	 = 1'b0; 

@@ -654,6 +654,7 @@ typedef struct packed {
 	logic 	[`XLEN-1:0]		PC;
 	logic 					is_branch;
 	logic					take_branch; // is this a taken branch?
+	logic  					cond_branch;
 	//pass throughs from decode stage
 	logic	[`XLEN-1:0]		rs2_value;
 	logic					rd_mem, wr_mem;
