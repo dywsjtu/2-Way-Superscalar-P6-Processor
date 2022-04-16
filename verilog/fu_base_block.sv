@@ -120,7 +120,6 @@ module brcond (// Inputs
 		end
 	end
 endmodule // brcond
-`endif // __FU_BASE_BLOCK__
 
 //
 // The MLU
@@ -129,7 +128,7 @@ endmodule // brcond
 //
 // This module is purely combinational
 //
-module mlu (
+module mlu #(parameter NUM_STAGE = 4) (
 	input							clock,
 	input							reset,
 
@@ -142,43 +141,79 @@ module mlu (
     output logic                    valid,
 	output logic    [`XLEN-1:0]     result
 );
-	
-	logic			[2*`XLEN-1:0]		out_result;
+	logic 			[2*`XLEN-1:0]	mcand_out, mplier_out, mcand_in, mplier_in;
+	logic			[2*`XLEN-1:0]	product_out, product_in;
+	logic			[2:0]			step_counter;
 
 	logic [1:0] sign;
 	always_comb begin
 		case (func)
-			ALU_MUL:      sign = 2'b11;
-			ALU_MULH:     sign = 2'b11;
 			ALU_MULHSU:   sign = 2'b01;
 			ALU_MULHU:    sign = 2'b00;
-
-			default:      sign = 2'b11;  // here to prevent latches
+			default:      sign = 2'b11;
 		endcase
 	end
 
 	always_comb begin
 		case (func)
-			ALU_MUL:      result = out_result[`XLEN-1:0];
-			ALU_MULH:     result = out_result[2*`XLEN-1:`XLEN];
-			ALU_MULHSU:   result = out_result[2*`XLEN-1:`XLEN];
-			ALU_MULHU:    result = out_result[2*`XLEN-1:`XLEN];
-
-			default:      result = `XLEN'h0;  // here to prevent latches
+			ALU_MUL:      result = product_out[`XLEN-1:0];
+			default:      result = product_out[2*`XLEN-1:`XLEN];
 		endcase
 	end
 
-	mult mult_0 (
-		.clock(clock),
-		.reset(reset || refresh),
-		.start(val_valid),
-		.sign(sign),
-		.mcand(opa),
-		.mplier(opb),
-
-		.product(out_result),
-		.done(valid)
+	mult_stage #(.NUM_STAGE(NUM_STAGE)) mstage (
+		.mplier_in(mplier_in),
+		.mcand_in(mcand_in),
+		.product_in(product_in),
+		.mplier_out(mplier_out),
+		.mcand_out(mcand_out),
+		.product_out(product_out)
 	);
 
+	always_ff @(posedge clock) begin
+		if (reset || ~val_valid) begin
+			mcand_in  		<= `SD 64'b0;
+			mplier_in 		<= `SD 64'b0;
+			product_in		<= `SD 64'b0;
+			step_counter	<= `SD 3'b0;
+			valid			<= `SD 1'b0;
+		end else if (refresh) begin
+			mcand_in  		<= `SD sign[0] ? {{`XLEN{opa[`XLEN-1]}}, opa} : {{`XLEN{1'b0}}, opa};
+			mplier_in 		<= `SD sign[1] ? {{`XLEN{opb[`XLEN-1]}}, opb} : {{`XLEN{1'b0}}, opb};
+			product_in		<= `SD 64'b0;
+			step_counter	<= `SD 3'b0;
+			valid			<= `SD 1'b0;
+		end else begin
+			if (step_counter == (NUM_STAGE)) begin
+				valid			<= `SD 1'b1;
+			end else begin
+				mcand_in  		<= `SD mcand_out;
+				mplier_in 		<= `SD mplier_out;
+				product_in		<= `SD product_out;
+				step_counter	<= `SD step_counter + 1;
+				valid			<= `SD 1'b0;
+			end
+		end
+	end
 
 endmodule // mlu
+
+module mult_stage #(parameter NUM_STAGE = 4) (
+	input [(2*`XLEN)-1:0] mplier_in, mcand_in,
+	input [(2*`XLEN)-1:0] product_in,
+
+	output logic [(2*`XLEN)-1:0] mplier_out, mcand_out,
+	output logic [(2*`XLEN)-1:0] product_out
+);
+	logic [(2*`XLEN)-1:0] partial_prod;
+	parameter NUM_BITS = (2*`XLEN)/NUM_STAGE;
+
+	assign product_out = product_in + partial_prod;
+	assign partial_prod = mplier_in[(NUM_BITS-1):0] * mcand_in;
+
+	assign mplier_out = {{(NUM_BITS){1'b0}},mplier_in[2*`XLEN-1:(NUM_BITS)]};
+	assign mcand_out  = {mcand_in[(2*`XLEN-1-NUM_BITS):0],{(NUM_BITS){1'b0}}};
+
+endmodule
+
+`endif // __FU_BASE_BLOCK__
