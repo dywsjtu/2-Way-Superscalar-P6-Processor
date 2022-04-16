@@ -58,7 +58,7 @@ module rob_1point8 (
     // logic                           valid_0, valid_1;
 
     assign rob_empty                = (rob_counter == `ROB_IDX_LEN'b0);
-    assign rob_full                 = (rob_counter == `ROB_SIZE) && (rob_head == rob_tail);
+    assign rob_full                 = ((rob_counter == `ROB_SIZE) && (rob_head == rob_tail)) || rob_icache.early_branch_valid;
     assign valid                    = id_rob.dispatch_enable && id_rob.valid;
     assign halt                     = rob_entries[rob_head].halt;
 
@@ -135,20 +135,20 @@ module rob_1point8 (
             for (int i = 0; i < `ROB_SIZE; i += 1) begin
                 if (~rob_icache.early_branch_valid && i >= rob_head && i < rob_tail &&
                     rob_entries[i].ready && rob_entries[i].mis_pred) begin
-                    rob_icache = {1'b1, rob_entries[i].branch_targe};
+                    rob_icache = {1'b1, rob_entries[i].branch_target[15:3]};
                 end
             end
         end else if (~rob_empty) begin
             for (int i = 0; i < `ROB_SIZE; i += 1) begin
                 if (~rob_icache.early_branch_valid && i >= rob_head &&
                     rob_entries[i].ready && rob_entries[i].mis_pred) begin
-                    rob_icache = {1'b1, rob_entries[i].branch_targe};
+                    rob_icache = {1'b1, rob_entries[i].branch_target[15:3]};
                 end
             end
             for (int i = 0; i < `ROB_SIZE; i += 1) begin
                 if (~rob_icache.early_branch_valid && i < rob_tail &&
                     rob_entries[i].ready && rob_entries[i].mis_pred) begin
-                    rob_icache = {1'b1, rob_entries[i].branch_targe};
+                    rob_icache = {1'b1, rob_entries[i].branch_target[15:3]};
                 end
             end
         end

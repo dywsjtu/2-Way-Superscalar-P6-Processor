@@ -578,7 +578,7 @@ typedef struct packed {
 
 typedef struct packed {
 	logic						early_branch_valid;
-	logic [`XLEN-1:0]			early_branch_target;
+	logic [12:0]					early_branch_target;
 } ROB_ICACHE_PACKET;
 
 typedef struct packed {
