@@ -577,6 +577,11 @@ typedef struct packed {
 } ID_RS_PACKET;
 
 typedef struct packed {
+	logic						early_branch_valid;
+	logic [`XLEN-1:0]			early_branch_target;
+} ROB_ICACHE_PACKET;
+
+typedef struct packed {
 	logic [`ROB_IDX_LEN:0] 					tag;
 	logic [`XLEN-1:0]						V;
 	logic 									V_ready;

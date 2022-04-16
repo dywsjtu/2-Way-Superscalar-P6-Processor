@@ -38,7 +38,8 @@ module rob_2 (
     output  ROB_MT_PACKET           rob_mt_1,
     output  ROB_REG_PACKET          rob_reg_0,
     output  ROB_REG_PACKET          rob_reg_1,
-    output  ROB_LSQ_PACKET          rob_lsq
+    output  ROB_LSQ_PACKET          rob_lsq,
+    output  ROB_ICACHE_PACKET       rob_icache
     // output  logic                   sq_retire
 );  
     logic       [`ROB_IDX_LEN-1:0]  rob_head;
@@ -134,6 +135,30 @@ module rob_2 (
     assign rob_reg_1.dest_value     = rob_entries[rob_head_plus_1].value;
     assign rob_reg_1.OLD_PC_p_4     = rob_entries[rob_head_plus_1].PC + 4;
 
+    always_comb begin
+        rob_icache.early_branch_valid = 1'b0;
+        if (rob_head < rob_tail) begin
+            for (int i = 0; i < `ROB_SIZE; i += 1) begin
+                if (~rob_icache.early_branch_valid && i >= rob_head && i < rob_tail &&
+                    rob_entries[i].ready && rob_entries[i].mis_pred) begin
+                    rob_icache = {1'b1, rob_entries[i].branch_targe};
+                end
+            end
+        end else if (~rob_empty) begin
+            for (int i = 0; i < `ROB_SIZE; i += 1) begin
+                if (~rob_icache.early_branch_valid && i >= rob_head &&
+                    rob_entries[i].ready && rob_entries[i].mis_pred) begin
+                    rob_icache = {1'b1, rob_entries[i].branch_targe};
+                end
+            end
+            for (int i = 0; i < `ROB_SIZE; i += 1) begin
+                if (~rob_icache.early_branch_valid && i < rob_tail &&
+                    rob_entries[i].ready && rob_entries[i].mis_pred) begin
+                    rob_icache = {1'b1, rob_entries[i].branch_targe};
+                end
+            end
+        end
+    end
 
     always_comb begin
         next_rob_head = rob_head;

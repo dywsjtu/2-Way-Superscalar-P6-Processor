@@ -4,24 +4,26 @@
 `define ICACHE_LINES_L2         16
 `define ICACHE_LINE_BITS_L2     $clog2(`ICACHE_LINES_L2)
 `define ICACHE_LINE_SIZE_L2     2
-`define ICACHE_FETCH_SIZE_L2    4
+`define ICACHE_FETCH_SIZE_L2    5
 
 module icache_l2 (
-    input clock,
-    input reset,
-    input squash,
+    input                       clock,
+    input                       reset,
+    input                       squash,
 
-    input [3:0]  Imem2proc_response,
-    input [63:0] Imem2proc_data,
-    input [3:0]  Imem2proc_tag,
+    input   [3:0]               Imem2proc_response,
+    input   [63:0]              Imem2proc_data,
+    input   [3:0]               Imem2proc_tag,
 
-    input [`XLEN-1:0] proc2Icache_addr,
+    input   [`XLEN-1:0]         proc2Icache_addr,
 
-    output logic [1:0] proc2Imem_command,
-    output logic [`XLEN-1:0] proc2Imem_addr,
+    input   ROB_ICACHE_PACKET   rob_icache,
 
-    output logic [63:0] Icache_data_out, // value is memory[proc2Icache_addr]
-    output logic Icache_valid_out      // when this is high
+    output  logic [1:0]         proc2Imem_command,
+    output  logic [`XLEN-1:0]   proc2Imem_addr,
+
+    output  logic [63:0]        Icache_data_out, // value is memory[proc2Icache_addr]
+    output  logic               Icache_valid_out      // when this is high
 );
     logic   [`ICACHE_LINE_BITS_L2 - 1:0]      current_index, last_index;
     logic   [12 - `ICACHE_LINE_BITS_L2:0]     current_tag, last_tag;
@@ -54,8 +56,18 @@ module icache_l2 (
     logic   [`ICACHE_FETCH_SIZE_L2-1:0]           tag_match;
 
     always_comb begin
-        for (int i = 0; i < `ICACHE_FETCH_SIZE_L2; i += 1) begin
-            mem_addr[i]     = proc2Icache_addr[15:3] + i;
+        mem_addr[0]     = proc2Icache_addr[15:3] + i;
+        mem_tag[0]      = 4'b0;
+        for (int j = 0; j < `ICACHE_FETCH_SIZE_L2; j += 1) begin
+            if (mem_addr[0] == last_mem_addr[j]) begin
+                mem_tag[0] = last_mem_tag[j];
+            end
+        end
+        not_in_cache[0] = (~valids[0][mem_addr[0][`ICACHE_LINE_BITS_L2-1:0]] || ~(tags[0][mem_addr[0][`ICACHE_LINE_BITS_L2-1:0]] == mem_addr[0][12:`ICACHE_LINE_BITS_L2])) &&
+                        (~valids[1][mem_addr[0][`ICACHE_LINE_BITS_L2-1:0]] || ~(tags[1][mem_addr[0][`ICACHE_LINE_BITS_L2-1:0]] == mem_addr[0][12:`ICACHE_LINE_BITS_L2]));
+        to_fetch[0]     = not_in_cache[i] && (mem_tag[i] == 4'b0);
+        for (int i = 1; i < `ICACHE_FETCH_SIZE_L2; i += 1) begin
+            mem_addr[i]     = rob_icache.early_branch_valid ? (rob_icache.early_branch_target + i - 1) : (proc2Icache_addr[15:3] + i);
             mem_tag[i]      = 4'b0;
             for (int j = 0; j < `ICACHE_FETCH_SIZE_L2; j += 1) begin
                 if (mem_addr[i] == last_mem_addr[j]) begin

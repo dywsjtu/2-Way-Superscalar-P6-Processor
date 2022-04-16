@@ -38,8 +38,6 @@ module pipeline (
 	output logic [`XLEN-1:0] id_ex_NPC,
 	output logic [31:0] id_ex_IR,
 	output logic        id_ex_valid_inst
-	
-
 );
 //////////////////////////////////////////////////
 //                                              //
@@ -592,6 +590,7 @@ module pipeline (
 	ROB_ID_PACKET       rob_id_1;
 	ROB_LSQ_PACKET		rob_lsq;
 	LSQ_ROB_PACKET		lsq_rob;
+	ROB_ICACHE_PACKET	rob_icache;
 
 	REG_RS_PACKET       reg_rs_0;
 	REG_RS_PACKET       reg_rs_1;
@@ -659,6 +658,8 @@ module pipeline (
 	    .Imem2proc_tag(mem2proc_tag),
 
 	    .proc2Icache_addr(proc2Icache_addr),
+
+		.rob_icache(rob_icache),
 
 		// output
     	.proc2Imem_command(proc2Imem_command),
@@ -1020,7 +1021,8 @@ module pipeline (
 		.rob_mt_1(rob_mt_1),
 		.rob_reg_0(rob_reg_0),
 		.rob_reg_1(rob_reg_1),
-		.rob_lsq(rob_lsq)
+		.rob_lsq(rob_lsq),
+		.rob_icache(rob_icache)
 		// .sq_retire(sq_retire)
 	);
 
