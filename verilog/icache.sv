@@ -1,3 +1,5 @@
+`ifndef SS_2
+
 `define CACHE_LINES     32
 `define CACHE_LINE_BITS $clog2(`CACHE_LINES)
 `define FETCH_SIZE      4
@@ -190,3 +192,5 @@ module icache(
     end
     `endif
 endmodule
+
+`endif

@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  reservation station;                                // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifdef SS_1
 
 //`define DEBUG
 `ifndef __RS_V__
@@ -499,3 +499,5 @@ module rs (
 
 endmodule
 `endif // `__RS_V__
+
+`endif

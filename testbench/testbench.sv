@@ -11,7 +11,7 @@
 `timescale 1ns/100ps
 
 import "DPI-C" function void print_header(string str);
-`ifdef SS_1POINT5
+`ifdef SS_2
 `else
 import "DPI-C" function void print_cycles();
 import "DPI-C" function void print_stage(string div, int inst, int npc, int valid_inst);
@@ -44,7 +44,7 @@ module testbench;
 	logic  [3:0] pipeline_completed_insts;
 	EXCEPTION_CODE   pipeline_error_status;
 
-`ifdef SS_1POINT5
+`ifdef SS_2
 	logic	[4:0] 			pipeline_commit_wr_idx_0;
 	logic	[`XLEN-1:0] 	pipeline_commit_wr_data_0;
 	logic        			pipeline_commit_wr_en_0;
@@ -58,7 +58,6 @@ module testbench;
 	logic [`XLEN-1:0] pipeline_commit_wr_data;
 	logic        pipeline_commit_wr_en;
 	logic [`XLEN-1:0] pipeline_commit_NPC;
-`endif
 	
 	// logic [`XLEN-1:0] if_NPC_out;
 	// logic [31:0] if_IR_out;
@@ -75,6 +74,7 @@ module testbench;
 	// logic [`XLEN-1:0] mem_wb_NPC;
 	// logic [31:0] mem_wb_IR;
 	// logic        mem_wb_valid_inst;
+`endif
 
     //counter used for when pipeline infinite loops, forces termination
     logic [63:0] debug_counter;
@@ -99,7 +99,7 @@ module testbench;
 		.pipeline_completed_insts(pipeline_completed_insts),
 		.pipeline_error_status(pipeline_error_status),
 
-`ifdef SS_1POINT5
+`ifdef SS_2
 		.pipeline_commit_wr_data_0(pipeline_commit_wr_data_0),
 		.pipeline_commit_wr_idx_0(pipeline_commit_wr_idx_0),
 		.pipeline_commit_wr_en_0(pipeline_commit_wr_en_0),
@@ -107,13 +107,12 @@ module testbench;
 		.pipeline_commit_wr_data_1(pipeline_commit_wr_data_1),
 		.pipeline_commit_wr_idx_1(pipeline_commit_wr_idx_1),
 		.pipeline_commit_wr_en_1(pipeline_commit_wr_en_1),
-		.pipeline_commit_NPC_1(pipeline_commit_NPC_1),
+		.pipeline_commit_NPC_1(pipeline_commit_NPC_1)
 `else
-		.pipeline_commit_wr_data(pipeline_commit_wr_data),
+		, .pipeline_commit_wr_data(pipeline_commit_wr_data),
 		.pipeline_commit_wr_idx(pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en(pipeline_commit_wr_en),
 		.pipeline_commit_NPC(pipeline_commit_NPC),
-`endif
 		
 		// .if_NPC_out(if_NPC_out),
 		// .if_IR_out(if_IR_out),
@@ -131,6 +130,7 @@ module testbench;
 		// .mem_wb_NPC(mem_wb_NPC),
 		// .mem_wb_IR(mem_wb_IR),
 		// .mem_wb_valid_inst(mem_wb_valid_inst)
+`endif
 	);
 	
 	
@@ -248,7 +248,7 @@ module testbench;
 			`SD;
 			`SD;
 
-`ifdef SS_1POINT5
+`ifdef SS_2
 			// print the writeback information to writeback.out
 			if (pipeline_completed_insts > 0) begin
 				if(pipeline_commit_wr_en_0)

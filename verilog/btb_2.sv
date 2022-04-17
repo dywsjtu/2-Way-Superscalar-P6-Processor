@@ -38,7 +38,7 @@ module btb_2 (
     output logic                    hit_1 //if the targetPC is valid
 );
     //Directed mapped
-   logic [`BTB_SIZE-1:0][`XLEN-1:0]             btb_addr;
+   logic [`BTB_SIZE-1:0][13:0]                  btb_addr;
    logic [`BTB_SIZE-1:0]                        btb_valid;
    logic [`BTB_SIZE-1:0][13-`BTB_IDX_LEN:0]     btb_tags;
 
@@ -53,10 +53,10 @@ module btb_2 (
    assign {current_tag_w_1,current_idx_w_1} = PC_in_w_1[15:2];
 
    assign targetPC_out_0 = (read_en_0 && btb_valid[current_idx_r_0] && btb_tags[current_idx_r_0]==current_tag_r_0) ? 
-                            btb_addr[current_idx_r_0] : 32'b0;
+                            {16'b0, btb_addr[current_idx_r_0], 2'b0} : 32'b0;
    assign hit_0 = read_en_0 && btb_valid[current_idx_r_0] && btb_tags[current_idx_r_0]==current_tag_r_0;
    assign targetPC_out_1 = (read_en_1 && btb_valid[current_idx_r_1] && btb_tags[current_idx_r_1]==current_tag_r_1) ? 
-                            btb_addr[current_idx_r_1] : 32'b0;
+                            {16'b0, btb_addr[current_idx_r_1], 2'b0} : 32'b0;
    assign hit_1 = read_en_1 && btb_valid[current_idx_r_1] && btb_tags[current_idx_r_1]==current_tag_r_1;
 
 
@@ -68,12 +68,12 @@ module btb_2 (
            btb_tags     <= `SD 0;
        end else begin
            if (write_en_0) begin
-               btb_addr[current_idx_w_0]      <= `SD targetPC_in_0;
+               btb_addr[current_idx_w_0]      <= `SD targetPC_in_0[15:2];
                btb_valid[current_idx_w_0]     <= `SD 1'b1;
                btb_tags[current_idx_w_0]      <= `SD current_tag_w_0;
            end
            if (write_en_1 && current_idx_w_1 != current_idx_w_0) begin
-               btb_addr[current_idx_w_1]      <= `SD targetPC_in_1;
+               btb_addr[current_idx_w_1]      <= `SD targetPC_in_1[15:2];
                btb_valid[current_idx_w_1]     <= `SD 1'b1;
                btb_tags[current_idx_w_1]      <= `SD current_tag_w_1;
            end

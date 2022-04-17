@@ -92,10 +92,10 @@ module lsq (
 
     // rps4_num lq_selector (
     //     .cnt(cnt),
-    //     .req({  lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[3].valid && ~lq_retire_valid[3],
-    //             lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[2].valid && ~lq_retire_valid[2],
-    //             lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[1].valid && ~lq_retire_valid[1],
-    //             lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[0].valid && ~lq_retire_valid[0]   }),
+    //     .req({  lq_entries[3].sq_pos ==`NO_SQ_POS && lq_entries[3].valid && ~lq_retire_valid[3],
+    //             lq_entries[2].sq_pos ==`NO_SQ_POS && lq_entries[2].valid && ~lq_retire_valid[2],
+    //             lq_entries[1].sq_pos ==`NO_SQ_POS && lq_entries[1].valid && ~lq_retire_valid[1],
+    //             lq_entries[0].sq_pos ==`NO_SQ_POS && lq_entries[0].valid && ~lq_retire_valid[0]   }),
     //     .en(1'b1),
     //     .num(next_lq_selection)
     // );
@@ -189,18 +189,18 @@ module lsq (
             next_lq_retire_valid[lq_selection]  = 1'b1;
             next_lq_value[lq_selection]         = dc_load_lsq.value;
             update_selection                    = 1'b1;
-        end else if (~(next_lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[lq_selection].valid && next_lq_entries[lq_selection].filled && ~next_lq_retire_valid[lq_selection])) begin
+        end else if (~(next_lq_entries[lq_selection].sq_pos ==`NO_SQ_POS && next_lq_entries[lq_selection].valid && next_lq_entries[lq_selection].filled && ~next_lq_retire_valid[lq_selection])) begin
             update_selection                    = 1'b1;
         end
 
         if (update_selection) begin
-            if          (next_lq_entries[3].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[3].valid && next_lq_entries[3].filled && ~next_lq_retire_valid[3]) begin
+            if          (next_lq_entries[3].sq_pos ==`NO_SQ_POS && next_lq_entries[3].valid && next_lq_entries[3].filled && ~next_lq_retire_valid[3]) begin
                 next_lq_selection = 2'b11;
-            end else if (next_lq_entries[2].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[2].valid && next_lq_entries[2].filled && ~next_lq_retire_valid[2]) begin
+            end else if (next_lq_entries[2].sq_pos ==`NO_SQ_POS && next_lq_entries[2].valid && next_lq_entries[2].filled && ~next_lq_retire_valid[2]) begin
                 next_lq_selection = 2'b10;
-            end else if (next_lq_entries[1].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[1].valid && next_lq_entries[1].filled && ~next_lq_retire_valid[1]) begin
+            end else if (next_lq_entries[1].sq_pos ==`NO_SQ_POS && next_lq_entries[1].valid && next_lq_entries[1].filled && ~next_lq_retire_valid[1]) begin
                 next_lq_selection = 2'b01;
-            end else if (next_lq_entries[0].sq_pos[`LSQ_IDX_LEN-1] && next_lq_entries[0].valid && next_lq_entries[0].filled && ~next_lq_retire_valid[0]) begin
+            end else if (next_lq_entries[0].sq_pos ==`NO_SQ_POS && next_lq_entries[0].valid && next_lq_entries[0].filled && ~next_lq_retire_valid[0]) begin
                 next_lq_selection = 2'b00;
             end
         end
@@ -305,14 +305,17 @@ module lsq (
     assign lsq_rs.sq_tail       =   sq_tail;
     assign lsq_rs.storeq_full   =   sq_counter == (`STORE_QUEUE_SIZE - 1);
 
-    assign lsq_load_dc  = { lq_entries[lq_selection].sq_pos[`LSQ_IDX_LEN-1] && lq_entries[lq_selection].valid && lq_entries[lq_selection].filled && ~lq_retire_valid[lq_selection],
+    assign lsq_load_dc  = { lq_entries[lq_selection].sq_pos ==`NO_SQ_POS && lq_entries[lq_selection].valid && lq_entries[lq_selection].filled && ~lq_retire_valid[lq_selection],
                             lq_entries[lq_selection].addr,
                             lq_entries[lq_selection].mem_size   };
     assign lsq_store_dc = { sq_valid[sq_head] && rob_lsq.sq_retire && ~lsq_rob.retire_valid,
                             sq_entries[sq_head].addr,
                             sq_entries[sq_head].mem_size,
-                            sq_value[sq_head],
-                            1'b0 };
+                            sq_value[sq_head]
+                            `ifndef SS_2
+                            , 1'b0 
+                            `endif
+                            };
 
     // // synopsys sync_set_reset "reset"
     // always_ff @(posedge clock) begin

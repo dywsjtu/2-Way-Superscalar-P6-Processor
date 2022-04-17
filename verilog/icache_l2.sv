@@ -1,10 +1,14 @@
 `ifndef __ICACHE_L2__
 `define __ICACHE_L2__
 
+`timescale 1ns/100ps
+
+
 `define ICACHE_LINES_L2         16
 `define ICACHE_LINE_BITS_L2     $clog2(`ICACHE_LINES_L2)
 `define ICACHE_LINE_SIZE_L2     2
-`define ICACHE_FETCH_SIZE_L2    4
+`define ICACHE_FETCH_SIZE_L2    7
+`define ICACHE_FETCH_IDX_L2     3
 
 module icache_l2 (
     input                       clock,
@@ -44,16 +48,16 @@ module icache_l2 (
     assign  Icache_valid_out =  match_0 || match_1;
 
 
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0]           not_in_cache;
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0]           to_fetch;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0]             not_in_cache;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0]             to_fetch;
 
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0][12:0]     mem_addr;
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0][3:0]      mem_tag;
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0][12:0]     last_mem_addr;
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0][3:0]      last_mem_tag;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0][12:0]       mem_addr;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0][3:0]        mem_tag;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0][12:0]       last_mem_addr;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0][3:0]        last_mem_tag;
 
-    logic   [$clog2(`ICACHE_FETCH_SIZE_L2)-1:0]   fetch_idx;
-    logic   [`ICACHE_FETCH_SIZE_L2-1:0]           tag_match;
+    logic   [`ICACHE_FETCH_IDX_L2-1:0]              fetch_idx;
+    logic   [`ICACHE_FETCH_SIZE_L2-1:0]             tag_match;
 
     always_comb begin
         mem_addr[0]     = proc2Icache_addr[15:3];
@@ -80,7 +84,7 @@ module icache_l2 (
         end
     end
 
-    inv_ps4_num fetch_selector (
+    inv_ps7_num fetch_selector (
         .req(to_fetch),
         .num(fetch_idx)
     );

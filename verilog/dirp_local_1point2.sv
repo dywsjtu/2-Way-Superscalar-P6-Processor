@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  branch predictor                                    // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifndef SS_2
 //`define DEBUG
 `ifndef __BR_PREDICTOR_LOCAL_1POINT2_V__
 `define __BR_PREDICTOR_LOCAL_1POINT2_V__
@@ -95,4 +95,5 @@ module dirp_local_1point2 (
 
 endmodule
 
+`endif
 `endif

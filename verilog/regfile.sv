@@ -6,6 +6,7 @@
 //                 WB Stages of the Pipeline.                          //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
+`ifndef SS_2
 
 `ifndef __REGFILE_V__
 `define __REGFILE_V__
@@ -77,3 +78,4 @@ module regfile(
 
 endmodule // regfile
 `endif //__REGFILE_V__
+`endif

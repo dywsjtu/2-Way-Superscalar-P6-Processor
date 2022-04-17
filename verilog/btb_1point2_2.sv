@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  branch target buffer;                               // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifndef SS_2
 //`define DEBUG
 `ifndef __BTB_1POINT2_2_V__
 `define __BTB_1POINT2_2_V__
@@ -127,4 +127,5 @@ module btb_1point2_2 (
    `endif
 
 endmodule
+`endif
 `endif

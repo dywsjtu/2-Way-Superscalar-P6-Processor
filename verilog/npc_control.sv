@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  npc predictor                                       // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifndef SS_2
 //`define DEBUG
 `ifndef __NPC_CONTROL_V__
 `define __NPC_CONTROL_V__
@@ -101,4 +101,5 @@ module npc_control (
     );
 
 endmodule
+`endif
 `endif

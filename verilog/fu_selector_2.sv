@@ -1,5 +1,8 @@
 // module for rs buffer
 
+`timescale 1ns/100ps
+
+
 // priority:    beq > mult > l&s > alu
 // FU_CAT = 4
 // NUM_ALU = 8

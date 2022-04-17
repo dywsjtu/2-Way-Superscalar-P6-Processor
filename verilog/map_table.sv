@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  map table;                                          // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifndef SS_2
 
 //`define DEBUG
 `ifndef __MAP_TABLE_V__
@@ -113,3 +113,4 @@ module map_table (
 endmodule
 
 `endif // `__MAP_TABLE_V__
+`endif

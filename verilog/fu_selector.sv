@@ -1,5 +1,5 @@
 // module for rs buffer
-
+`ifndef SS_2
 // priority:    beq > mult > l&s > alu
 // FU_CAT = 4
 // NUM_ALU = 8
@@ -134,3 +134,4 @@ module fu_selector (
     `endif
 
 endmodule
+`endif

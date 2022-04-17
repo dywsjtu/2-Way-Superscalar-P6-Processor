@@ -31,15 +31,16 @@
 `define PREFETCH_MODE
 `define BRANCH_MODE
 //`define SS_1
-`define SS_1POINT5
+//`define SS_1POINT5
+`define SS_2
 `define DIRP_IDX_LEN 5
 
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
 //you can change the clock period to whatever, 10 is just fine
-`define VERILOG_CLOCK_PERIOD   17.0
-`define SYNTH_CLOCK_PERIOD     17.0 // Clock period for synth and memory latency
+`define VERILOG_CLOCK_PERIOD   13.0
+`define SYNTH_CLOCK_PERIOD     13.0 // Clock period for synth and memory latency
 
 //`define MEM_LATENCY_IN_CYCLES 0.4
 `define MEM_LATENCY_IN_CYCLES (100.0/`SYNTH_CLOCK_PERIOD+0.49999)
@@ -85,17 +86,18 @@ typedef enum logic [3:0] {
 // MapTable parameters
 //
 //////////////////////////////////////////////
-`define ROB_SIZE 			16
+`define ROB_SIZE 			32
 `define REG_SIZE 			32
 `define ROB_IDX_LEN 		6
 `define ZERO_TAG 			6'b100000
 `define CDB_BUFFER_SIZE		2
 `define LOAD_QUEUE_SIZE		4
-`define STORE_QUEUE_SIZE	8
+`define STORE_QUEUE_SIZE	12
 `define LSQ_IDX_LEN			4
 `define CACHE_LINES     	32
 `define CACHE_IDX_LEN   	6
 `define MISS_LINES      	8
+`define NO_SQ_POS			`LSQ_IDX_LEN'b1111
 
 // `define SMALL_FU_OUT_TEST
 // `define FU_SIZE			4
@@ -658,7 +660,6 @@ typedef struct packed {
 	logic	[`LSQ_IDX_LEN-1:0]		sq_pos;
 } LOAD_QUEUE_ENTRY;
 //lq_entries[3].addr[`LSQ_IDX_LEN-1] && ~lq_retire_valid[3]
-`define NO_SQ_POS	`LSQ_IDX_LEN'b1111
 
 typedef struct packed {
 	logic	[`XLEN-1:0]				addr;
@@ -709,7 +710,9 @@ typedef struct packed {
 	logic	[`XLEN-1:0]				addr;
 	MEM_SIZE						mem_size; // byte, half-word or word	
 	logic	[`XLEN-1:0]				value;
+	`ifndef SS_2
 	logic							halt;
+	`endif
 } LSQ_STORE_DCACHE_PACKET;
 
 typedef struct packed {
@@ -719,18 +722,24 @@ typedef struct packed {
 
 typedef struct packed {
 	logic							valid;
+	`ifndef SS_2
 	logic							halt_valid;
+	`endif
 } DCACHE_STORE_LSQ_PACKET;
 
 
 typedef struct packed {
 	logic			sq_retire;
+	`ifndef SS_2
 	logic			sq_halt;
+	`endif
 } ROB_LSQ_PACKET;
 
 typedef struct packed {
 	logic			retire_valid;
+	`ifndef SS_2
 	logic			halt_valid;
+	`endif
 } LSQ_ROB_PACKET;
 
 typedef struct packed {

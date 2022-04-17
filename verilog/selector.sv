@@ -33,6 +33,39 @@ module inv_ps4_num (
     assign num[0] = ~req[0] && ((~req[2] && req[3]) || req[1]);
 endmodule
 
+module inv_ps6_num (
+    input        [5:0] req,
+    output logic [2:0] num
+);
+    logic [5:0] gnt;
+    assign gnt[0] =  req[0];
+    assign gnt[1] = ~req[0] &&  req[1];
+    assign gnt[2] = ~req[0] && ~req[1] &&  req[2];
+    assign gnt[3] = ~req[0] && ~req[1] && ~req[2] &&  req[3];
+    assign gnt[4] = ~req[0] && ~req[1] && ~req[2] && ~req[3] &&  req[4];
+    assign gnt[5] = ~req[0] && ~req[1] && ~req[2] && ~req[3] && ~req[4] &&  req[5];
+    assign num[2] = gnt[5] || gnt[4];
+    assign num[1] = gnt[3] || gnt[2];
+    assign num[0] = gnt[5] || gnt[3] || gnt[1];
+endmodule
+
+module inv_ps7_num (
+    input        [6:0] req,
+    output logic [2:0] num
+);
+    logic [6:0] gnt;
+    assign gnt[0] =  req[0];
+    assign gnt[1] = ~req[0] &&  req[1];
+    assign gnt[2] = ~req[0] && ~req[1] &&  req[2];
+    assign gnt[3] = ~req[0] && ~req[1] && ~req[2] &&  req[3];
+    assign gnt[4] = ~req[0] && ~req[1] && ~req[2] && ~req[3] &&  req[4];
+    assign gnt[5] = ~req[0] && ~req[1] && ~req[2] && ~req[3] && ~req[4] &&  req[5];
+    assign gnt[6] = ~req[0] && ~req[1] && ~req[2] && ~req[3] && ~req[4] && ~req[5] &&  req[6];
+    assign num[2] = gnt[6] || gnt[5] || gnt[4];
+    assign num[1] = gnt[6] || gnt[3] || gnt[2];
+    assign num[0] = gnt[5] || gnt[3] || gnt[1];
+endmodule
+
 module counter2(
     input              clock,
     input              reset,

@@ -60,16 +60,16 @@ module rob_2 (
     logic                           valid_0, valid_1;
 
     assign rob_empty                = (rob_counter == `ROB_IDX_LEN'b0);
-    assign rob_full_0               = ((rob_counter == `ROB_SIZE) && (rob_head == rob_tail)) || rob_icache.early_branch_valid;
-    assign rob_full_1               = rob_full_0 || (rob_counter == `ROB_SIZE-1) && (rob_head_plus_1 == rob_tail);
+    assign rob_full_0               = (rob_counter == (`ROB_SIZE)) || rob_icache.early_branch_valid;
+    assign rob_full_1               = rob_full_0 || (rob_counter == (`ROB_SIZE - 1));
 
     assign halt                     = rob_entries[rob_head].halt;
     
     assign valid_0                  = id_rob_0.dispatch_enable && id_rob_0.valid;
     assign valid_1                  = valid_0 && id_rob_1.dispatch_enable && id_rob_1.valid;
 
-    assign rob_head_plus_1          = (rob_head == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0 : rob_head + 1;
-    assign rob_tail_plus_1          = (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0 : rob_tail + 1;
+    assign rob_head_plus_1          = (rob_head == (`ROB_SIZE - 1)) ? `ROB_IDX_LEN'b0 : rob_head + 1;
+    assign rob_tail_plus_1          = (rob_tail == (`ROB_SIZE - 1)) ? `ROB_IDX_LEN'b0 : rob_tail + 1;
 
     assign retire_valid_0           = rob_entries[rob_head].ready && (~rob_empty) && 
                                       (~rob_entries[rob_head].store || lsq_rob.retire_valid);
@@ -136,7 +136,7 @@ module rob_2 (
     assign rob_reg_1.OLD_PC_p_4     = rob_entries[rob_head_plus_1].PC + 4;
 
     always_comb begin
-        rob_icache.early_branch_valid = 1'b0;
+        rob_icache = 0;
         if (rob_head < rob_tail) begin
             for (int i = 0; i < `ROB_SIZE; i += 1) begin
                 if (~rob_icache.early_branch_valid && i >= rob_head && i < rob_tail &&
@@ -166,43 +166,17 @@ module rob_2 (
         next_rob_counter = rob_counter;
         next_rob_entries = rob_entries;
 
-        if (valid_0) begin
-            next_rob_entries[rob_tail].valid            = 1'b1;
-            next_rob_entries[rob_tail].NPC_out          = id_rob_0.NPC_out;
-            next_rob_entries[rob_tail].PC               = id_rob_0.PC;
-            next_rob_entries[rob_tail].ready            = 1'b0;
-            next_rob_entries[rob_tail].dest_reg_idx     = id_rob_0.dest_reg_idx;
-            next_rob_entries[rob_tail].value            = `XLEN'b0;
-            next_rob_entries[rob_tail].store            = id_rob_0.store;
-            next_rob_entries[rob_tail].is_branch        = id_rob_0.is_branch;
-            next_rob_entries[rob_tail].mis_pred         = 1'b0;
-            next_rob_entries[rob_tail].branch_target    = `XLEN'b0;
-            next_rob_entries[rob_tail].take_branch      = id_rob_0.take_branch;
-            next_rob_entries[rob_tail].halt             = id_rob_0.halt;
-            next_rob_tail                               = (rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0 : rob_tail + 1;
-            `ifdef BRANCH_MODE
-                next_rob_entries[rob_tail].dirp_tag     = id_rob_0.dirp_tag;
-            `endif
-            next_rob_counter                            = next_rob_counter + 1;
+        if (cdb_rob_0.valid && rob_entries[cdb_rob_0.tag].valid) begin
+            next_rob_entries[cdb_rob_0.tag].ready           = 1'b1;
+            next_rob_entries[cdb_rob_0.tag].value           = cdb_rob_0.value;
+            next_rob_entries[cdb_rob_0.tag].mis_pred        = ~(next_rob_entries[cdb_rob_0.tag].take_branch == cdb_rob_0.take_branch);
+            next_rob_entries[cdb_rob_0.tag].branch_target   = cdb_rob_0.branch_target;
         end
-        if (valid_1) begin
-            next_rob_entries[rob_tail].valid            = 1'b1;
-            next_rob_entries[rob_tail].NPC_out          = id_rob_1.NPC_out;
-            next_rob_entries[rob_tail].PC               = id_rob_1.PC;
-            next_rob_entries[rob_tail].ready            = 1'b0;
-            next_rob_entries[rob_tail].dest_reg_idx     = id_rob_1.dest_reg_idx;
-            next_rob_entries[rob_tail].value            = `XLEN'b0;
-            next_rob_entries[rob_tail].store            = id_rob_1.store;
-            next_rob_entries[rob_tail].is_branch        = id_rob_1.is_branch;
-            next_rob_entries[rob_tail].mis_pred         = 1'b0;
-            next_rob_entries[rob_tail].branch_target    = `XLEN'b0;
-            next_rob_entries[rob_tail].take_branch      = id_rob_1.take_branch;
-            next_rob_entries[rob_tail].halt             = id_rob_1.halt;
-            next_rob_tail                               = (next_rob_tail == `ROB_SIZE - 1) ? `ROB_IDX_LEN'b0 : next_rob_tail + 1;
-            `ifdef BRANCH_MODE
-                next_rob_entries[rob_tail].dirp_tag     = id_rob_1.dirp_tag;
-            `endif
-            next_rob_counter                            = next_rob_counter + 1;
+        if (cdb_rob_1.valid && rob_entries[cdb_rob_1.tag].valid) begin
+            next_rob_entries[cdb_rob_1.tag].ready           = 1'b1;
+            next_rob_entries[cdb_rob_1.tag].value           = cdb_rob_1.value;
+            next_rob_entries[cdb_rob_1.tag].mis_pred        = ~(next_rob_entries[cdb_rob_1.tag].take_branch == cdb_rob_1.take_branch);
+            next_rob_entries[cdb_rob_1.tag].branch_target   = cdb_rob_1.branch_target;
         end
 
         if (retire_valid_0) begin
@@ -216,19 +190,45 @@ module rob_2 (
             next_rob_counter                            = next_rob_counter - 1;
         end
 
-        if (cdb_rob_0.valid && rob_entries[cdb_rob_0.tag].valid) begin
-            next_rob_entries[cdb_rob_0.tag].ready           = 1'b1;
-            next_rob_entries[cdb_rob_0.tag].value           = cdb_rob_0.value;
-            next_rob_entries[cdb_rob_0.tag].mis_pred        = ~(next_rob_entries[cdb_rob_0.tag].take_branch == cdb_rob_0.take_branch);
-            next_rob_entries[cdb_rob_0.tag].branch_target   = cdb_rob_0.branch_target;
+        if (valid_0) begin
+            next_rob_entries[next_rob_tail].valid            = 1'b1;
+            next_rob_entries[next_rob_tail].NPC_out          = id_rob_0.NPC_out;
+            next_rob_entries[next_rob_tail].PC               = id_rob_0.PC;
+            next_rob_entries[next_rob_tail].ready            = 1'b0;
+            next_rob_entries[next_rob_tail].dest_reg_idx     = id_rob_0.dest_reg_idx;
+            next_rob_entries[next_rob_tail].value            = `XLEN'b0;
+            next_rob_entries[next_rob_tail].store            = id_rob_0.store;
+            next_rob_entries[next_rob_tail].is_branch        = id_rob_0.is_branch;
+            next_rob_entries[next_rob_tail].mis_pred         = 1'b0;
+            next_rob_entries[next_rob_tail].branch_target    = `XLEN'b0;
+            next_rob_entries[next_rob_tail].take_branch      = id_rob_0.take_branch;
+            next_rob_entries[next_rob_tail].halt             = id_rob_0.halt;
+            `ifdef BRANCH_MODE
+                next_rob_entries[next_rob_tail].dirp_tag     = id_rob_0.dirp_tag;
+            `endif
+            next_rob_tail                               = (next_rob_tail == (`ROB_SIZE - 1)) ? `ROB_IDX_LEN'b0 : next_rob_tail + 1;
+            next_rob_counter                            = next_rob_counter + 1;
+        end
+        if (valid_1) begin
+            next_rob_entries[next_rob_tail].valid            = 1'b1;
+            next_rob_entries[next_rob_tail].NPC_out          = id_rob_1.NPC_out;
+            next_rob_entries[next_rob_tail].PC               = id_rob_1.PC;
+            next_rob_entries[next_rob_tail].ready            = 1'b0;
+            next_rob_entries[next_rob_tail].dest_reg_idx     = id_rob_1.dest_reg_idx;
+            next_rob_entries[next_rob_tail].value            = `XLEN'b0;
+            next_rob_entries[next_rob_tail].store            = id_rob_1.store;
+            next_rob_entries[next_rob_tail].is_branch        = id_rob_1.is_branch;
+            next_rob_entries[next_rob_tail].mis_pred         = 1'b0;
+            next_rob_entries[next_rob_tail].branch_target    = `XLEN'b0;
+            next_rob_entries[next_rob_tail].take_branch      = id_rob_1.take_branch;
+            next_rob_entries[next_rob_tail].halt             = id_rob_1.halt;
+            `ifdef BRANCH_MODE
+                next_rob_entries[next_rob_tail].dirp_tag     = id_rob_1.dirp_tag;
+            `endif
+            next_rob_tail                               = (next_rob_tail == (`ROB_SIZE - 1)) ? `ROB_IDX_LEN'b0 : next_rob_tail + 1;
+            next_rob_counter                            = next_rob_counter + 1;
         end
 
-        if (cdb_rob_1.valid && rob_entries[cdb_rob_1.tag].valid) begin
-            next_rob_entries[cdb_rob_1.tag].ready           = 1'b1;
-            next_rob_entries[cdb_rob_1.tag].value           = cdb_rob_1.value;
-            next_rob_entries[cdb_rob_1.tag].mis_pred        = ~(next_rob_entries[cdb_rob_1.tag].take_branch == cdb_rob_1.take_branch);
-            next_rob_entries[cdb_rob_1.tag].branch_target   = cdb_rob_1.branch_target;
-        end
     end
     
     // synopsys sync_set_reset "reset"

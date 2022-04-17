@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  reorder buffer;                                     // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifdef SS_1POINT5
 
 //`define DEBUG
 `ifndef __ROB_1point5_V__
@@ -167,3 +167,5 @@ module rob_1point5 (
 endmodule
 
 `endif // `__ROB_1point5_V__
+
+`endif

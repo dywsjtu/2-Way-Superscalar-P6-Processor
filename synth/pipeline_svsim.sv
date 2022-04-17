@@ -8,9 +8,8 @@
 // For simulation only. Do not modify.
 
 module pipeline_svsim (
-
-	input         clock,                    	input         reset,                    	input [3:0]   mem2proc_response,        	input [63:0]  mem2proc_data,            	input [3:0]   mem2proc_tag,              	
-	output logic [1:0]  proc2mem_command,    	output logic [32-1:0] proc2mem_addr,      	output logic [63:0] proc2mem_data,      	 
+	input         				clock,                    	input         				reset,                    	input [3:0]   				mem2proc_response,        	input [63:0]  				mem2proc_data,            	input [3:0]   				mem2proc_tag,              	
+	output logic [1:0]  		proc2mem_command,    	output logic [32-1:0] 	proc2mem_addr,      	output logic [63:0] 		proc2mem_data,      	 
 	output logic [3:0]  		pipeline_completed_insts,
 	output EXCEPTION_CODE   	pipeline_error_status,
 	output logic [4:0]  		pipeline_commit_wr_idx_0,
@@ -20,11 +19,7 @@ module pipeline_svsim (
 	output logic [4:0]  		pipeline_commit_wr_idx_1,
 	output logic [32-1:0] 	pipeline_commit_wr_data_1,
 	output logic        		pipeline_commit_wr_en_1,
-	output logic [32-1:0] 	pipeline_commit_NPC_1,
-	output logic [32-1:0] 	id_ex_NPC,
-	output logic [31:0] 		id_ex_IR,
-	output logic        		id_ex_valid_inst
-	
+	output logic [32-1:0] 	pipeline_commit_NPC_1	
 );
 
 
@@ -37,7 +32,6 @@ module pipeline_svsim (
         {>>{ pipeline_commit_wr_idx_0 }}, {>>{ pipeline_commit_wr_data_0 }}, 
         {>>{ pipeline_commit_wr_en_0 }}, {>>{ pipeline_commit_NPC_0 }}, 
         {>>{ pipeline_commit_wr_idx_1 }}, {>>{ pipeline_commit_wr_data_1 }}, 
-        {>>{ pipeline_commit_wr_en_1 }}, {>>{ pipeline_commit_NPC_1 }}, 
-        {>>{ id_ex_NPC }}, {>>{ id_ex_IR }}, {>>{ id_ex_valid_inst }} );
+        {>>{ pipeline_commit_wr_en_1 }}, {>>{ pipeline_commit_NPC_1 }} );
 endmodule
 `endif

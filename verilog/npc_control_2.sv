@@ -61,9 +61,9 @@ module npc_control_2 (
     assign branch_predict_1 = branch_taken_1 && btb_hit_1;
 
     assign NPC_out_0 = (is_return_0 && ras_valid) ? PC_ras_out :
-                     ((is_jump_0 && btb_hit_0) ||branch_predict_0) ? PC_btb_out_0 : PC_plus_4_0;
+                       ((is_jump_0 && btb_hit_0) ||branch_predict_0) ? PC_btb_out_0 : PC_plus_4_0;
     assign NPC_out_1 = (~is_return_0 && is_return_1 && ras_valid) ? PC_ras_out :
-                     ((is_jump_1 && btb_hit_1) ||branch_predict_1) ? PC_btb_out_1 : PC_plus_4_1;
+                       ((is_jump_1 && btb_hit_1) ||branch_predict_1) ? PC_btb_out_1 : PC_plus_4_1;
                      
 	
     //Branch Predictor

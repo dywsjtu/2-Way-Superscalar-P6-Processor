@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  common data bus;                                          // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifndef SS_2
 
 //`define DEBUG
 `ifndef __CDB_V__
@@ -55,3 +55,4 @@ module cdb (
     
 endmodule
 `endif // `__CDB_V__
+`endif

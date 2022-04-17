@@ -4,7 +4,7 @@
 //                                                                     //
 //  Description :  data cache;                                         // 
 /////////////////////////////////////////////////////////////////////////
-
+`ifndef SS_2
 `ifndef __DCACHE_V__
 `define __DCACHE_V__
 
@@ -284,3 +284,4 @@ module dcache (
 endmodule
 
 `endif //__DCACHE_V__
+`endif

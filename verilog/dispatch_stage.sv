@@ -8,6 +8,8 @@
 //                                                                     //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
+`ifndef SS_2
+
 `timescale 1ns/100ps
 
 
@@ -224,3 +226,4 @@ module dispatch_stage(
 	end  // always
 
 endmodule // module dispatch_stage
+`endif
