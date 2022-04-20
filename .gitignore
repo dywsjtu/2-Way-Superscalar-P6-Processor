@@ -44,3 +44,4 @@ syn_simv.vdb
 output/*
 testout.txt
 CPI_result.txt
+.DS_Store
