@@ -31,3 +31,7 @@ sh test.sh syn      # to test synthsis
 * Synthesized clock period: 11ns
 * Average CPI: 2.23
 * #total cycles / #total instructions: 1.44
+
+
+## Pipeline performance compared with peer
+<img src="figures/rank.png" alt="Pipeline performance compared with peer">
